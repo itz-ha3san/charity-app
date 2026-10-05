@@ -1,0 +1,204 @@
+/* Input, Label, and Field design system adapted from the supplied React component. */
+:root {
+  --field-height: 40px;
+  --field-radius: 10px;
+  --field-background: #fff;
+  --field-foreground: #1e293b;
+  --field-placeholder: rgba(100,116,139,.72);
+  --field-muted: #64748b;
+  --field-border: #dce3ec;
+  --field-ring: rgba(39,131,222,.36);
+  --field-destructive: #cf5147;
+  --field-shadow: 0 1px 2px rgba(15,23,42,.04), 0 2px 7px rgba(15,23,42,.025);
+  --field-motion: 160ms;
+  --field-ease: cubic-bezier(.2,.8,.2,1);
+}
+
+/* Standalone input. The existing form selectors keep all current fields consistent. */
+.input,
+.field input,
+.form-field input,
+.family-toolbar input,
+.archive-reason {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--field-height);
+  padding: 0 12px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--field-radius);
+  color: var(--field-foreground);
+  background: var(--field-background);
+  box-shadow: var(--field-shadow);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: border-color var(--field-motion) var(--field-ease),
+              box-shadow var(--field-motion) var(--field-ease),
+              background-color var(--field-motion) var(--field-ease),
+              opacity var(--field-motion) var(--field-ease);
+}
+
+.input::placeholder,
+.field input::placeholder,
+.form-field input::placeholder,
+.family-toolbar input::placeholder,
+.archive-reason::placeholder { color: var(--field-placeholder); }
+
+.input:focus-visible,
+.field input:focus-visible,
+.form-field input:focus-visible,
+.family-toolbar input:focus-visible,
+.archive-reason:focus-visible {
+  outline: 0;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--field-ring), var(--field-shadow);
+}
+
+.input:disabled,
+.field input:disabled,
+.form-field input:disabled,
+.family-toolbar input:disabled,
+.archive-reason:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.input[aria-invalid="true"],
+.field input[aria-invalid="true"],
+.form-field input[aria-invalid="true"],
+.family-toolbar input[aria-invalid="true"],
+.archive-reason[aria-invalid="true"] { border-color: color-mix(in srgb, var(--field-destructive) 60%, transparent); }
+
+.input[aria-invalid="true"]:focus-visible,
+.field input[aria-invalid="true"]:focus-visible,
+.form-field input[aria-invalid="true"]:focus-visible,
+.family-toolbar input[aria-invalid="true"]:focus-visible,
+.archive-reason[aria-invalid="true"]:focus-visible {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--field-destructive) 35%, transparent), var(--field-shadow);
+}
+
+/* Grouped input with inline-start and/or inline-end addons.
+   Put dir="ltr" on .input-group for phone numbers and codes. */
+.input-group {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--field-height);
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--field-radius);
+  color: var(--field-foreground);
+  background: var(--field-background);
+  box-shadow: var(--field-shadow);
+  font-size: 14px;
+  transition: border-color var(--field-motion) var(--field-ease),
+              box-shadow var(--field-motion) var(--field-ease),
+              background-color var(--field-motion) var(--field-ease);
+}
+
+.input-group:focus-within {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--field-ring), var(--field-shadow);
+}
+
+.input-group[aria-invalid="true"],
+.input-group:has(.input-control[aria-invalid="true"]) {
+  border-color: color-mix(in srgb, var(--field-destructive) 60%, transparent);
+}
+
+.input-group[aria-invalid="true"]:focus-within,
+.input-group:has(.input-control[aria-invalid="true"]):focus-within {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--field-destructive) 35%, transparent), var(--field-shadow);
+}
+
+.input-control {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: calc(var(--field-height) - 2px);
+  padding: 0;
+  border: 0;
+  outline: 0;
+  color: inherit;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  font-size: 14px;
+}
+.input-control::placeholder { color: var(--field-placeholder); }
+.input-control:disabled { opacity: .5; cursor: not-allowed; }
+.input-addon { flex: 0 0 auto; color: var(--field-muted); white-space: nowrap; }
+.input-addon svg { width: 16px; height: 16px; display: block; }
+
+/* Label + control composition. */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label,
+.field label,
+.form-field label {
+  color: color-mix(in srgb, var(--field-foreground) 90%, transparent);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.field-hint,
+.form-help {
+  margin: 0;
+  color: var(--field-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.field-error,
+.message.error {
+  margin: 0;
+  color: var(--field-destructive);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.field-error-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Textareas retain their useful vertical padding. */
+textarea.input,
+.archive-reason {
+  min-height: 88px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  resize: vertical;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --field-background: #191e24;
+    --field-foreground: #fff;
+    --field-placeholder: rgba(255,255,255,.45);
+    --field-muted: rgba(255,255,255,.65);
+    --field-border: rgba(255,255,255,.18);
+    --field-ring: rgba(94,159,232,.5);
+    --field-destructive: #e97366;
+    --field-shadow: 0 1px 2px rgba(0,0,0,.18), 0 3px 9px rgba(0,0,0,.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input,
+  .input-group,
+  .field input,
+  .form-field input,
+  .family-toolbar input,
+  .archive-reason { transition: none; }
+}

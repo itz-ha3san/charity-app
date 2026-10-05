@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS funds(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text UNIQUE NOT NULL,description text NOT NULL DEFAULT '',active boolean NOT NULL DEFAULT true,created_by uuid REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS fund_budgets(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),fund_id uuid NOT NULL REFERENCES funds(id) ON DELETE CASCADE,jalali_year int NOT NULL CHECK(jalali_year>=1300),jalali_month int NOT NULL CHECK(jalali_month BETWEEN 1 AND 12),amount bigint NOT NULL CHECK(amount>=0),created_by uuid REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now(),UNIQUE(fund_id,jalali_year,jalali_month));
+ALTER TABLE financial_cases ADD COLUMN IF NOT EXISTS approved_by uuid REFERENCES users(id);
+ALTER TABLE financial_cases ADD COLUMN IF NOT EXISTS approved_at timestamptz;
+ALTER TABLE financial_cases ADD COLUMN IF NOT EXISTS referred_at timestamptz;
+ALTER TABLE financial_cases ADD COLUMN IF NOT EXISTS rejected_by uuid REFERENCES users(id);
+ALTER TABLE financial_cases ADD COLUMN IF NOT EXISTS rejected_at timestamptz;
+ALTER TABLE financial_cases ADD COLUMN IF NOT EXISTS rejection_reason text;
+CREATE TABLE IF NOT EXISTS financial_payments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),financial_case_id uuid UNIQUE NOT NULL REFERENCES financial_cases(id) ON DELETE CASCADE,fund_id uuid NOT NULL REFERENCES funds(id),amount bigint NOT NULL CHECK(amount>0),jalali_year int NOT NULL CHECK(jalali_year>=1300),jalali_month int NOT NULL CHECK(jalali_month BETWEEN 1 AND 12),paid_at date NOT NULL,reference_no text NOT NULL,note text NOT NULL DEFAULT '',receipt_file_name text,receipt_mime_type text CHECK(receipt_mime_type IS NULL OR receipt_mime_type IN ('application/pdf','image/jpeg','image/png','image/webp')),receipt_data bytea,receipt_size_bytes int CHECK(receipt_size_bytes IS NULL OR receipt_size_bytes BETWEEN 1 AND 8388608),created_by uuid REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS fund_budgets_period_idx ON fund_budgets(jalali_year,jalali_month);
+CREATE INDEX IF NOT EXISTS financial_payments_fund_period_idx ON financial_payments(fund_id,jalali_year,jalali_month);
+CREATE INDEX IF NOT EXISTS financial_cases_status_idx ON financial_cases(status,created_at DESC);

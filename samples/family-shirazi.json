@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "families-v3",
+  "recordType": "family",
+  "families": [
+    {
+      "id": "family-shirazi",
+      "caseNumber": "001",
+      "familySurname": "شیرازی",
+      "headName": "فریده شیرازی‌پور",
+      "headRelation": "مادربزرگ",
+      "headNationalId": "0053858182",
+      "headBirthDate": "1343/03/01",
+      "headPhone": "09198291307",
+      "familyPhone": "09198291307",
+      "headEducation": {
+        "level": "کلاس نهم متوسطه اول",
+        "description": "سیکل",
+        "field": "",
+        "universityTerm": "",
+        "grades": []
+      },
+      "headJob": "خانه‌دار",
+      "incomeDescription": "خانه‌دار؛ درآمد مستقلی برای اعضا اعلام نشده است.",
+      "insurance": {
+        "type": "بیمه سلامت",
+        "cost": null,
+        "renewalDate": null
+      },
+      "medical": {
+        "hasCondition": false,
+        "description": "بیماری یا هزینه درمانی اعلام نشده است.",
+        "monthlyCost": 0
+      },
+      "members": [
+        {
+          "id": "member-yasna-dehghani",
+          "name": "یسنا دهقانی",
+          "relation": "نوه",
+          "nationalId": "4121328353",
+          "birthDate": "1390/10/13",
+          "education": {
+            "level": "کلاس نهم متوسطه اول",
+            "description": "پایه نهم (متوسطه اول)",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "محصل"
+        },
+        {
+          "id": "member-fatemeh-zahra-dehghani",
+          "name": "فاطمه زهرا دهقانی",
+          "relation": "نوه",
+          "nationalId": "0315960396",
+          "birthDate": "1394/01/20",
+          "education": {
+            "level": "کلاس پنجم ابتدایی",
+            "description": "پایه پنجم ابتدایی",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "محصل"
+        }
+      ],
+      "housingType": "rent",
+      "housing": {
+        "type": "استیجاری",
+        "deposit": 250000000,
+        "monthlyRent": 6000000,
+        "address": "اندیشه، فاز دو، میدان مادر، بلوار نیایش، مجتمع فرهنگیان، نیایش سوم، بلوک A19، طبقه سوم، واحد ۱۲"
+      },
+      "address": "اندیشه، فاز دو، میدان مادر، بلوار نیایش، مجتمع فرهنگیان، نیایش سوم، بلوک A19، طبقه سوم، واحد ۱۲",
+      "housingDeposit": 250000000,
+      "housingRent": 6000000,
+      "debt": {
+        "amount": 50000000,
+        "reason": "مسکن"
+      },
+      "transportationCost": 0,
+      "utilityCost": 0,
+      "monthlyInstallments": 0,
+      "monthlyAid": 0,
+      "monthlyAidHistory": [],
+      "caseItems": [],
+      "notesHistory": [
+        {
+          "id": "note-shirazi-initial",
+          "text": "بدهی ۵۰ میلیون تومان بابت مسکن؛ هزینه رفت‌وآمد، قبوض و اقساط ماهیانه ندارند.",
+          "status": "ارائه نشده",
+          "institutionNote": ""
+        }
+      ],
+      "notes": "بیماری و هزینه درمانی ندارند. شغل/درآمد اعلام‌شده: خانه‌دار. بدهی ۵۰ میلیون تومان بابت مسکن. هزینه رفت‌وآمد، قبوض و اقساط ماهیانه ندارند.",
+      "priority": "متوسط",
+      "nextFollowUp": "",
+      "sponsor": "",
+      "archived": false,
+      "documents": []
+    }
+  ]
+}

@@ -1,0 +1,387 @@
+/* Interaction layer adapted from the requested React components. */
+@property --beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes interaction-beam {
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
+@keyframes interaction-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes interaction-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes interaction-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.interaction-scroll-progress {
+  --scroll-progress: 0;
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 700;
+  height: 3px;
+  pointer-events: none;
+}
+
+.interaction-scroll-progress > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0 0 0 3px;
+  background: var(--blue);
+  transform: scaleX(var(--scroll-progress));
+  transform-origin: right;
+}
+
+body:has(#auth:not(.hidden)) .interaction-scroll-progress {
+  display: none;
+}
+
+.ui-segment[data-animated-tabs="true"] {
+  --tab-count: 3;
+  --tab-index: 0;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.ui-segment[data-animated-tabs="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 2px;
+  inset-inline-start: calc(
+    2px + var(--tab-index) * (100% - 4px) / var(--tab-count)
+  );
+  z-index: 0;
+  width: calc((100% - 4px) / var(--tab-count));
+  border-radius: 8px;
+  background: var(--text);
+  transition: inset-inline-start 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ui-segment[data-animated-tabs="true"] button {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  color: var(--muted);
+  transition: color 300ms ease;
+}
+
+.ui-segment[data-animated-tabs="true"] button[aria-selected="true"] {
+  background: transparent;
+  box-shadow: none;
+  color: var(--surface);
+  font-weight: 800;
+}
+
+.interaction-border-beam {
+  position: relative;
+  isolation: isolate;
+  border-color: transparent;
+}
+
+.interaction-border-beam::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -2;
+  border-radius: 13px;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0 78%,
+    color-mix(in srgb, var(--blue) 75%, white) 92%,
+    transparent 100%
+  );
+  animation: interaction-beam 5s linear infinite;
+}
+
+.interaction-border-beam::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.interaction-reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 650ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
+    transform 650ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+}
+
+.interaction-reveal.interaction-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.interaction-morph-button {
+  display: inline-grid !important;
+  min-width: 118px;
+  overflow: hidden;
+}
+
+.interaction-morph-button > span {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  opacity: 0;
+  transform: translateY(7px);
+  pointer-events: none;
+  transition:
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.interaction-morph-button[data-phase="idle"] > [data-phase="idle"],
+.interaction-morph-button[data-phase="loading"] > [data-phase="loading"],
+.interaction-morph-button[data-phase="done"] > [data-phase="done"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.interaction-morph-button[data-phase="done"] {
+  border-color: color-mix(in srgb, var(--green) 45%, var(--border));
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.interaction-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: interaction-spin 700ms linear infinite;
+}
+
+.interaction-mini-check {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
+  font-size: 11px;
+  font-style: normal;
+  animation: interaction-pop 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.interaction-success-check {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  overflow: visible;
+  animation: interaction-pop 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.interaction-success-check circle {
+  fill: var(--green-soft);
+  stroke: var(--green);
+  stroke-width: 2;
+}
+
+.interaction-success-check path {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: interaction-draw 450ms ease-out 250ms forwards;
+}
+
+.interaction-pin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 3px;
+  align-items: center;
+  will-change: transform;
+}
+
+.interaction-pin-row > .ui-sidebar-item {
+  min-width: 0;
+}
+
+.interaction-pin-toggle {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  opacity: 0;
+  transition:
+    opacity 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.interaction-pin-toggle svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.interaction-pin-row:hover .interaction-pin-toggle,
+.interaction-pin-toggle:focus-visible,
+.interaction-pin-toggle[aria-pressed="true"] {
+  opacity: 1;
+}
+
+.interaction-pin-toggle:hover,
+.interaction-pin-toggle[aria-pressed="true"] {
+  background: var(--blue-soft);
+  color: var(--blue-dark);
+}
+
+.interaction-pinned-group {
+  margin-bottom: 5px;
+  padding: 6px 0 8px;
+  border-top: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.interaction-pinned-label {
+  padding: 4px 9px 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.interaction-pinned-items {
+  display: grid;
+  gap: 2px;
+}
+
+.interaction-dock {
+  position: fixed;
+  right: auto;
+  left: 50%;
+  bottom: 18px;
+  z-index: 420;
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  height: 72px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(16px);
+  transform: translateX(-50%);
+}
+
+.interaction-dock button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: var(--soft);
+  color: var(--text);
+  transform-origin: bottom;
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 160ms ease;
+}
+
+.interaction-dock button:hover {
+  z-index: 1;
+  background: var(--blue-soft);
+  color: var(--blue-dark);
+  transform: scale(1.35);
+}
+
+.interaction-dock button:has(+ button:hover),
+.interaction-dock button:hover + button {
+  transform: scale(1.14);
+}
+
+.interaction-dock button > span {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+body:has(#auth:not(.hidden)) .interaction-dock {
+  display: none;
+}
+
+.workspace-dashboard {
+  padding-bottom: 88px;
+}
+
+@media (max-width: 720px) {
+  .interaction-dock {
+    bottom: 10px;
+    max-width: calc(100vw - 24px);
+    height: 62px;
+    padding: 7px 8px;
+  }
+
+  .interaction-dock button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .interaction-pin-toggle {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-segment[data-animated-tabs="true"]::before,
+  .interaction-reveal,
+  .interaction-morph-button > span,
+  .interaction-dock button {
+    transition: none;
+  }
+
+  .interaction-border-beam::before,
+  .interaction-spinner,
+  .interaction-mini-check,
+  .interaction-success-check,
+  .interaction-success-check path {
+    animation: none;
+  }
+
+  .interaction-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

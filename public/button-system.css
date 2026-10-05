@@ -1,0 +1,232 @@
+/* Button design system adapted from the supplied React/Tailwind component.
+   Existing application classes are mapped to variants so no behavior changes. */
+:root {
+  --button-radius: 10px;
+  --button-motion: 160ms;
+  --button-ease: cubic-bezier(.2,.8,.2,1);
+  --button-press: translateY(1px) scale(.99);
+  --button-shadow: 0 1px 2px rgba(15,23,42,.08), 0 4px 10px rgba(15,23,42,.06);
+  --button-shadow-press: 0 1px 2px rgba(15,23,42,.08);
+  --button-ring: rgba(39,131,222,.38);
+  --button-primary: #1e293b;
+  --button-primary-hover: #334155;
+  --button-primary-foreground: #fff;
+  --button-secondary: #eef2f7;
+  --button-secondary-hover: #e2e8f0;
+  --button-secondary-foreground: #243244;
+  --button-accent: #e7f1fc;
+  --button-accent-foreground: #176abd;
+  --button-brand: #2783de;
+  --button-brand-hover: #176abd;
+  --button-brand-foreground: #fff;
+  --button-destructive: #cf5147;
+  --button-destructive-hover: #b93f36;
+  --button-border: #dce3ec;
+}
+
+/* Base: equivalent to the shared class list in Button.tsx. */
+.btn,
+.primary,
+.secondary,
+.danger,
+.btn-default,
+.btn-secondary,
+.btn-outline,
+.btn-ghost,
+.btn-brand,
+.btn-destructive {
+  min-height: 40px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--button-radius);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--button-motion) var(--button-ease),
+              background-color var(--button-motion) var(--button-ease),
+              border-color var(--button-motion) var(--button-ease),
+              box-shadow var(--button-motion) var(--button-ease),
+              transform var(--button-motion) var(--button-ease),
+              opacity var(--button-motion) var(--button-ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:focus-visible,
+.primary:focus-visible,
+.secondary:focus-visible,
+.danger:focus-visible,
+.btn-default:focus-visible,
+.btn-secondary:focus-visible,
+.btn-outline:focus-visible,
+.btn-ghost:focus-visible,
+.btn-brand:focus-visible,
+.btn-destructive:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--button-ring);
+}
+
+.btn:active,
+.primary:active,
+.secondary:active,
+.danger:active,
+.btn-default:active,
+.btn-secondary:active,
+.btn-outline:active,
+.btn-ghost:active,
+.btn-brand:active,
+.btn-destructive:active {
+  transform: var(--button-press);
+  box-shadow: var(--button-shadow-press);
+}
+
+.btn:disabled,
+.primary:disabled,
+.secondary:disabled,
+.danger:disabled,
+.btn-default:disabled,
+.btn-secondary:disabled,
+.btn-outline:disabled,
+.btn-ghost:disabled,
+.btn-brand:disabled,
+.btn-destructive:disabled,
+.button-loading {
+  opacity: .5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.btn svg,
+.primary svg,
+.secondary svg,
+.danger svg,
+.btn-default svg,
+.btn-secondary svg,
+.btn-outline svg,
+.btn-ghost svg,
+.btn-brand svg,
+.btn-destructive svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  pointer-events: none;
+}
+
+/* Variants */
+.btn-default {
+  color: var(--button-primary-foreground);
+  background: var(--button-primary);
+  box-shadow: var(--button-shadow);
+}
+.btn-default:hover { background: var(--button-primary-hover); }
+
+.btn-secondary,
+.secondary {
+  color: var(--button-secondary-foreground);
+  background: var(--button-secondary);
+  border-color: var(--button-border);
+  box-shadow: var(--button-shadow);
+}
+.btn-secondary:hover,
+.secondary:hover { background: var(--button-secondary-hover); }
+
+.btn-outline {
+  color: var(--text);
+  background: transparent;
+  border-color: var(--button-border);
+  box-shadow: var(--button-shadow);
+}
+.btn-outline:hover {
+  color: var(--button-accent-foreground);
+  background: var(--button-accent);
+}
+
+.btn-ghost {
+  color: var(--text);
+  background: transparent;
+  box-shadow: none;
+}
+.btn-ghost:hover {
+  color: var(--button-accent-foreground);
+  background: var(--button-accent);
+}
+
+.btn-brand,
+.primary {
+  color: var(--button-brand-foreground);
+  background: var(--button-brand);
+  box-shadow: var(--button-shadow);
+}
+.btn-brand:hover,
+.primary:hover { background: var(--button-brand-hover); }
+
+.btn-destructive,
+.danger {
+  color: #fff;
+  background: var(--button-destructive);
+  box-shadow: var(--button-shadow);
+}
+.btn-destructive:hover,
+.danger:hover { background: var(--button-destructive-hover); }
+
+/* Sizes: use with any variant class. */
+.btn-sm { min-height: 32px; padding: 0 12px; gap: 6px; font-size: 13px; }
+.btn-md { min-height: 40px; padding: 0 16px; gap: 8px; font-size: 14px; }
+.btn-lg { min-height: 48px; padding: 0 24px; gap: 10px; font-size: 16px; }
+.btn-icon { width: 40px; min-width: 40px; min-height: 40px; padding: 0; }
+
+/* Existing icon/action controls mapped to icon/small button behavior. */
+.close-btn {
+  transition: color var(--button-motion) var(--button-ease),
+              background-color var(--button-motion) var(--button-ease),
+              border-color var(--button-motion) var(--button-ease),
+              box-shadow var(--button-motion) var(--button-ease),
+              transform var(--button-motion) var(--button-ease);
+}
+.close-btn:hover { color: var(--button-accent-foreground); background: var(--button-accent); }
+.close-btn:active { transform: var(--button-press); }
+.remove-member { min-height: 32px; font-size: 13px; font-weight: 700; transition: filter var(--button-motion) var(--button-ease), transform var(--button-motion) var(--button-ease); }
+.remove-member:hover { filter: brightness(.96); }
+.remove-member:active { transform: var(--button-press); }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --button-primary: #f8fafc;
+    --button-primary-hover: #e2e8f0;
+    --button-primary-foreground: #17202a;
+    --button-secondary: #2d3540;
+    --button-secondary-hover: #38424e;
+    --button-secondary-foreground: #f8fafc;
+    --button-accent: #213852;
+    --button-accent-foreground: #9bc8f5;
+    --button-brand: #4d92dd;
+    --button-brand-hover: #69a6e7;
+    --button-border: rgba(255,255,255,.18);
+    --button-ring: rgba(94,159,232,.5);
+    --button-shadow: 0 1px 2px rgba(0,0,0,.22), 0 5px 14px rgba(0,0,0,.18);
+    --button-shadow-press: 0 1px 2px rgba(0,0,0,.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .primary,
+  .secondary,
+  .danger,
+  .btn-default,
+  .btn-secondary,
+  .btn-outline,
+  .btn-ghost,
+  .btn-brand,
+  .btn-destructive,
+  .close-btn,
+  .remove-member { transition: none; }
+}

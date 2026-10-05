@@ -1,0 +1,99 @@
+/* Advanced controls: combobox, select, OTP, number, checkbox, radio and switch. */
+:root {
+  --control-popover: #fff;
+  --control-accent: #e7f1fc;
+  --control-accent-fg: #176abd;
+  --control-primary: #2783de;
+  --control-primary-fg: #fff;
+  --control-muted: #64748b;
+  --control-border: #dce3ec;
+  --control-shadow-lg: 0 18px 48px rgba(15,23,42,.16), 0 3px 12px rgba(15,23,42,.08);
+}
+
+/* Native select with an inline-end chevron. */
+.select-control { position: relative; min-width: 0; width: 100%; }
+.select-control select,
+.select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding-block: 0;
+  padding-inline: 12px 36px;
+  appearance: none;
+  border: 1px solid var(--field-border);
+  border-radius: var(--field-radius);
+  color: var(--field-foreground);
+  background: var(--field-background);
+  box-shadow: var(--field-shadow);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 160ms var(--field-ease), box-shadow 160ms var(--field-ease), background-color 160ms var(--field-ease);
+}
+.select-control select:focus-visible,
+.select:focus-visible { outline: 0; border-color: transparent; box-shadow: 0 0 0 2px var(--field-ring), var(--field-shadow); }
+.select-control select:disabled,
+.select:disabled { opacity: .5; cursor: not-allowed; }
+.select-chevron { position: absolute; inset-inline-end: 12px; top: 50%; width: 16px; height: 16px; translate: 0 -50%; color: var(--control-muted); pointer-events: none; }
+
+/* Accessible combobox with a portaled/fixed suggestion panel. */
+.combobox { position: relative; min-width: 0; width: 100%; }
+.combobox-frame { min-height: 40px; padding-inline: 12px 8px; display: flex; align-items: center; border: 1px solid var(--field-border); border-radius: var(--field-radius); color: var(--field-foreground); background: var(--field-background); box-shadow: var(--field-shadow); transition: border-color 160ms var(--field-ease), box-shadow 160ms var(--field-ease); }
+.combobox-frame:focus-within { border-color: transparent; box-shadow: 0 0 0 2px var(--field-ring), var(--field-shadow); }
+.combobox-input { width: 100%; min-width: 0; height: 38px; padding: 0; padding-inline-end: 4px; border: 0 !important; outline: 0; color: inherit; background: transparent !important; box-shadow: none !important; font: inherit; font-size: 14px; }
+.combobox-input::placeholder { color: var(--field-placeholder); }
+.combobox-chevron { width: 16px; height: 16px; flex: 0 0 16px; color: var(--control-muted); transition: transform 160ms var(--field-ease); }
+.combobox[data-open="true"] .combobox-chevron { transform: rotate(180deg); }
+.combobox-panel { position: fixed; z-index: 300; max-height: 224px; overflow: auto; margin: 0; padding: 4px; list-style: none; border: 1px solid var(--control-border); border-radius: 10px; color: var(--field-foreground); background: var(--control-popover); box-shadow: var(--control-shadow-lg); font-size: 14px; line-height: 1.7; animation: control-pop .14s var(--field-ease); }
+.combobox-option { padding: 8px 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 7px; cursor: pointer; }
+.combobox-option[data-active="true"] { color: var(--control-accent-fg); background: var(--control-accent); }
+.combobox-option mark { padding: 0; color: inherit; background: transparent; font-weight: 800; }
+.combobox-empty { padding: 10px; color: var(--control-muted); }
+.combobox-check { width: 14px; height: 14px; flex: 0 0 14px; }
+@keyframes control-pop { from { opacity: 0; transform: translateY(-4px) scale(.985); } }
+
+/* Numeric stepper; the plus button stays at inline-start in RTL. */
+.number-field { width: max-content; max-width: 100%; min-height: 40px; display: inline-flex; align-items: stretch; overflow: hidden; border: 1px solid var(--field-border); border-radius: var(--field-radius); color: var(--field-foreground); background: var(--field-background); box-shadow: var(--field-shadow); }
+.number-field:focus-within { border-color: transparent; box-shadow: 0 0 0 2px var(--field-ring), var(--field-shadow); }
+.number-field input[type="number"] { width: 88px; min-width: 56px; min-height: 38px; padding: 0 6px; border: 0 !important; border-inline: 1px solid var(--field-border) !important; border-radius: 0 !important; outline: 0; text-align: center; background: transparent !important; box-shadow: none !important; font-weight: 700; appearance: textfield; }
+.number-field input::-webkit-inner-spin-button { appearance: none; }
+.number-step { width: 40px; min-width: 40px; padding: 0; display: grid; place-items: center; border: 0; color: var(--control-muted); background: transparent; cursor: pointer; transition: color 160ms var(--field-ease), background-color 160ms var(--field-ease); }
+.number-step:hover { color: var(--field-foreground); background: var(--control-accent); }
+.number-step:disabled { opacity: .4; cursor: not-allowed; }
+.number-step svg { width: 16px; height: 16px; }
+
+/* OTP. JS helper: ControlSystem.createOtp(element, options). */
+.otp-field { display: inline-flex; gap: 6px; direction: ltr; }
+.otp-field[data-size="sm"] { gap: 4px; }
+.otp-box { width: 36px; height: 44px; padding: 0; border: 1px solid var(--field-border); border-radius: 7px; color: var(--field-foreground); background: var(--field-background); text-align: center; font-size: 16px; font-weight: 800; caret-color: transparent; box-shadow: var(--field-shadow); }
+.otp-field[data-size="sm"] .otp-box { width: 32px; height: 40px; font-size: 14px; }
+.otp-box:focus { outline: 0; border-color: color-mix(in srgb, var(--field-foreground) 60%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--field-foreground) 10%, transparent); }
+.otp-box:disabled { opacity: .5; }
+
+/* Native checkbox and radio styling retains form semantics and mobile behavior. */
+.checkbox-row,
+.radio-row { display: flex; align-items: flex-start; gap: 10px; color: var(--field-foreground); font-size: 14px; cursor: pointer; }
+.checkbox-row input,
+.radio-row input { width: 16px; height: 16px; min-height: 16px; margin: 3px 0 0; flex: 0 0 16px; accent-color: var(--control-primary); cursor: pointer; }
+.control-copy { display: block; min-width: 0; }
+.control-label { display: block; line-height: 1.45; font-weight: 600; }
+.control-description { display: block; margin-top: 2px; color: var(--control-muted); font-size: 12px; line-height: 1.55; }
+.checkbox-row:has(input:disabled), .radio-row:has(input:disabled) { opacity: .6; cursor: not-allowed; }
+.checkbox-group, .radio-group { display: grid; gap: 10px; }
+.radio-card { padding: 12px; border: 1px solid var(--control-border); border-radius: var(--button-radius); background: transparent; transition: border-color 160ms var(--field-ease), background-color 160ms var(--field-ease), transform 160ms var(--field-ease); }
+.radio-card:hover { background: color-mix(in srgb, var(--control-accent) 45%, transparent); }
+.radio-card:has(input:checked) { border-color: color-mix(in srgb, var(--field-foreground) 50%, transparent); background: color-mix(in srgb, var(--control-accent) 60%, transparent); }
+
+/* Switch; logical positioning is RTL aware. */
+.switch { position: relative; width: 44px; height: 24px; padding: 0; display: inline-flex; align-items: center; flex: 0 0 44px; border: 1px solid transparent; border-radius: 999px; background: var(--field-border); cursor: pointer; transition: background-color 160ms var(--field-ease), box-shadow 160ms var(--field-ease); }
+.switch[aria-checked="true"] { background: var(--control-primary); }
+.switch:focus-visible { outline: 0; box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--field-ring); }
+.switch:disabled { opacity: .5; cursor: not-allowed; }
+.switch-thumb { width: 20px; height: 20px; margin-inline-start: 2px; border-radius: 50%; background: var(--field-foreground); box-shadow: 0 2px 5px rgba(15,23,42,.2); transition: transform 160ms var(--field-ease), background-color 160ms var(--field-ease); }
+.switch[aria-checked="true"] .switch-thumb { background: var(--control-primary-fg); transform: translateX(-20px); }
+[dir="ltr"] .switch[aria-checked="true"] .switch-thumb { transform: translateX(20px); }
+
+@media (prefers-color-scheme: dark) {
+  :root { --control-popover:#252b33; --control-accent:#213852; --control-accent-fg:#9bc8f5; --control-primary:#5e9fe8; --control-primary-fg:#15202b; --control-muted:rgba(255,255,255,.65); --control-border:rgba(255,255,255,.18); --control-shadow-lg:0 20px 52px rgba(0,0,0,.42),0 4px 14px rgba(0,0,0,.24); }
+}
+@media (prefers-reduced-motion: reduce) { .combobox-panel { animation:none; } .combobox-chevron,.select-control select,.number-step,.radio-card,.switch,.switch-thumb { transition:none; } }

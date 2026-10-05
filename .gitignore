@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+# Production secrets and TLS material must never be committed
+.env.production
+.env.production.*
+deploy/certs/*.pem
