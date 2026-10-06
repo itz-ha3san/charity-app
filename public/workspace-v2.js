@@ -54,7 +54,7 @@
   const groups = [
     {
       title: "فضای کاری",
-      ids: ["advancedSearchBtn", "alertsBtn", "overdueBtn"],
+      ids: ["advancedSearchBtn", "overdueBtn"],
     },
     {
       title: "کارتابل‌ها",
@@ -207,20 +207,6 @@
     toggle.innerHTML = "<span></span><span></span><span></span>";
     toggle.onclick = openMobileNav;
     head.prepend(toggle);
-
-    const topbar = document.querySelector(".topbar");
-    if (topbar && !topbar.querySelector(".workspace-notification")) {
-      const notification = document.createElement("button");
-      notification.type = "button";
-      notification.className = "workspace-notification";
-      notification.setAttribute("aria-label", "مشاهده هشدارها");
-      notification.innerHTML =
-        '<span aria-hidden="true">!</span><i class="workspace-notification-dot"></i>';
-      notification.onclick = () =>
-        document.querySelector("#alertsBtn")?.click();
-      const secure = topbar.querySelector(".secure-chip");
-      secure?.before(notification);
-    }
   }
 
   function openMobileNav() {
@@ -239,11 +225,6 @@
     overlay.setAttribute("aria-label", "بستن منوی اصلی");
     overlay.onclick = closeMobileNav;
     document.body.append(overlay);
-  }
-
-  function actionButton(id, label, primary = false) {
-    if (!document.querySelector(`#${id}`)) return "";
-    return `<button type="button" class="${primary ? "primary" : "workspace-quick-action"}" data-workspace-action="${id}">${label}</button>`;
   }
 
   function createOverview(main) {
@@ -265,7 +246,7 @@
         </div>
         <div class="workspace-head-actions">
           <button class="workspace-refresh" type="button" aria-label="به‌روزرسانی نمای امروز">↻ <span>به‌روزرسانی</span></button>
-          ${actionButton("createBtn", "+ پرونده جدید", true)}
+          ${document.querySelector("#createBtn") ? '<button type="button" class="primary" data-workspace-action="createBtn">+ پرونده جدید</button>' : ""}
         </div>
       </div>
       <div class="workspace-metrics" aria-label="خلاصه وضعیت">
@@ -274,22 +255,11 @@
         <button class="workspace-metric" data-tone="orange" data-workspace-action="advancedSearchBtn"><span class="workspace-metric-icon">↑</span><span><small>موارد فوری</small><strong data-metric="urgent">—</strong></span></button>
         <button class="workspace-metric" data-tone="green" data-workspace-action="alertsBtn"><span class="workspace-metric-icon">●</span><span><small>هشدار خوانده‌نشده</small><strong data-metric="alerts">—</strong></span></button>
       </div>
-      <div class="workspace-focus-grid">
+      <div class="workspace-focus-grid workspace-focus-grid-single">
         <article class="workspace-focus-card">
           <div class="workspace-card-head"><div><span class="workspace-card-kicker">اولویت‌ها</span><h3>نیازمند توجه شما</h3></div><button type="button" data-workspace-action="alertsBtn">مشاهده همه</button></div>
           <div class="workspace-priority-list" data-priority-list>
             <div class="workspace-loading"><i></i><span>در حال دریافت وضعیت…</span></div>
-          </div>
-        </article>
-        <article class="workspace-focus-card">
-          <div class="workspace-card-head"><div><span class="workspace-card-kicker">دسترسی سریع</span><h3>شروع یک اقدام</h3></div></div>
-          <div class="workspace-quick-grid">
-            ${actionButton("advancedSearchBtn", "جست‌وجوی پرونده")}
-            ${actionButton("actionInboxBtn", "کارتابل اقدامات")}
-            ${actionButton("financialInboxBtn", "کارتابل مالی")}
-            ${actionButton("supervisionInboxBtn", "کارتابل سرپرستی")}
-            ${actionButton("specialistInboxBtn", "کارتابل تخصصی")}
-            ${actionButton("dashboardReportBtn", "گزارش‌ها")}
           </div>
         </article>
       </div>
@@ -348,9 +318,6 @@
       urgent: data.urgent,
       alerts: alertData.unread,
     };
-    document
-      .querySelector(".workspace-notification-dot")
-      ?.classList.toggle("hidden", !alertData.unread);
     Object.entries(values).forEach(([key, value]) => {
       const node = root.querySelector(`[data-metric="${key}"]`);
       if (node) node.textContent = value === undefined ? "—" : fa(value);

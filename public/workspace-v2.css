@@ -866,3 +866,8 @@ body.workspace-nav-open {
 .workspace-nav-group-title {
   align-items: center;
 }
+
+/* Hide alerts from the sidebar menu; button is still used by dashboard hooks */
+.workspace-dashboard .ui-sidebar-item#alertsBtn {
+  display: none !important;
+}

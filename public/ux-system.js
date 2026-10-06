@@ -9,9 +9,98 @@ let tid=0,toasts=[];function toast({title,description='',variant='default',actio
 function alert(root,variant='info'){root.classList.add('ui-alert');root.dataset.variant=variant;if(variant==='destructive')root.setAttribute('role','alert');else root.setAttribute('role','status');return root}
 function table(el){if(el.dataset.uiTable)return;el.dataset.uiTable='1';el.classList.add('ui-table');if(!el.parentElement.classList.contains('ui-table-wrap')){const w=document.createElement('div');w.className='ui-table-wrap';el.parentNode.insertBefore(w,el);w.append(el)}return el}
 function sidebar(nav){if(!nav||nav.dataset.uiSidebar)return;nav.dataset.uiSidebar='1';nav.classList.add('ui-sidebar-source');const layout=document.createElement('div');layout.className='dashboard-layout';const aside=document.createElement('aside');aside.className='ui-sidebar';aside.innerHTML='<div class="ui-sidebar-head"><b>مرکز عملیات</b><span>دسترسی سریع به بخش‌های سامانه</span></div><nav class="ui-sidebar-nav"></nav><div class="ui-sidebar-footer">برای جست‌وجوی سریع Ctrl K را فشار دهید</div>';const group=document.createElement('div');group.className='ui-sidebar-group';group.dataset.open='true';group.innerHTML='<button type="button" class="ui-sidebar-group-title">بخش‌ها <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button><div class="ui-sidebar-items"></div>';aside.querySelector('.ui-sidebar-nav').append(group);const items=group.querySelector('.ui-sidebar-items');[...nav.children].forEach(b=>{b.classList.remove('secondary','primary');b.classList.add('ui-sidebar-item');items.append(b)});group.querySelector('.ui-sidebar-group-title').onclick=()=>group.dataset.open=String(group.dataset.open!=='true');const dash=document.querySelector('#dashboard'),main=document.createElement('div');main.className='dashboard-main';const head=dash.querySelector('.dashboard-head');head.after(layout);layout.append(aside,main);main.append(nav);[...dash.children].filter(x=>x!==head&&x!==layout&&x.id!=='sessionAlert').forEach(x=>main.append(x));return aside}
-function completeness(f){const fields=[f.caseNumber,f.familySurname,f.headName,f.headNationalId,f.headPhone,f.headBirthDate,f.headJob,f.headEducation?.description||f.headEducation?.level,f.address,f.housingType,Number(f.housingRent)>0||Number(f.housingDeposit)>0,f.members?.length,f.notes,f.priority,f.insurance&&Object.keys(f.insurance).length,f.medical&&Object.keys(f.medical).length,f.notesHistory?.length,f.profileData&&Object.keys(f.profileData).length];return Math.round(fields.filter(Boolean).length/fields.length*100)}
-function familyProgress(f){const detail=document.querySelector('#familyDetail');if(!detail)return;detail.querySelector('.ui-family-progress')?.remove();const pct=completeness(f),members=!!f.members?.length,history=!!f.notesHistory?.length,full=!!(f.profileData&&Object.keys(f.profileData).length),core=!!(f.caseNumber&&f.headName&&f.headNationalId&&f.headPhone);const current=!core?0:!members?1:!history?2:!full?3:4;const box=document.createElement('section');box.className='ui-family-progress';box.innerHTML=`<div class="ui-family-progress-top"><div><h3>تکمیل اطلاعات خانواده</h3><p>${pct<50?'اطلاعات پایه نیاز به تکمیل دارد.':pct<80?'پرونده در حال تکمیل است.':'پرونده اطلاعات مناسبی برای پیگیری دارد.'}</p></div><div class="ui-complete-score" style="--score:${pct*3.6}deg"><span>${fa(pct)}٪</span></div></div><div data-family-bar></div><ol data-family-steps></ol>`;const head=detail.querySelector('.detail-head');head?.after(box);progress(box.querySelector('[data-family-bar]'),{value:pct,label:'میزان کامل‌بودن داده‌ها',showValue:true,size:'sm'});stepper(box.querySelector('[data-family-steps]'),[{label:'اطلاعات پایه',description:'هویت و تماس'},{label:'اعضای خانواده',description:'ترکیب خانوار'},{label:'سوابق پیگیری',description:'یادداشت‌ها و اقدامات'},{label:'پرونده جامع',description:'اطلاعات تکمیلی'},{label:'آماده پیگیری',description:'پرونده عملیاتی'}],current);const bc=document.querySelector('#familyBreadcrumb')||document.createElement('nav');bc.id='familyBreadcrumb';if(!bc.isConnected)document.querySelector('.dashboard-main')?.prepend(bc);breadcrumb(bc,[{label:'پرونده‌های خانوار',href:'#familyList'},{label:f.familySurname||'خانواده'},{label:f.headName||f.caseNumber}])}
+
+/* ---------------- Family completeness ---------------- */
+const familyFieldLabels={
+  caseNumber:'شماره پرونده',
+  familySurname:'نام خانوادگی',
+  headName:'نام سرپرست',
+  headNationalId:'کد ملی سرپرست',
+  headPhone:'شماره تماس سرپرست',
+  headBirthDate:'تاریخ تولد سرپرست',
+  headJob:'شغل سرپرست',
+  headEducation:'تحصیلات سرپرست',
+  address:'نشانی',
+  housingType:'نوع مسکن',
+  housingCost:'اجاره یا ودیعه',
+  members:'اعضای خانوار',
+  notes:'توضیحات پرونده',
+  priority:'اولویت',
+  insurance:'بیمه',
+  medical:'وضعیت درمانی',
+  notesHistory:'سابقه پیگیری',
+  profileData:'اطلاعات کامل پرونده'
+};
+
+function familyCompleteness(f){
+  if(!f) return {percent:0,missing:[],present:0,total:0};
+  const isAdmin=window.currentActor?.role==='admin'||window.currentActor?.position==='ceo';
+  const checks=[
+    ['caseNumber',Boolean(f.caseNumber)],
+    ['familySurname',Boolean(f.familySurname)],
+    ['headName',Boolean(f.headName)],
+    ['headNationalId',Boolean(f.headNationalId)],
+    ['headPhone',Boolean(f.headPhone)],
+    ['headBirthDate',Boolean(f.headBirthDate)],
+    ['headJob',Boolean(f.headJob)],
+    ['headEducation',Boolean(f.headEducation?.description||f.headEducation?.level)],
+    ['address',Boolean(f.address&&String(f.address).trim())],
+    ['housingType',Boolean(f.housingType)],
+    ['housingCost',Number(f.housingRent)>0||Number(f.housingDeposit)>0],
+    ['members',Boolean(f.members?.length)],
+    ['notes',Boolean(f.notes&&String(f.notes).trim())],
+    ['priority',Boolean(f.priority)],
+['insurance',Boolean(f.insurance&&(f.insurance.type||f.insurance.cost))],
+['medical',Boolean(f.medical&&(f.medical.hasCondition||f.medical.description))],
+    ['notesHistory',Boolean(f.notesHistory?.length)],
+    ...(isAdmin?[['profileData',Boolean(f.profileData&&Object.keys(f.profileData).length)]]:[])
+  ];
+  const present=checks.filter(([,ok])=>ok).length;
+  const total=checks.length;
+  const percent=total?Math.round(present*100/total):0;
+  const missing=checks.filter(([,ok])=>!ok).map(([key])=>familyFieldLabels[key]||key);
+  return {percent,missing,present,total};
+}
+
+function completeness(f){return familyCompleteness(f).percent}
+
+function familyProgress(f){
+  const detail=document.querySelector('#familyDetail');
+  if(!detail) return;
+  detail.querySelector('.ui-family-progress')?.remove();
+  const info=familyCompleteness(f);
+  const pct=info.percent;
+  const members=!!f.members?.length;
+  const history=!!f.notesHistory?.length;
+  const full=!!(f.profileData&&Object.keys(f.profileData).length);
+  const core=!!(f.caseNumber&&f.headName&&f.headNationalId&&f.headPhone);
+  const current=!core?0:!members?1:!history?2:!full?3:4;
+  const summary=pct<50?'اطلاعات پایه نیاز به تکمیل دارد.':pct<80?'پرونده در حال تکمیل است.':'پرونده اطلاعات مناسبی برای پیگیری دارد.';
+  const preview=info.missing.slice(0,8);
+  const extra=info.missing.length-preview.length;
+  const missingHtml=info.missing.length
+    ? `<div class="ui-family-missing" role="status">
+         <b>موارد ناقص (${fa(info.missing.length)} مورد):</b>
+         <div class="ui-family-missing-list">
+           ${preview.map(x=>`<span class="ui-family-missing-chip">${esc(x)}</span>`).join('')}
+           ${extra>0?`<span class="ui-family-missing-chip ui-family-missing-chip-more">و ${fa(extra)} مورد دیگر</span>`:''}
+         </div>
+       </div>`
+    : '';
+  const box=document.createElement('section');
+  box.className='ui-family-progress';
+  box.innerHTML=`<div class="ui-family-progress-top"><div><h3>تکمیل اطلاعات خانواده</h3><p>${summary}</p></div><div class="ui-complete-score" style="--score:${pct*3.6}deg"><span>${fa(pct)}٪</span></div></div>${missingHtml}<div data-family-bar></div><ol data-family-steps></ol>`;
+  const head=detail.querySelector('.detail-head');
+  head?.after(box);
+  progress(box.querySelector('[data-family-bar]'),{value:pct,label:'میزان کامل‌بودن داده‌ها',showValue:true,size:'sm'});
+  stepper(box.querySelector('[data-family-steps]'),[{label:'اطلاعات پایه',description:'هویت و تماس'},{label:'اعضای خانواده',description:'ترکیب خانوار'},{label:'سوابق پیگیری',description:'یادداشت‌ها و اقدامات'},{label:'پرونده جامع',description:'اطلاعات تکمیلی'},{label:'آماده پیگیری',description:'پرونده عملیاتی'}],current);
+  const bc=document.querySelector('#familyBreadcrumb')||document.createElement('nav');
+  bc.id='familyBreadcrumb';
+  if(!bc.isConnected)document.querySelector('.dashboard-main')?.prepend(bc);
+  breadcrumb(bc,[{label:'پرونده‌های خانوار',href:'#familyList'},{label:f.familySurname||'خانواده'},{label:f.headName||f.caseNumber}]);
+}
+
 function scan(root=document){root.querySelectorAll?.('table:not([data-ui-table])').forEach(table);root.querySelectorAll?.('.session-alert,.archive-banner').forEach(x=>alert(x,'destructive'));root.querySelectorAll?.('.message.success').forEach(x=>alert(x,'success'));root.querySelectorAll?.('.message.error').forEach(x=>{if(x.textContent.trim())alert(x,'destructive')});root.querySelectorAll?.('.metric-card').forEach(x=>x.classList.add('ui-stat'));root.querySelectorAll?.('.count-chip').forEach(x=>badge(x,'secondary'));root.querySelectorAll?.('.status,.priority').forEach(x=>badge(x,'outline'));root.querySelectorAll?.('.archive-status,.finance-status.rejected').forEach(x=>badge(x,'destructive'));root.querySelectorAll?.('.finance-status.paid,.finance-status.approved').forEach(x=>badge(x,'success'))}
 function init(){scan();const nav=document.querySelector('#opsNav');if(nav)sidebar(nav);new MutationObserver(rs=>{rs.forEach(r=>r.addedNodes.forEach(n=>{if(n.nodeType===1){scan(n);if(n.id==='opsNav')sidebar(n)}}))}).observe(document.body,{childList:true,subtree:true});window.addEventListener('familyloaded',e=>familyProgress(e.detail.family))}
-window.UXSystem={breadcrumb,stepper,sidebar,toast,alert,progress,badge,table,stat,familyProgress};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+window.UXSystem={breadcrumb,stepper,sidebar,toast,alert,progress,badge,table,stat,familyProgress,familyCompleteness};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

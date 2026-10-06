@@ -459,3 +459,36 @@
 .family-detail-v2 .collapsible-detail-section.is-collapsed > .collapsible-section-head .section-collapse-icon {
   transform: translateY(-1px);
 }
+
+.family-detail-v2 .family-sensitive-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 14px !important;
+}
+
+.family-detail-v2 .family-sensitive-card > span:first-child {
+  /* برچسب */
+}
+
+.family-detail-v2 .family-sensitive-card > b {
+  display: block;
+  direction: ltr;
+  text-align: right;
+  unicode-bidi: isolate;
+  overflow-wrap: anywhere;
+}
+
+.family-sensitive-toggle {
+  position: static;
+  align-self: flex-start;
+  min-height: 26px;
+  padding: 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--blue) 30%, transparent);
+  border-radius: 6px;
+  background: var(--blue-soft);
+  color: var(--blue-dark);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
