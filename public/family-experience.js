@@ -243,6 +243,11 @@
     const seen = new Set();
     sections.forEach((section) => {
       if (!section || seen.has(section) || section.dataset.collapseReady) return;
+      // These sections use the unified page-level "باز کردن" control from simplicity-layer.js.
+      if (section.id === 'actionSection' || section.id === 'comprehensiveSection' ||
+          section.classList.contains('followup-history') ||
+          section.classList.contains('case-documents-section') ||
+          section.querySelector(':scope > .detail-section-title h3')?.textContent.trim() === 'اعضای خانوار') return;
       seen.add(section);
 
       const head = section.querySelector(

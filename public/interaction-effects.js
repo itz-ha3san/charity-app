@@ -1,6 +1,26 @@
 (() => {
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const pinStorageKey = "family-case-pinned-tools-v1";
   let shellEnhanced = false;
+
+  function getPins() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(pinStorageKey) || "null");
+      return Array.isArray(saved)
+        ? saved
+        : ["alertsBtn", "advancedSearchBtn", "overdueBtn"];
+    } catch {
+      return ["alertsBtn", "advancedSearchBtn", "overdueBtn"];
+    }
+  }
+
+  function savePins(ids) {
+    try {
+      localStorage.setItem(pinStorageKey, JSON.stringify(ids));
+    } catch {
+      // The dock still works for the current view when storage is unavailable.
+    }
+  }
 
   function enhanceTabs(segment) {
     if (!segment || segment.dataset.animatedTabs) return;
@@ -157,6 +177,162 @@
       });
   }
 
+  function animateFlip(before, rows) {
+    if (reduceMotion) return;
+    requestAnimationFrame(() => {
+      rows.forEach((row) => {
+        const first = before.get(row.dataset.pinId);
+        if (!first) return;
+        const last = row.getBoundingClientRect();
+        const x = first.left - last.left;
+        const y = first.top - last.top;
+        if (Math.abs(x) < 1 && Math.abs(y) < 1) return;
+        row.animate(
+          [
+            { transform: `translate(${x}px,${y}px)` },
+            { transform: "translate(0,0)" },
+          ],
+          {
+            duration: 420,
+            easing: "cubic-bezier(0.16,1,0.3,1)",
+          },
+        );
+      });
+    });
+  }
+
+  function createDock() {
+    let dock = document.querySelector(".interaction-dock");
+    if (dock) return dock;
+    dock = document.createElement("div");
+    dock.className = "interaction-dock";
+    dock.setAttribute("role", "toolbar");
+    dock.setAttribute("aria-label", "میانبرهای سنجاق‌شده");
+    document.body.append(dock);
+    return dock;
+  }
+
+  function updateDock(pinnedRows) {
+    const dock = createDock();
+    const shortcuts = [
+      {
+        id: "workspaceHome",
+        label: "نمای امروز",
+        icon: "⌂",
+        target: document.querySelector("#workspaceHome"),
+      },
+      ...pinnedRows.slice(0, 4).map((row) => {
+        const target = row.querySelector(".ui-sidebar-item");
+        return {
+          id: target.id,
+          label:
+            target.querySelector(".workspace-nav-label")?.textContent || target.id,
+          icon: target.querySelector(".workspace-nav-icon")?.textContent || "•",
+          target,
+        };
+      }),
+    ];
+    const create = document.querySelector("#createBtn");
+    if (create && shortcuts.length < 5)
+      shortcuts.push({ id: "createBtn", label: "پرونده جدید", icon: "+", target: create });
+    dock.innerHTML = shortcuts
+      .map(
+        (item) =>
+          `<button type="button" data-dock-target="${item.id}" aria-label="${item.label}" title="${item.label}"><span>${item.icon}</span></button>`,
+      )
+      .join("");
+    shortcuts.forEach((item) => {
+      dock.querySelector(`[data-dock-target="${item.id}"]`).onclick = () =>
+        item.target?.click();
+    });
+  }
+
+  function enhancePinList(sidebar) {
+    if (sidebar.dataset.pinListReady) return;
+    sidebar.dataset.pinListReady = "true";
+    const nav = sidebar.querySelector(".ui-sidebar-nav");
+    const home = nav.querySelector("#workspaceHome");
+    const pinnedSection = document.createElement("section");
+    pinnedSection.className = "workspace-nav-group interaction-pinned-group";
+    pinnedSection.innerHTML = `
+      <div class="interaction-pinned-label">سنجاق‌شده‌ها</div>
+      <div class="workspace-nav-items interaction-pinned-items"></div>
+    `;
+    home.after(pinnedSection);
+    const pinnedItems = pinnedSection.querySelector(".interaction-pinned-items");
+    const rows = [];
+
+    nav.querySelectorAll(".workspace-nav-group:not(.interaction-pinned-group)").forEach(
+      (group, groupIndex) => {
+        group.querySelectorAll(":scope > .workspace-nav-items > .ui-sidebar-item").forEach(
+          (button, itemIndex) => {
+            const row = document.createElement("div");
+            row.className = "interaction-pin-row";
+            row.dataset.pinId = button.id;
+            row.dataset.originGroup = String(groupIndex);
+            row.dataset.originIndex = String(itemIndex);
+            const pin = document.createElement("button");
+            pin.type = "button";
+            pin.className = "interaction-pin-toggle";
+            pin.setAttribute("aria-label", `سنجاق‌کردن ${button.textContent.trim()}`);
+            pin.innerHTML =
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 4 6 6-3 1-4 4-1 5-2-2 1-4-4-4-3 1 6-6 4-1Z"></path></svg>';
+            button.before(row);
+            row.append(button, pin);
+            rows.push(row);
+          },
+        );
+      },
+    );
+
+    const groupItems = [
+      ...nav.querySelectorAll(
+        ".workspace-nav-group:not(.interaction-pinned-group) > .workspace-nav-items",
+      ),
+    ];
+
+    const sync = (animate = false) => {
+      const ids = getPins();
+      const before = new Map(
+        rows.map((row) => [row.dataset.pinId, row.getBoundingClientRect()]),
+      );
+      rows.forEach((row) => {
+        const pinned = ids.includes(row.dataset.pinId);
+        row.dataset.pinned = String(pinned);
+        const toggle = row.querySelector(".interaction-pin-toggle");
+        toggle.setAttribute("aria-pressed", String(pinned));
+        toggle.setAttribute(
+          "aria-label",
+          `${pinned ? "برداشتن سنجاق" : "سنجاق‌کردن"} ${row.querySelector(".workspace-nav-label")?.textContent || ""}`,
+        );
+        if (pinned) pinnedItems.append(row);
+        else
+          groupItems[Number(row.dataset.originGroup)]?.append(row);
+      });
+      pinnedSection.hidden = !ids.some((id) =>
+        rows.some((row) => row.dataset.pinId === id),
+      );
+      const pinnedRows = ids
+        .map((id) => rows.find((row) => row.dataset.pinId === id))
+        .filter(Boolean);
+      updateDock(pinnedRows);
+      if (animate) animateFlip(before, rows);
+    };
+
+    rows.forEach((row) => {
+      row.querySelector(".interaction-pin-toggle").onclick = (event) => {
+        event.stopPropagation();
+        const ids = getPins();
+        const id = row.dataset.pinId;
+        savePins(
+          ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id],
+        );
+        sync(true);
+      };
+    });
+    sync();
+  }
+
   function syncBeam() {
     const card = document.querySelector(".workspace-focus-card");
     if (!card) return;
@@ -173,6 +349,7 @@
       shellEnhanced = true;
       addScrollProgress();
       enhanceMorphButton(document.querySelector("#refreshBtn"));
+      enhancePinList(sidebar);
     }
     enhanceTabs(segment);
     enhanceReveal(dashboard);

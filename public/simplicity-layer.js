@@ -1,11 +1,30 @@
 (() => {
   const advancedSections = [
     ["comprehensiveSection", "اطلاعات تکمیلی پرونده"],
+    ["members", "اعضای خانوار"],
+    ["actionSection", "اقدامات"],
+    ["followup-history", "پیگیری‌ها و گزارش‌ها"],
+    ["case-documents-section", "اسناد و فایل‌ها"],
     ["teamSection", "تیم و مسئولان پرونده"],
     ["supervisionSection", "گزارش‌های سرپرستی"],
     ["specialistSection", "پرونده‌های تخصصی"],
     ["financeSection", "امور مالی"],
   ];
+
+  function findSection(detail, target) {
+    if (target.startsWith("#")) return detail.querySelector(target);
+    if (target.startsWith(".")) return detail.querySelector(target);
+    const byId = detail.querySelector(`#${CSS.escape(target)}`);
+    if (byId) return byId;
+    if (target === "members") {
+      return [...detail.querySelectorAll(":scope > .detail-section")].find((section) =>
+        section.querySelector(":scope > .detail-section-title h3")?.textContent.trim() === "اعضای خانوار"
+      );
+    }
+    return [...detail.querySelectorAll(":scope > .detail-section, :scope > .finance-section, :scope > .followup-history, :scope > .case-documents-section")].find((section) =>
+      section.classList.contains(target)
+    );
+  }
 
   function addPageGuide(root) {
     if (!root || root.querySelector(".simple-page-guide")) return;
@@ -43,7 +62,7 @@
     const detail = document.querySelector("#familyDetail");
     if (!detail) return;
     addPageGuide(detail);
-    advancedSections.forEach(([id, label]) => simplifySection(detail.querySelector(`#${id}`), label));
+    advancedSections.forEach(([target, label]) => simplifySection(findSection(detail, target), label));
   }
 
   function cleanTechnicalLabels(root = document) {

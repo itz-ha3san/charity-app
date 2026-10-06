@@ -217,10 +217,158 @@ body:has(#auth:not(.hidden)) .interaction-scroll-progress {
   animation: interaction-draw 450ms ease-out 250ms forwards;
 }
 
+.interaction-pin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 3px;
+  align-items: center;
+  will-change: transform;
+}
+
+.interaction-pin-row > .ui-sidebar-item {
+  min-width: 0;
+}
+
+.interaction-pin-toggle {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  opacity: 0;
+  transition:
+    opacity 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.interaction-pin-toggle svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.interaction-pin-row:hover .interaction-pin-toggle,
+.interaction-pin-toggle:focus-visible,
+.interaction-pin-toggle[aria-pressed="true"] {
+  opacity: 1;
+}
+
+.interaction-pin-toggle:hover,
+.interaction-pin-toggle[aria-pressed="true"] {
+  background: var(--blue-soft);
+  color: var(--blue-dark);
+}
+
+.interaction-pinned-group {
+  margin-bottom: 5px;
+  padding: 6px 0 8px;
+  border-top: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.interaction-pinned-label {
+  padding: 4px 9px 7px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.interaction-pinned-items {
+  display: grid;
+  gap: 2px;
+}
+
+.interaction-dock {
+  position: fixed;
+  right: auto;
+  left: 50%;
+  bottom: 18px;
+  z-index: 420;
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  height: 72px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(16px);
+  transform: translateX(-50%);
+}
+
+.interaction-dock button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: var(--soft);
+  color: var(--text);
+  transform-origin: bottom;
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 160ms ease;
+}
+
+.interaction-dock button:hover {
+  z-index: 1;
+  background: var(--blue-soft);
+  color: var(--blue-dark);
+  transform: scale(1.35);
+}
+
+.interaction-dock button:has(+ button:hover),
+.interaction-dock button:hover + button {
+  transform: scale(1.14);
+}
+
+.interaction-dock button > span {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+body:has(#auth:not(.hidden)) .interaction-dock {
+  display: none;
+}
+
+.workspace-dashboard {
+  padding-bottom: 88px;
+}
+
+@media (max-width: 720px) {
+  .interaction-dock {
+    bottom: 10px;
+    max-width: calc(100vw - 24px);
+    height: 62px;
+    padding: 7px 8px;
+  }
+
+  .interaction-dock button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .interaction-pin-toggle {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ui-segment[data-animated-tabs="true"]::before,
   .interaction-reveal,
-  .interaction-morph-button > span {
+  .interaction-morph-button > span,
+  .interaction-dock button {
     transition: none;
   }
 
