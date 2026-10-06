@@ -989,3 +989,7 @@
     transition: none;
   }
 }
+/* تکمیل اطلاعات ناقص در همان Wizard فعلی */
+.case-missing-info-hint{margin-bottom:12px;padding:12px 14px;border:1px solid var(--border,#dfe5ee);border-radius:12px;background:var(--surface-soft,#f7f9fc)}
+.case-missing-info-hint b{display:block;margin-bottom:4px}
+.case-missing-info-hint p{margin:0;color:var(--muted,#667085);font-size:.9rem}

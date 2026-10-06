@@ -51,7 +51,7 @@ function familyCompleteness(f){
     ['notes',Boolean(f.notes&&String(f.notes).trim())],
     ['priority',Boolean(f.priority)],
 ['insurance',Boolean(f.insurance&&(f.insurance.type||f.insurance.cost))],
-['medical',Boolean(f.medical&&(f.medical.hasCondition||f.medical.description))],
+['medical',Boolean(f.medical && (typeof f.medical.hasCondition === 'boolean' || String(f.medical.description||'').trim()))],
     ['notesHistory',Boolean(f.notesHistory?.length)],
     ...(isAdmin?[['profileData',Boolean(f.profileData&&Object.keys(f.profileData).length)]]:[])
   ];

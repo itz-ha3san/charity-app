@@ -722,7 +722,34 @@
       "headEducation",
       "priority",
     ]);
-    main.before(identity, status);
+    const extra = makeStep(
+      "اطلاعات تکمیلی و موارد ناقص",
+      "اطلاعاتی که در تکمیل پرونده لازم است؛ از جمله بیمه، درمان، درآمد و هزینه‌ها",
+    );
+    moveFields(form, extra, [
+      "insuranceType",
+      "insuranceCost",
+      "insuranceRenewalDate",
+      "medicalHasCondition",
+      "medicalDescription",
+      "medicalMonthlyCost",
+      "incomeDescription",
+      "debtAmount",
+      "debtReason",
+      "transportationCost",
+      "utilityCost",
+      "monthlyInstallments",
+      "monthlyAid",
+      "sponsor",
+      "nextFollowUp",
+    ]);
+    const extraGrid = extra.querySelector(".form-grid");
+    extraGrid.insertAdjacentHTML(
+      "afterbegin",
+      '<div class="case-missing-info-hint full"><b>تکمیل موارد ناقص</b><p>اگر در صفحه پرونده موردی به‌عنوان ناقص نمایش داده شد، همین‌جا می‌توانید آن را ثبت یا اصلاح کنید.</p></div>',
+    );
+
+    main.before(identity, status, extra);
     main.remove();
 
     housing.classList.add("case-wizard-step");
@@ -756,7 +783,7 @@
 
     const error = form.querySelector("#createError");
     error.before(final);
-    const steps = [identity, status, housing, members, final];
+    const steps = [identity, status, extra, housing, members, final];
     steps.forEach((step, index) => {
       step.dataset.step = String(index);
       step.hidden = index !== 0;
@@ -765,6 +792,7 @@
     const labels = [
       ["اطلاعات پایه", "هویت"],
       ["وضعیت پرونده", "شغل و اولویت"],
+      ["اطلاعات تکمیلی", "بیمه و هزینه‌ها"],
       ["مسکن", "هزینه و نشانی"],
       ["اعضای خانواده", "ترکیب خانوار"],
       ["مرور نهایی", "تأیید و ثبت"],
