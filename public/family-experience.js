@@ -232,67 +232,11 @@
     });
   }
 
-  function enhanceCollapsibleSections(detail) {
-    if (!detail) return;
-
-    const sections = [
-      ...detail.querySelectorAll(':scope > .detail-section, :scope > .finance-section, :scope > .full-profile'),
-      ...detail.querySelectorAll('.followup-history, .case-documents-section'),
-    ];
-
-    const seen = new Set();
-    sections.forEach((section) => {
-      if (!section || seen.has(section) || section.dataset.collapseReady) return;
-      // These sections use the unified page-level "باز کردن" control from simplicity-layer.js.
-      if (section.id === 'actionSection' || section.id === 'comprehensiveSection' ||
-          section.classList.contains('followup-history') ||
-          section.classList.contains('case-documents-section') ||
-          section.querySelector(':scope > .detail-section-title h3')?.textContent.trim() === 'اعضای خانوار') return;
-      seen.add(section);
-
-      const head = section.querySelector(
-        ':scope > .finance-head, :scope > .followup-history-head, :scope > .detail-section-title, :scope > summary'
-      );
-      if (!head) return;
-
-      // Full-profile already has a native <summary>; turn it into the same visual control.
-      if (head.tagName === 'SUMMARY') {
-        section.dataset.collapseReady = 'true';
-        section.classList.add('collapsible-detail-section');
-        head.classList.add('collapsible-section-head');
-        return;
-      }
-
-      section.dataset.collapseReady = 'true';
-      section.classList.add('collapsible-detail-section');
-      head.classList.add('collapsible-section-head');
-
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'section-collapse-btn secondary';
-      button.setAttribute('aria-expanded', 'true');
-      button.innerHTML = '<span class="section-collapse-icon" aria-hidden="true">⌃</span><span class="section-collapse-label">بستن</span>';
-      head.append(button);
-
-      const setCollapsed = (closed) => {
-        section.classList.toggle('is-collapsed', closed);
-        button.setAttribute('aria-expanded', String(!closed));
-        const label = button.querySelector('.section-collapse-label');
-        if (label) label.textContent = closed ? 'باز کردن' : 'بستن';
-        const icon = button.querySelector('.section-collapse-icon');
-        if (icon) icon.textContent = closed ? '⌄' : '⌃';
-        [...section.children]
-          .filter((child) => child !== head)
-          .forEach((child) => { child.hidden = closed; });
-      };
-
-      button.onclick = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        setCollapsed(!section.classList.contains('is-collapsed'));
-      };
-    });
-  }
+function enhanceCollapsibleSections(detail) {
+  // تمام دکمه‌های «بستن / باز کردن» حذف شده‌اند.
+  // بخش‌ها بدون دکمهٔ جمع‌کننده نمایش داده می‌شوند.
+  return;
+}
 
   function enhanceDetail(family) {
     const detail = document.querySelector("#familyDetail");
