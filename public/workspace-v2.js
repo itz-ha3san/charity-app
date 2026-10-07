@@ -91,7 +91,6 @@
     },
   ];
 
-  let enhanced = false;
 
   function cleanLabel(button) {
     const badge = button.querySelector(".count-chip");
@@ -360,8 +359,8 @@
     const dashboard = document.querySelector("#dashboard");
     const aside = dashboard?.querySelector(".ui-sidebar");
     const main = dashboard?.querySelector(".dashboard-main");
-    if (!dashboard || !aside || !main || enhanced) return false;
-    enhanced = true;
+    if (!dashboard || !aside || !main || aside.dataset.workspaceEnhanced) return false;
+    aside.dataset.workspaceEnhanced = "true";
     dashboard.classList.add("workspace-dashboard");
     enhanceSidebar(aside);
     enhanceHeader();
@@ -372,6 +371,7 @@
   }
 
   function init() {
+    window.addEventListener("uisidebarready", () => enhance());
     if (enhance()) return;
     const observer = new MutationObserver(() => {
       if (enhance()) observer.disconnect();
