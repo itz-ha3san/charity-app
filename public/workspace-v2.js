@@ -3,8 +3,6 @@
     new Intl.NumberFormat("fa-IR").format(Number(value) || 0);
 
   const labels = {
-    trainingBtn: "راهنما و آموزش",
-    uatBtn: "آزمون پذیرش",
     advancedSearchBtn: "جست‌وجوی پیشرفته",
     ceoDashboardC7: "داشبورد مدیرعامل",
     supervisionDashboardC7: "داشبورد سرپرستی",
@@ -17,7 +15,6 @@
     dashboardReportBtn: "داشبورد و گزارش‌ها",
     overdueBtn: "پیگیری‌های عقب‌افتاده",
     fundsBtn: "صندوق‌ها و بودجه",
-    organizationBtn: "ساختار سرپرستی",
     supervisionInboxBtn: "کارتابل سرپرستی",
     futureBtn: "حامیان و انبار",
     opsBtn: "وضعیت سامانه",
@@ -40,13 +37,10 @@
     "financeDashboardC7": "<path d=\"M5 18V9M10 18V6M15 18v-4M20 18H3\"/><path d=\"m4 7 5-3 5 3 5-2\"/>",
     "dashboardReportBtn": "<path d=\"M5 4h14v16H5z\"/><path d=\"M8 16v-4M12 16V8M16 16v-6\"/>",
     "fundsBtn": "<path d=\"M4 8h16v12H4z\"/><path d=\"M6 8V6h12v2\"/><path d=\"M12 11v6\"/><path d=\"M9 14h6\"/>",
-    "organizationBtn": "<circle cx=\"12\" cy=\"6\" r=\"3\"/><circle cx=\"6\" cy=\"17\" r=\"3\"/><circle cx=\"18\" cy=\"17\" r=\"3\"/><path d=\"M12 9v4M8.5 15l3.5-2M15.5 15 12 13\"/>",
     "futureBtn": "<path d=\"M6 5h12v14H6z\"/><path d=\"M9 8h6M9 12h6M9 16h4\"/>",
     "usersBtn": "<circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M3.5 19c.6-3.5 2.5-5 5.5-5s4.9 1.5 5.5 5\"/><path d=\"M15 5.5a3 3 0 0 1 0 5.5M16 14c2.5.2 4 1.8 4.5 4\"/>",
     "migrationBtn": "<path d=\"M12 16V4M8 8l4-4 4 4\"/><path d=\"M5 13v6h14v-6\"/>",
     "opsBtn": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M8.5 12h7\"/>",
-    "trainingBtn": "<path d=\"m3 8 9-4 9 4-9 4z\"/><path d=\"M6 10v5c2 2 10 2 12 0v-5\"/><path d=\"M21 8v6\"/>",
-    "uatBtn": "<path d=\"M5 4h14v16H5z\"/><path d=\"M8 8h8M8 12h8M8 16h5\"/>"
 };
 
   const groups = [
@@ -77,13 +71,10 @@
       title: "مدیریت",
       ids: [
         "fundsBtn",
-        "organizationBtn",
         "futureBtn",
         "usersBtn",
         "migrationBtn",
         "opsBtn",
-        "trainingBtn",
-        "uatBtn",
       ],
     },
   ];

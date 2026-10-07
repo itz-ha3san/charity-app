@@ -42,12 +42,21 @@
   function simplifySection(section, label) {
     if (!section || section.dataset.simpleSection) return;
     section.dataset.simpleSection = "true";
+    const isMembers = label === "اعضای خانوار";
+    if (isMembers) section.classList.add("simple-members-section");
+    if (!section.id) section.id = `simple-section-${label.replace(/\s+/g, "-")}`;
     section.hidden = true;
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "simple-section-toggle";
+    button.className = `simple-section-toggle${isMembers ? " simple-members-toggle" : ""}`;
     button.setAttribute("aria-expanded", "false");
-    button.innerHTML = `<span><b>${label}</b><small>در صورت نیاز باز کنید</small></span><i aria-hidden="true">+</i>`;
+    button.setAttribute("aria-controls", section.id);
+    if (isMembers) {
+      const count = section.querySelector(":scope > .detail-section-title .count-chip")?.textContent.trim() || "۰ نفر";
+      button.innerHTML = `<span class="members-toggle-copy"><span class="members-toggle-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.5-3.4 2.4-5 5.5-5s5 1.6 5.5 5M16 11a3 3 0 1 0 0-6M16 14c2.2.2 3.7 1.8 4.2 4"/></svg></span><span><b>${label}</b><small>افراد ثبت‌شده در این پرونده</small></span></span><span class="members-toggle-meta"><span class="members-toggle-count">${count}</span><i aria-hidden="true">+</i></span>`;
+    } else {
+      button.innerHTML = `<span><b>${label}</b><small>در صورت نیاز باز کنید</small></span><i aria-hidden="true">+</i>`;
+    }
     button.onclick = () => {
       const open = button.getAttribute("aria-expanded") === "true";
       button.setAttribute("aria-expanded", String(!open));

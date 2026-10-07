@@ -813,6 +813,7 @@ body.workspace-nav-open {
 
   .workspace-family-card #refreshBtn,
   .workspace-family-card #createBtn,
+  .workspace-family-card #organizationBtn,
   .workspace-family-card #importBtn {
     width: 100%;
   }
@@ -1132,3 +1133,27 @@ html[data-theme="dark"] .workspace-metric[data-tone="orange"] .workspace-metric-
 .workspace-dashboard .ui-sidebar-item#alertsBtn {
   display: flex !important;
 }
+
+/* Clear role hierarchy at the top of every family record. */
+.family-contact-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.family-contact-item {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-inline-start: 3px solid var(--blue);
+  border-radius: 12px;
+  background: var(--soft);
+}
+.family-contact-item[data-contact="supervisor"] { border-inline-start-color: var(--green); }
+.family-contact-item > span,
+.family-contact-item > small { color: var(--muted); font-size: 12px; }
+.family-contact-item > b { color: var(--text); font-size: 14px; overflow-wrap: anywhere; }
+@media (max-width: 620px) { .family-contact-strip { grid-template-columns: 1fr; gap: 8px; } }

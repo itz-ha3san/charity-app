@@ -57,3 +57,96 @@
 .simple-mode .simple-section-toggle[aria-expanded="true"] > i {
   background: rgba(38, 112, 190, .4);
 }
+
+
+/* Refined member accordion: one clear header, one compact roster. */
+.simple-mode .simple-section-toggle.simple-members-toggle {
+  min-height: 74px;
+  margin: 18px 0 0;
+  padding: 12px 16px;
+  border-radius: 14px 14px 0 0;
+  border-color: color-mix(in srgb, var(--blue) 23%, var(--border));
+  background: color-mix(in srgb, var(--surface) 88%, var(--blue-soft));
+}
+.simple-mode .simple-section-toggle.simple-members-toggle[aria-expanded="false"] {
+  margin-bottom: 0;
+  border-radius: 14px;
+}
+.simple-mode .members-toggle-copy,
+.simple-mode .members-toggle-meta { display: flex; align-items: center; gap: 12px; }
+.simple-mode .members-toggle-copy > span:last-child { display: grid; gap: 2px; }
+.simple-mode .members-toggle-copy b { font-size: 16px; }
+.simple-mode .members-toggle-copy small { font-size: 11px; }
+.simple-mode .members-toggle-glyph {
+  display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px;
+  border: 1px solid color-mix(in srgb, var(--blue) 20%, var(--border));
+  border-radius: 12px; background: var(--blue-soft); color: var(--blue-dark);
+}
+.simple-mode .members-toggle-glyph svg { width: 21px; height: 21px; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.simple-mode .members-toggle-count {
+  padding: 5px 10px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); color: var(--muted); font-size: 11px; font-weight: 800; white-space: nowrap;
+}
+.simple-mode .simple-members-toggle > .members-toggle-meta > i {
+  width: 34px; height: 34px; flex-basis: 34px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--surface); color: var(--blue-dark); font-size: 20px;
+}
+.simple-mode .simple-members-section {
+  margin-top: 0; padding: 16px; border: 1px solid color-mix(in srgb, var(--blue) 23%, var(--border));
+  border-top: 0; border-radius: 0 0 14px 14px; background: var(--surface);
+}
+.simple-mode .simple-members-section > .detail-section-title { display: none !important; }
+.simple-mode .simple-members-section[hidden] { display: none !important; }
+.simple-mode .simple-members-section .member-grid { gap: 12px; }
+.family-detail-v2 .simple-members-section .member-card {
+  display: flex; flex-direction: column; justify-content: space-between; gap: 15px;
+  min-height: 146px; padding: 16px 16px 13px 16px; border: 1px solid var(--border);
+  border-radius: 14px; background: linear-gradient(145deg, var(--surface), var(--soft));
+  box-shadow: 0 5px 16px rgba(15, 23, 42, .045);
+}
+.family-detail-v2 .simple-members-section .member-card:hover {
+  border-color: color-mix(in srgb, var(--blue) 34%, var(--border));
+  box-shadow: 0 9px 22px rgba(15, 23, 42, .08);
+}
+.family-detail-v2 .simple-members-section .family-member-avatar { top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 12px; font-size: 12px; }
+.member-card-heading { display: grid; gap: 8px; min-width: 0; padding-right: 54px; }
+.member-card-heading > b { overflow-wrap: anywhere; font-size: 17px; line-height: 1.55; }
+.member-relation { width: max-content; max-width: 100%; overflow: hidden; padding: 3px 9px; border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--border)); border-radius: 999px; background: var(--blue-soft); color: var(--blue-dark); font-size: 10px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.member-card-facts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding-top: 11px; border-top: 1px solid var(--border); }
+.member-fact { display: grid; gap: 3px; min-width: 0; }
+.member-fact > span { color: var(--muted); font-size: 10px; }
+.member-fact > b { overflow: hidden; color: var(--text); font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.member-fact-id > b { text-align: left; font-variant-numeric: tabular-nums; }
+.family-detail-v2 .simple-members-section .member-empty-state {
+  min-height: 100px; flex-direction: row; align-items: center; justify-content: flex-start; gap: 14px;
+  grid-column: 1 / -1; background: var(--soft); box-shadow: none;
+}
+.member-empty-icon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface); color: var(--blue-dark); font-size: 24px; }
+.member-empty-state b { font-size: 14px; }
+.member-empty-state p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+@media (max-width: 560px) {
+  .simple-mode .simple-section-toggle.simple-members-toggle { min-height: 66px; padding: 10px 12px; }
+  .simple-mode .members-toggle-glyph { width: 36px; height: 36px; flex-basis: 36px; }
+  .simple-mode .members-toggle-copy b { font-size: 14px; }
+  .simple-mode .members-toggle-count { padding: 4px 7px; font-size: 10px; }
+  .simple-mode .simple-members-section { padding: 12px; }
+  .family-detail-v2 .simple-members-section .member-card { min-height: 134px; }
+}
+
+/* Keep the member header in a single horizontal row despite the generic toggle styles. */
+.simple-mode .simple-section-toggle.simple-members-toggle > .members-toggle-copy {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.simple-mode .simple-section-toggle.simple-members-toggle > .members-toggle-meta {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.simple-mode .simple-section-toggle.simple-members-toggle .members-toggle-copy > span:last-child {
+  display: grid;
+  gap: 2px;
+}

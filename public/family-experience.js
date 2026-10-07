@@ -215,14 +215,14 @@
   function enhanceInfoCards(detail) {
     detail.querySelectorAll(".detail-grid .info-card").forEach((card) => {
       const label = card.querySelector("span")?.textContent.trim();
-      if (label === "کد ملی سرپرست") maskNationalId(card);
+      if (label === "کد ملی فرد اصلی خانوار") maskNationalId(card);
       if (label === "شماره تماس") linkPhone(card);
     });
   }
 
   function enhanceMembers(detail) {
     detail.querySelectorAll(".member-card").forEach((card) => {
-      if (card.dataset.memberReady) return;
+      if (card.classList.contains("member-empty-state") || card.dataset.memberReady) return;
       card.dataset.memberReady = "true";
       const nameNode = card.querySelector("b");
       if (!nameNode) return;
