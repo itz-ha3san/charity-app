@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "dev:preview": "node scripts/dev-preview.mjs",
     "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
     "migrate": "tsx src/migrate.ts",
