@@ -1,0 +1,56 @@
+
+/* Polished management dialogs and form surfaces */
+.manage-modal{width:min(560px,100%);padding:0;overflow:hidden}
+.manage-modal .modal-head{padding:22px 24px 18px;background:linear-gradient(135deg,var(--surface),var(--soft));border-bottom:1px solid var(--border)}
+.manage-modal .modal-head h2{font-size:22px;letter-spacing:-.3px}
+.manage-modal .modal-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.manage-modal-body{padding:22px 24px 24px}
+.manage-context{display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:18px;border:1px solid var(--border);border-radius:14px;background:var(--soft)}
+.manage-context-avatar{width:42px;height:42px;display:grid;place-items:center;flex:0 0 42px;border-radius:12px;background:var(--blue-soft);color:var(--blue-dark);font-weight:900}
+.manage-context b{display:block;font-size:14px}
+.manage-context span{display:block;margin-top:2px;color:var(--muted);font-size:12px}
+.manage-field{display:grid;gap:7px;margin-bottom:16px}
+.manage-field label{font-size:13px;font-weight:800}
+.manage-field .manage-help{font-size:11px;color:var(--muted);margin-top:-2px}
+.manage-input,.manage-select{width:100%;min-height:48px;padding:10px 13px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);outline:none;transition:border-color .16s,box-shadow .16s,transform .16s}
+.manage-input:focus,.manage-select:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(39,131,222,.12)}
+.manage-password-wrap{position:relative}
+.manage-password-wrap .manage-input{padding-inline-end:48px}
+.manage-password-toggle{position:absolute;inset-inline-end:7px;top:7px;width:34px;height:34px;border:0;border-radius:9px;background:var(--soft);color:var(--muted);cursor:pointer}
+.manage-password-toggle:hover{color:var(--blue-dark);background:var(--blue-soft)}
+.manage-strength{height:5px;margin-top:8px;border-radius:99px;background:var(--border);overflow:hidden}
+.manage-strength i{display:block;height:100%;width:0;border-radius:inherit;background:var(--blue);transition:width .2s}
+.manage-role-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.manage-role-option{position:relative}
+.manage-role-option input{position:absolute;opacity:0;pointer-events:none}
+.manage-role-option label{display:block;padding:13px;border:1px solid var(--border);border-radius:12px;background:var(--surface);cursor:pointer}
+.manage-role-option label b{display:block;font-size:13px}
+.manage-role-option label span{display:block;margin-top:3px;color:var(--muted);font-size:11px}
+.manage-role-option input:checked+label{border-color:var(--blue);background:var(--blue-soft);box-shadow:0 0 0 2px rgba(39,131,222,.1)}
+.manage-role-option label:hover{border-color:color-mix(in srgb,var(--blue) 35%,var(--border));transform:translateY(-1px)}
+.manage-error{min-height:20px;margin:2px 0 8px;color:var(--red);font-size:12px;font-weight:700}
+.manage-actions{display:flex;justify-content:flex-start;gap:9px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.manage-actions .primary{min-width:150px;flex:0 0 auto}
+.manage-actions .secondary{min-width:100px}
+.user-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
+.user-row:last-child{border-bottom:0}
+.user-row>div:first-child{min-width:0}
+.user-row b{display:block}
+.user-row p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.user-row .doc-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.user-row .doc-actions button{min-height:36px;padding:7px 11px;border-radius:9px;font-size:12px}
+.audit-card{padding:13px 14px;margin-top:9px;border:1px solid var(--border);border-radius:12px;background:var(--soft)}
+.audit-card b{font-size:13px}
+.audit-card p{margin:4px 0 0;color:var(--muted);font-size:11px}
+.audit-empty{padding:30px 18px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:12px;background:var(--soft)}
+.user-management-toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0}
+.user-management-toolbar button{min-height:42px}
+@media(max-width:650px){
+ .manage-modal .modal-head{padding:18px 16px 15px}
+ .manage-modal-body{padding:18px 16px 20px}
+ .manage-role-options{grid-template-columns:1fr}
+ .manage-actions{flex-direction:column-reverse}
+ .manage-actions button{width:100%}
+ .user-row{align-items:flex-start;flex-direction:column}
+ .user-row .doc-actions{width:100%;justify-content:flex-start}
+}
