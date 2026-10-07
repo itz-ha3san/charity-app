@@ -52,7 +52,7 @@
   const groups = [
     {
       title: "فضای کاری",
-      ids: ["advancedSearchBtn", "overdueBtn"],
+      ids: ["alertsBtn","advancedSearchBtn", "overdueBtn"],
     },
     {
       title: "کارتابل‌ها",
@@ -233,7 +233,6 @@
     const section = document.createElement("section");
     section.className = "workspace-overview";
     section.innerHTML = `
-      <nav class="workspace-breadcrumb" aria-label="مسیر"><span>خانه</span><b aria-hidden="true">/</b><strong>نمای امروز</strong></nav>
       <div class="workspace-overview-head">
         <div>
           <div class="workspace-date">${date}</div>
@@ -246,10 +245,10 @@
         </div>
       </div>
       <div class="workspace-metrics" aria-label="خلاصه وضعیت">
-        <button class="workspace-metric" data-tone="blue" data-workspace-action="advancedSearchBtn"><span class="workspace-metric-icon">خ</span><span><small>پرونده‌های فعال</small><strong data-metric="active">—</strong></span></button>
-        <button class="workspace-metric" data-tone="red" data-workspace-action="overdueBtn"><span class="workspace-metric-icon">!</span><span><small>پیگیری عقب‌افتاده</small><strong data-metric="overdue">—</strong></span></button>
-        <button class="workspace-metric" data-tone="orange" data-workspace-action="advancedSearchBtn"><span class="workspace-metric-icon">↑</span><span><small>موارد فوری</small><strong data-metric="urgent">—</strong></span></button>
-        <button class="workspace-metric" data-tone="green" data-workspace-action="alertsBtn"><span class="workspace-metric-icon">●</span><span><small>هشدار خوانده‌نشده</small><strong data-metric="alerts">—</strong></span></button>
+        <button class="workspace-metric" data-tone="blue" data-workspace-action="advancedSearchBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></span><span><small>پرونده‌های فعال</small><strong data-metric="active">—</strong></span></button>
+        <button class="workspace-metric" data-tone="red" data-workspace-action="overdueBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg></span><span><small>پیگیری عقب‌افتاده</small><strong data-metric="overdue">—</strong></span></button>
+        <button class="workspace-metric" data-tone="orange" data-workspace-action="advancedSearchBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 16 5-5 3 3 6-7"/><path d="M14 7h5v5"/></svg></span><span><small>موارد فوری</small><strong data-metric="urgent">—</strong></span></button>
+        <button class="workspace-metric" data-tone="green" data-workspace-action="alertsBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span><span><small>هشدار خوانده‌نشده</small><strong data-metric="alerts">—</strong></span></button>
       </div>
       <div class="workspace-focus-grid workspace-focus-grid-single">
         <article class="workspace-focus-card">
@@ -266,7 +265,7 @@
         const target = document.querySelector(
           `#${button.dataset.workspaceAction}`,
         );
-        target?.click();
+        if(button.dataset.workspaceAction === "alertsBtn" && typeof openAlerts === "function") openAlerts("",true); else target?.click();
       });
     });
     section.querySelector(".workspace-refresh").onclick = loadOverview;
@@ -346,8 +345,7 @@
       rows ||
       '<div class="workspace-all-clear"><span>✓</span><div><b>همه‌چیز مرتب است</b><small>در حال حاضر مورد فوری ثبت نشده است.</small></div></div>';
     list.querySelectorAll("[data-workspace-action]").forEach((button) => {
-      button.onclick = () =>
-        document.querySelector(`#${button.dataset.workspaceAction}`)?.click();
+      button.onclick = () => {if(button.dataset.workspaceAction==="alertsBtn"&&typeof openAlerts === "function")openAlerts("",true);else document.querySelector(`#${button.dataset.workspaceAction}`)?.click();};
     });
     root.classList.remove("is-loading");
   }

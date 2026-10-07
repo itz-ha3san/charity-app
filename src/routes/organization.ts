@@ -1,11 +1,318 @@
-import type{FastifyInstance}from"fastify";import{z}from"zod";import{pool,tx}from"../db.js";import{allow,requireAuth}from"../auth.js";import{globalFamilyAccess,canViewFamily}from"../scope.js";const uuid=z.string().uuid(),positions=["ceo","supervision_deputy","finance_deputy","finance_officer","health_officer","education_officer","liaison","viewer"]as const;
-export async function registerOrganizationRoutes(app:FastifyInstance){app.addHook("preHandler",requireAuth);
-app.get("/organization/overview",async(req,reply)=>{if(!globalFamilyAccess(req.actor!)&&req.actor!.position!=="liaison")return reply.code(403).send({error:"FORBIDDEN"});const liaisonFilter=req.actor!.position==="liaison"?"WHERE s.liaison_id=$1":"",params=req.actor!.position==="liaison"?[req.actor!.id]:[],[units,users,supervisors]=await Promise.all([pool.query("SELECT id,code,name,unit_type AS type,active FROM organization_units ORDER BY name"),pool.query("SELECT id,username,display_name AS name,role,position,active FROM users ORDER BY display_name"),pool.query(`SELECT s.id,s.name,s.national_id AS "nationalId",s.phone,s.notes,s.active,s.liaison_id AS "liaisonId",u.display_name AS "liaisonName",count(fa.id) FILTER(WHERE fa.ends_at IS NULL)::int AS "familyCount" FROM supervisors s JOIN users u ON u.id=s.liaison_id LEFT JOIN family_supervisor_assignments fa ON fa.supervisor_id=s.id ${liaisonFilter} GROUP BY s.id,u.display_name ORDER BY s.active DESC,s.name`,params)]);return{units:units.rows,users:globalFamilyAccess(req.actor!)?users.rows:users.rows.filter(x=>["health_officer","education_officer"].includes(x.position)),supervisors:supervisors.rows,positions}});
-app.post("/supervisors",async(req,reply)=>{if(!globalFamilyAccess(req.actor!))return reply.code(403).send({error:"FORBIDDEN"});const b=z.object({name:z.string().trim().min(2).max(120),nationalId:z.string().regex(/^\d{10}$/).nullable().optional(),phone:z.string().max(30).default(""),notes:z.string().max(2000).default(""),liaisonId:uuid}).parse(req.body),liaison=await pool.query("SELECT 1 FROM users WHERE id=$1 AND active AND position='liaison'",[b.liaisonId]);if(!liaison.rowCount)return reply.code(400).send({error:"INVALID_LIAISON"});const q=await pool.query("INSERT INTO supervisors(name,national_id,phone,notes,liaison_id,created_by)VALUES($1,$2,$3,$4,$5,$6)RETURNING id",[b.name,b.nationalId??null,b.phone,b.notes,b.liaisonId,req.actor!.id]);await pool.query("INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'supervisor.create','supervisor',$2,$3)",[req.actor!.id,q.rows[0].id,{name:b.name,liaisonId:b.liaisonId}]);return reply.code(201).send({supervisorId:q.rows[0].id})});
-app.patch("/supervisors/:id",async(req,reply)=>{if(!globalFamilyAccess(req.actor!))return reply.code(403).send({error:"FORBIDDEN"});const id=uuid.parse((req.params as{id:string}).id),b=z.object({name:z.string().trim().min(2).max(120).optional(),phone:z.string().max(30).optional(),notes:z.string().max(2000).optional(),liaisonId:uuid.optional(),active:z.boolean().optional()}).parse(req.body);if(b.liaisonId&&!(await pool.query("SELECT 1 FROM users WHERE id=$1 AND active AND position='liaison'",[b.liaisonId])).rowCount)return reply.code(400).send({error:"INVALID_LIAISON"});await tx(async c=>{await c.query("UPDATE supervisors SET name=COALESCE($2,name),phone=COALESCE($3,phone),notes=COALESCE($4,notes),liaison_id=COALESCE($5,liaison_id),active=COALESCE($6,active),updated_at=now() WHERE id=$1",[id,b.name??null,b.phone??null,b.notes??null,b.liaisonId??null,b.active??null]);await c.query("INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'supervisor.update','supervisor',$2,$3)",[req.actor!.id,id,{changedFields:Object.keys(b)}])});return{supervisorId:id}});
-app.post("/families/:id/supervisor",async(req,reply)=>{if(!globalFamilyAccess(req.actor!))return reply.code(403).send({error:"FORBIDDEN"});const familyId=uuid.parse((req.params as{id:string}).id),b=z.object({supervisorId:uuid,reason:z.string().max(500).default("")}).parse(req.body),s=await pool.query("SELECT name FROM supervisors WHERE id=$1 AND active",[b.supervisorId]);if(!s.rowCount)return reply.code(400).send({error:"INVALID_SUPERVISOR"});await tx(async c=>{await c.query("UPDATE family_supervisor_assignments SET ends_at=now() WHERE family_id=$1 AND ends_at IS NULL",[familyId]);await c.query("INSERT INTO family_supervisor_assignments(family_id,supervisor_id,assigned_by,reason)VALUES($1,$2,$3,$4)",[familyId,b.supervisorId,req.actor!.id,b.reason]);await c.query("INSERT INTO family_supervision_plans(family_id,next_due_at,updated_by)VALUES($1,current_date+7,$2) ON CONFLICT(family_id)DO UPDATE SET active=true,next_due_at=LEAST(family_supervision_plans.next_due_at,current_date+7),updated_by=$2,updated_at=now()",[familyId,req.actor!.id]);await c.query("INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'family.supervisor.assign','family',$2,$3)",[req.actor!.id,familyId,{supervisorId:b.supervisorId,supervisorName:s.rows[0].name,reason:b.reason}])});return{familyId,supervisorId:b.supervisorId}});
-app.get("/families/:id/team",async(req,reply)=>{const familyId=uuid.parse((req.params as{id:string}).id);if(!await canViewFamily(req.actor!,familyId))return reply.code(403).send({error:"FAMILY_SCOPE_FORBIDDEN"});const [assignment,referrals]=await Promise.all([pool.query(`SELECT fa.id,s.id AS "supervisorId",s.name AS "supervisorName",s.phone AS "supervisorPhone",u.id AS "liaisonId",u.display_name AS "liaisonName",fa.starts_at AS "startsAt" FROM family_supervisor_assignments fa JOIN supervisors s ON s.id=fa.supervisor_id JOIN users u ON u.id=s.liaison_id WHERE fa.family_id=$1 AND fa.ends_at IS NULL`,[familyId]),pool.query(`SELECT r.id,r.domain,r.status,r.reason,r.assigned_to AS "assignedTo",u.display_name AS "assignedToName",r.created_at AS "createdAt" FROM service_referrals r JOIN users u ON u.id=r.assigned_to WHERE r.family_id=$1 ORDER BY r.created_at DESC`,[familyId])]);return{assignment:assignment.rows[0]??null,referrals:referrals.rows}});
-app.post("/families/:id/referrals",async(req,reply)=>{const familyId=uuid.parse((req.params as{id:string}).id);if(!await canViewFamily(req.actor!,familyId)||(!globalFamilyAccess(req.actor!)&&req.actor!.position!=="liaison"))return reply.code(403).send({error:"FAMILY_SCOPE_FORBIDDEN"});const b=z.object({domain:z.enum(["health","education"]),assignedTo:uuid,reason:z.string().trim().min(3).max(2000)}).parse(req.body),expected=b.domain==="health"?"health_officer":"education_officer",u=await pool.query("SELECT display_name FROM users WHERE id=$1 AND active AND position=$2",[b.assignedTo,expected]);if(!u.rowCount)return reply.code(400).send({error:"INVALID_SPECIALIST"});const id=await tx(async c=>{const q=await c.query("INSERT INTO service_referrals(family_id,domain,assigned_to,reason,created_by)VALUES($1,$2,$3,$4,$5)RETURNING id",[familyId,b.domain,b.assignedTo,b.reason,req.actor!.id]);await c.query("INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'family.referral.create','family',$2,$3)",[req.actor!.id,familyId,{referralId:q.rows[0].id,domain:b.domain,assignedTo:b.assignedTo,reason:b.reason}]);return q.rows[0].id});return reply.code(201).send({referralId:id})});
-app.get("/referrals/mine",async req=>{const q=await pool.query(`SELECT r.id,r.family_id AS "familyId",f.case_number AS "caseNumber",f.head_name AS "headName",r.domain,r.status,r.reason,r.created_at AS "createdAt" FROM service_referrals r JOIN families f ON f.id=r.family_id WHERE r.assigned_to=$1 ORDER BY CASE WHEN r.status IN ('open','in_progress') THEN 0 ELSE 1 END,r.created_at DESC`,[req.actor!.id]);return{referrals:q.rows}});
-app.patch("/referrals/:id",async(req,reply)=>{const id=uuid.parse((req.params as{id:string}).id),b=z.object({status:z.enum(["open","in_progress","done","cancelled"])}).parse(req.body),r=await pool.query("SELECT family_id,assigned_to FROM service_referrals WHERE id=$1",[id]);if(!r.rowCount)return reply.code(404).send({error:"REFERRAL_NOT_FOUND"});if(r.rows[0].assigned_to!==req.actor!.id&&!globalFamilyAccess(req.actor!))return reply.code(403).send({error:"FORBIDDEN"});await pool.query("UPDATE service_referrals SET status=$2,updated_at=now(),closed_at=CASE WHEN $2 IN ('done','cancelled') THEN now() ELSE NULL END WHERE id=$1",[id,b.status]);await pool.query("INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'family.referral.update','family',$2,$3)",[req.actor!.id,r.rows[0].family_id,{referralId:id,status:b.status}]);return{referralId:id,status:b.status}});
+import { applySupervisor } from "../supervisors.js";
+import { personName, optionalPhone, phone } from "../validation.js";
+import type { FastifyInstance } from "fastify";
+import { z } from "zod";
+import { pool, tx } from "../db.js";
+import { allow, requireAuth } from "../auth.js";
+import { globalFamilyAccess, canViewFamily } from "../scope.js";
+const uuid = z.string().uuid(),
+  positions = [
+    "ceo",
+    "supervision_deputy",
+    "finance_deputy",
+    "finance_officer",
+    "health_officer",
+    "education_officer",
+    "liaison",
+    "viewer",
+  ] as const;
+export async function registerOrganizationRoutes(app: FastifyInstance) {
+  app.addHook("preHandler", requireAuth);
+  app.get("/organization/overview", async (req, reply) => {
+    if (!globalFamilyAccess(req.actor!) && req.actor!.position !== "liaison")
+      return reply.code(403).send({ error: "FORBIDDEN" });
+    const liaisonFilter =
+        req.actor!.position === "liaison" ? "WHERE s.liaison_id=$1" : "",
+      params = req.actor!.position === "liaison" ? [req.actor!.id] : [],
+      [units, users, supervisors] = await Promise.all([
+        pool.query(
+          "SELECT id,code,name,unit_type AS type,active FROM organization_units ORDER BY name",
+        ),
+        pool.query(
+          "SELECT id,username,display_name AS name,role,position,active FROM users ORDER BY display_name",
+        ),
+        pool.query(
+          `SELECT s.id,s.name,s.national_id AS "nationalId",s.phone,s.notes,s.active,s.liaison_id AS "liaisonId",u.display_name AS "liaisonName",count(fa.id) FILTER(WHERE fa.ends_at IS NULL)::int AS "familyCount" FROM supervisors s JOIN users u ON u.id=s.liaison_id LEFT JOIN family_supervisor_assignments fa ON fa.supervisor_id=s.id ${liaisonFilter} GROUP BY s.id,u.display_name ORDER BY s.active DESC,s.name`,
+          params,
+        ),
+      ]);
+    return {
+      units: units.rows,
+      users: globalFamilyAccess(req.actor!)
+        ? users.rows
+        : users.rows.filter((x) =>
+            ["health_officer", "education_officer"].includes(x.position),
+          ),
+      supervisors: supervisors.rows,
+      positions,
+    };
+  });
+  app.post("/supervisors", async (req, reply) => {
+    if (!globalFamilyAccess(req.actor!))
+      return reply.code(403).send({ error: "FORBIDDEN" });
+    const b = z
+        .object({
+          name: personName,
+          nationalId: z
+            .string()
+            .regex(/^\d{10}$/)
+            .nullable()
+            .optional(),
+          phone: optionalPhone.default(""),
+          notes: z.string().max(2000).default(""),
+          liaisonId: uuid,
+        })
+        .parse(req.body),
+      liaison = await pool.query(
+        "SELECT 1 FROM users WHERE id=$1 AND active AND position='liaison'",
+        [b.liaisonId],
+      );
+    if (!liaison.rowCount)
+      return reply.code(400).send({ error: "INVALID_LIAISON" });
+    const q = await pool.query(
+      "INSERT INTO supervisors(name,national_id,phone,notes,liaison_id,created_by)VALUES($1,$2,$3,$4,$5,$6)RETURNING id",
+      [
+        b.name,
+        b.nationalId ?? null,
+        b.phone,
+        b.notes,
+        b.liaisonId,
+        req.actor!.id,
+      ],
+    );
+    await pool.query(
+      "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'supervisor.create','supervisor',$2,$3)",
+      [req.actor!.id, q.rows[0].id, { name: b.name, liaisonId: b.liaisonId }],
+    );
+    return reply.code(201).send({ supervisorId: q.rows[0].id });
+  });
+  app.patch("/supervisors/:id", async (req, reply) => {
+    if (!globalFamilyAccess(req.actor!))
+      return reply.code(403).send({ error: "FORBIDDEN" });
+    const id = uuid.parse((req.params as { id: string }).id),
+      b = z
+        .object({
+          name: personName.optional(),
+          phone: optionalPhone.optional(),
+          notes: z.string().max(2000).optional(),
+          liaisonId: uuid.optional(),
+          active: z.boolean().optional(),
+        })
+        .parse(req.body);
+    if (
+      b.liaisonId &&
+      !(
+        await pool.query(
+          "SELECT 1 FROM users WHERE id=$1 AND active AND position='liaison'",
+          [b.liaisonId],
+        )
+      ).rowCount
+    )
+      return reply.code(400).send({ error: "INVALID_LIAISON" });
+    await tx(async (c) => {
+      await c.query(
+        "UPDATE supervisors SET name=COALESCE($2,name),phone=COALESCE($3,phone),notes=COALESCE($4,notes),liaison_id=COALESCE($5,liaison_id),active=COALESCE($6,active),updated_at=now() WHERE id=$1",
+        [
+          id,
+          b.name ?? null,
+          b.phone ?? null,
+          b.notes ?? null,
+          b.liaisonId ?? null,
+          b.active ?? null,
+        ],
+      );
+      await c.query(
+        "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'supervisor.update','supervisor',$2,$3)",
+        [req.actor!.id, id, { changedFields: Object.keys(b) }],
+      );
+    });
+    return { supervisorId: id };
+  });
+  app.post("/families/:id/supervisor", async (req, reply) => {
+    if (!globalFamilyAccess(req.actor!) && req.actor!.position !== "liaison")
+      return reply.code(403).send({ error: "FORBIDDEN" });
+    const familyId = uuid.parse((req.params as { id: string }).id),
+      b = z
+        .object({ supervisorId: uuid, reason: z.string().max(500).default("") })
+        .parse(req.body);
+    if (!(await canViewFamily(req.actor!, familyId)))
+      return reply.code(403).send({ error: "FAMILY_SCOPE_FORBIDDEN" });
+    await tx(async (c) => {
+      await applySupervisor(c, req.actor!, familyId, b.supervisorId);
+    });
+    return { familyId, supervisorId: b.supervisorId };
+  });
+  app.delete("/supervisors/:id", async (req, reply) => {
+    if (!globalFamilyAccess(req.actor!))
+      return reply.code(403).send({ error: "FORBIDDEN" });
+    const id = uuid.parse((req.params as { id: string }).id),
+      b = z
+        .object({
+          mode: z.enum(["pending", "transfer", "delete_families"]),
+          replacementId: uuid.optional(),
+          confirmDelete: z.boolean().default(false),
+        })
+        .parse(req.body);
+    if (b.mode === "transfer" && (!b.replacementId || b.replacementId === id))
+      return reply.code(400).send({ error: "INVALID_REPLACEMENT" });
+    if (b.mode === "delete_families" && !b.confirmDelete)
+      return reply.code(400).send({ error: "DELETE_CONFIRMATION_REQUIRED" });
+    const result = await tx(async (c) => {
+      const locked = await c.query(
+        "SELECT id,active FROM supervisors WHERE id=ANY($1::uuid[]) ORDER BY id FOR UPDATE",
+        [[id, ...(b.replacementId ? [b.replacementId] : [])]],
+      );
+      if (!locked.rows.some((x) => x.id === id && x.active))
+        return { error: "SUPERVISOR_NOT_FOUND", status: 404 };
+      if (
+        b.mode === "transfer" &&
+        !locked.rows.some((x) => x.id === b.replacementId && x.active)
+      )
+        return { error: "INVALID_REPLACEMENT", status: 400 };
+      const families = await c.query(
+        "SELECT f.id FROM families f JOIN family_supervisor_assignments fa ON fa.family_id=f.id WHERE fa.supervisor_id=$1 AND fa.ends_at IS NULL ORDER BY f.id FOR UPDATE OF f",
+        [id],
+      );
+      if (b.mode === "delete_families") {
+        // Never erase donations / inventory ledgers implicitly.
+        const linked = await c.query(
+          "SELECT 1 FROM donation_allocations WHERE family_id=ANY($1::uuid[]) UNION ALL SELECT 1 FROM inventory_transactions WHERE family_id=ANY($1::uuid[]) LIMIT 1",
+          [families.rows.map((x) => x.id)],
+        );
+        if (linked.rowCount)
+          return { error: "FAMILIES_HAVE_LEDGER_HISTORY", status: 409 };
+        await c.query("DELETE FROM families WHERE id=ANY($1::uuid[])", [
+          families.rows.map((x) => x.id),
+        ]);
+      } else
+        for (const f of families.rows)
+          await applySupervisor(
+            c,
+            req.actor!,
+            f.id,
+            b.mode === "transfer" ? b.replacementId! : null,
+          );
+      await c.query(
+        "UPDATE supervisors SET active=false,updated_at=now() WHERE id=$1",
+        [id],
+      );
+      await c.query(
+        "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'supervisor.delete','supervisor',$2,$3)",
+        [
+          req.actor!.id,
+          id,
+          {
+            mode: b.mode,
+            replacementId: b.replacementId ?? null,
+            familyIds: families.rows.map((x) => x.id),
+          },
+        ],
+      );
+      return { deleted: true, familyCount: families.rowCount, mode: b.mode };
+    });
+    if ("error" in result)
+      return reply.code(result.status!).send({ error: result.error });
+    return result;
+  });
+  app.get("/families/:id/team", async (req, reply) => {
+    const familyId = uuid.parse((req.params as { id: string }).id);
+    if (!(await canViewFamily(req.actor!, familyId)))
+      return reply.code(403).send({ error: "FAMILY_SCOPE_FORBIDDEN" });
+    const [assignment, referrals] = await Promise.all([
+      pool.query(
+        `SELECT fa.id,s.id AS "supervisorId",s.name AS "supervisorName",s.phone AS "supervisorPhone",u.id AS "liaisonId",u.display_name AS "liaisonName",fa.starts_at AS "startsAt" FROM family_supervisor_assignments fa JOIN supervisors s ON s.id=fa.supervisor_id JOIN users u ON u.id=s.liaison_id WHERE fa.family_id=$1 AND fa.ends_at IS NULL`,
+        [familyId],
+      ),
+      pool.query(
+        `SELECT r.id,r.domain,r.status,r.reason,r.assigned_to AS "assignedTo",u.display_name AS "assignedToName",r.created_at AS "createdAt" FROM service_referrals r JOIN users u ON u.id=r.assigned_to WHERE r.family_id=$1 ORDER BY r.created_at DESC`,
+        [familyId],
+      ),
+    ]);
+    return {
+      assignment: assignment.rows[0] ?? null,
+      referrals: referrals.rows,
+    };
+  });
+  app.post("/families/:id/referrals", async (req, reply) => {
+    const familyId = uuid.parse((req.params as { id: string }).id);
+    if (
+      !(await canViewFamily(req.actor!, familyId)) ||
+      (!globalFamilyAccess(req.actor!) && req.actor!.position !== "liaison")
+    )
+      return reply.code(403).send({ error: "FAMILY_SCOPE_FORBIDDEN" });
+    const b = z
+        .object({
+          domain: z.enum(["health", "education"]),
+          assignedTo: uuid,
+          reason: z.string().trim().min(3).max(2000),
+        })
+        .parse(req.body),
+      expected = b.domain === "health" ? "health_officer" : "education_officer",
+      u = await pool.query(
+        "SELECT display_name FROM users WHERE id=$1 AND active AND position=$2",
+        [b.assignedTo, expected],
+      );
+    if (!u.rowCount)
+      return reply.code(400).send({ error: "INVALID_SPECIALIST" });
+    const id = await tx(async (c) => {
+      const q = await c.query(
+        "INSERT INTO service_referrals(family_id,domain,assigned_to,reason,created_by)VALUES($1,$2,$3,$4,$5)RETURNING id",
+        [familyId, b.domain, b.assignedTo, b.reason, req.actor!.id],
+      );
+      await c.query(
+        "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'family.referral.create','family',$2,$3)",
+        [
+          req.actor!.id,
+          familyId,
+          {
+            referralId: q.rows[0].id,
+            domain: b.domain,
+            assignedTo: b.assignedTo,
+            reason: b.reason,
+          },
+        ],
+      );
+      return q.rows[0].id;
+    });
+    return reply.code(201).send({ referralId: id });
+  });
+  app.get("/referrals/mine", async (req) => {
+    const q = await pool.query(
+      `SELECT r.id,r.family_id AS "familyId",f.case_number AS "caseNumber",f.head_name AS "headName",r.domain,r.status,r.reason,r.created_at AS "createdAt" FROM service_referrals r JOIN families f ON f.id=r.family_id WHERE r.assigned_to=$1 ORDER BY CASE WHEN r.status IN ('open','in_progress') THEN 0 ELSE 1 END,r.created_at DESC`,
+      [req.actor!.id],
+    );
+    return { referrals: q.rows };
+  });
+  app.patch("/referrals/:id", async (req, reply) => {
+    const id = uuid.parse((req.params as { id: string }).id),
+      b = z
+        .object({
+          status: z.enum(["open", "in_progress", "done", "cancelled"]),
+        })
+        .parse(req.body),
+      r = await pool.query(
+        "SELECT family_id,assigned_to FROM service_referrals WHERE id=$1",
+        [id],
+      );
+    if (!r.rowCount)
+      return reply.code(404).send({ error: "REFERRAL_NOT_FOUND" });
+    if (
+      r.rows[0].assigned_to !== req.actor!.id &&
+      !globalFamilyAccess(req.actor!)
+    )
+      return reply.code(403).send({ error: "FORBIDDEN" });
+    await pool.query(
+      "UPDATE service_referrals SET status=$2,updated_at=now(),closed_at=CASE WHEN $2 IN ('done','cancelled') THEN now() ELSE NULL END WHERE id=$1",
+      [id, b.status],
+    );
+    await pool.query(
+      "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details)VALUES($1,'family.referral.update','family',$2,$3)",
+      [
+        req.actor!.id,
+        r.rows[0].family_id,
+        { referralId: id, status: b.status },
+      ],
+    );
+    return { referralId: id, status: b.status };
+  });
 }

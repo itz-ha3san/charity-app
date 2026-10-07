@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const STORAGE_PREFIX = 'family-case:draft:v1:';
-  const skipDraft = new Set(['loginForm','bootstrapForm','forcedPasswordForm','advancedFamilyForm','reportFilter','c7FinanceFilter','supportPublicForm']);
+  const skipDraft = new Set(['loginForm','bootstrapForm','forcedPasswordForm','myProfileForm','myPasswordForm','advancedFamilyForm','reportFilter','c7FinanceFilter','supportPublicForm']);
   const fileLike = el => el.matches('input[type="file"], input[type="password"]');
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const formKey = form => `${STORAGE_PREFIX}${location.pathname}:${form.id || 'form'}`;
@@ -128,7 +128,8 @@
     }, true);
   }
 
-  function enhanceQuickFilters() {
+  function enhanceQuickFilters() { return; // The segmented status filter is the single filter control.
+
     const toolbar = document.querySelector('.family-toolbar');
     const select = document.querySelector('#statusFilter');
     if (!toolbar || !select || toolbar.dataset.quickFilters) return;

@@ -1,27 +1,5 @@
 (()=> {
-  const root=document.documentElement;
   const $=s=>document.querySelector(s);
-
-  // Persisted light/dark theme without disturbing the existing system preference fallback.
-  const stored=localStorage.getItem('c14-theme');
-  if(stored==='light'||stored==='dark') root.dataset.theme=stored;
-
-  const themeBtn=$('#themeToggle');
-  const syncTheme=()=>{
-    const dark=root.dataset.theme==='dark' || (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
-    if(themeBtn){
-      themeBtn.textContent=dark?'☀':'☾';
-      themeBtn.setAttribute('aria-label',dark?'فعال‌کردن پوسته روشن':'فعال‌کردن پوسته تاریک');
-      themeBtn.title=dark?'پوسته روشن':'پوسته تاریک';
-    }
-  };
-  themeBtn?.addEventListener('click',()=>{
-    const next=(root.dataset.theme==='dark'?'light':'dark');
-    root.dataset.theme=next;
-    localStorage.setItem('c14-theme',next);
-    syncTheme();
-  });
-  syncTheme();
 
   // Live network status gives the user a useful signal before a request fails.
   const status=$('#appStatus'), statusText=status?.querySelector('span');

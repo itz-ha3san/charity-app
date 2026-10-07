@@ -433,24 +433,22 @@ body:has(#auth:not(.hidden)) .ui-command-trigger { display: none; }
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .auth-visual {
-    border-color: #2c4966;
-    background: linear-gradient(145deg, #202b36, #1c2936);
-  }
+html[data-theme="dark"] .auth-visual {
+  border-color: #2c4966;
+  background: linear-gradient(145deg, #202b36, #1c2936);
+}
 
-  .visual-badge,
-  .visual-board {
-    border-color: rgba(255, 255, 255, 0.16);
-    background: rgba(32, 37, 44, 0.86);
-  }
+html[data-theme="dark"] .visual-badge,
+html[data-theme="dark"] .visual-board {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(32, 37, 44, 0.86);
+}
 
-  .visual-points {
-    color: rgba(255, 255, 255, 0.7);
-  }
+html[data-theme="dark"] .visual-points {
+  color: rgba(255, 255, 255, 0.7);
+}
 
-  .auth-privacy {
-    border-color: #31543f;
-    color: #9bd5b2;
-  }
+html[data-theme="dark"] .auth-privacy {
+  border-color: #31543f;
+  color: #9bd5b2;
 }

@@ -1,0 +1,175 @@
+/* Final geometry layer. Keep this last so older enhancement layers cannot
+   reinstate fixed minimum widths or overlapping sticky surfaces. */
+*,*::before,*::after{box-sizing:border-box}
+html,body{min-width:0;width:100%;margin:0}
+body{line-height:1.75}
+.shell{width:min(1320px,calc(100% - 48px));padding:24px 0 32px}
+.topbar{position:relative;inset:auto;margin:0 0 24px;padding:16px 18px;border:1px solid var(--border);border-radius:12px;background:var(--surface);gap:16px;flex-wrap:wrap;backdrop-filter:none}
+.brand,.brand>div,.dashboard-head>div,.user-card>div{min-width:0}
+.brand h1{font-size:20px;overflow-wrap:anywhere}
+.theme-choice{margin-inline-start:auto;flex:0 1 auto}
+.dashboard-layout,.dashboard-main,.dashboard-card,.family-workspace,.family-panel,.family-detail,.workspace-overview,.workspace-card,.workspace-focus-grid,.workspace-family-head,.form-grid,.form-field,.select-control,.combobox,.combobox-frame,.number-field,.member-editor,.finance-card,.fund-card,.info-card,.member-card,.note-card,.ui-family-progress,.ui-password,.ui-password-frame,.input-shell{min-width:0}
+.dashboard-main{container-type:inline-size;display:grid;gap:24px;align-content:start}
+.workspace-dashboard .dashboard-layout{grid-template-columns:248px minmax(0,1fr);gap:24px;align-items:start}
+.workspace-dashboard .ui-sidebar{top:16px;max-height:calc(100dvh - 32px);min-width:0}
+.workspace-dashboard .ui-sidebar-head,.workspace-dashboard .ui-sidebar-footer{flex-shrink:0}
+.workspace-dashboard .ui-sidebar-nav{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+.workspace-dashboard .dashboard-head{flex-wrap:wrap;gap:16px}
+.workspace-overview-head,.workspace-head-actions,.finance-head,.finance-card-head,.action-board-head,.detail-section-title,.modal-head,.family-item-head,.workspace-family-head,.followup-history-head,.case-documents-head,.doc-actions,.workflow-actions,.manage-actions,.modal-actions{gap:12px;min-width:0;flex-wrap:wrap}
+.workspace-overview-head>div:first-child,.finance-head>div:first-child,.finance-card-head>div:first-child,.modal-head>div:first-child,.detail-section-title>div:first-child{min-width:0;flex:1 1 180px}
+.workspace-overview-head h2,.detail-head h2,.modal-head h2{overflow-wrap:anywhere;line-height:1.6}
+.workspace-head-actions{flex-shrink:0}
+.workspace-metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.workspace-metric{min-width:0;gap:12px;padding:16px}
+.workspace-metric>span:last-child{min-width:0}
+.workspace-metric small,.workspace-priority small,.workspace-card-head p{white-space:normal;overflow-wrap:anywhere;line-height:1.7}
+.workspace-focus-grid{gap:16px}
+.workspace-family-card{padding:20px;border-radius:12px}
+.workspace-family-card .family-toolbar{position:static;inset:auto;display:grid;grid-template-areas:'search status status status' '. refresh create import';grid-template-columns:minmax(0,1fr) repeat(3,auto);gap:12px;padding:12px;margin-top:16px;align-items:stretch}
+.workspace-family-card .family-toolbar>.combobox,.workspace-family-card .family-toolbar>#searchInput{grid-area:search;width:100%;min-width:0}
+.workspace-family-card .family-toolbar>.select-control,.workspace-family-card .family-toolbar>.ui-segment{min-width:0;max-width:100%}
+.workspace-family-card .family-toolbar>.ui-segment{display:flex;flex-wrap:wrap;width:100%;justify-self:stretch;gap:4px}
+.ui-segment button{min-width:0;flex:1 1 90px;white-space:normal;padding:8px;line-height:1.6;text-align:center}
+.supervisor-filter{width:100%;max-width:none;margin:16px 0 20px}
+.family-workspace{grid-template-columns:minmax(230px,280px) minmax(0,1fr);gap:16px;min-height:0;margin-top:20px;align-items:start}
+.family-panel{max-width:100%;border-radius:12px}
+.family-list{max-height:780px;overflow-y:auto;padding:10px}
+.family-detail,.family-detail-v2{padding:0;max-height:780px;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable}
+.family-record-head,.detail-head.family-record-head{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding:18px}
+.family-record-identity{min-width:0;grid-template-columns:48px minmax(0,1fr);gap:4px 12px}
+.family-record-avatar{width:48px;height:48px}
+.family-record-identity h2{font-size:23px;white-space:normal;overflow-wrap:anywhere}
+.family-record-head .detail-actions{width:100%;max-width:none;justify-content:flex-start;gap:8px;flex-wrap:wrap}
+.family-record-status{flex-wrap:wrap;gap:8px}
+.family-detail-v2>.simple-page-guide,.family-detail-v2>.simple-section-toggle,.family-detail-v2>.detail-grid,.family-detail-v2>.detail-section,.family-detail-v2>.finance-section,.family-detail-v2>.full-profile,.family-detail-v2>.ui-family-progress,.family-detail-v2>.archive-banner,.family-detail-v2>.followup-history,.family-detail-v2>.case-documents-section{margin-inline:16px;width:auto;max-width:calc(100% - 32px)}
+.family-detail-v2>.simple-page-guide{margin-block:16px;padding:12px;flex-wrap:wrap}
+.simple-page-guide>div{min-width:0}
+.family-detail-v2>.simple-section-toggle{margin-block:10px;min-height:64px;padding:12px 14px}
+.family-detail-v2>.simple-section-toggle span{min-width:0}
+.family-detail-v2>.simple-section-toggle i{flex-shrink:0}
+.family-detail-tabs{position:static;top:auto;display:flex;flex-wrap:wrap;overflow:visible;gap:6px;padding:12px 16px;background:var(--surface);backdrop-filter:none}
+.family-detail-tabs button{min-height:44px;flex:1 1 90px;justify-content:center;padding:8px;white-space:normal}
+.family-detail-tabs button b{font-size:12px}
+.family-detail-v2 .detail-grid,.detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.member-grid,.fund-grid,.metric-grid,.import-preview,.report-grid{grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:12px}
+.info-card,.member-card,.finance-card,.fund-card,.note-card{padding:14px;min-width:0;max-width:100%}
+.info-card b,.info-card small,.member-card b,.member-card p,.finance-card h4,.finance-card p,.fund-card h4,.fund-card p,.audit-card,.audit-meta,.audit-card p,.registry-table td,.profile-field,.data-value,.user-row b,.user-row p,.user-row small,.finance-meta,.finance-note,.budget-row b,.ui-family-missing-chip{overflow-wrap:anywhere;word-break:normal}
+.info-card b{line-height:1.8}
+.profile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ui-family-progress-top{gap:12px}.ui-stepper{gap:8px;flex-wrap:wrap}.ui-step,.ui-step:last-child{flex:1 1 90px;min-width:0}.ui-step-copy b,.ui-step-copy small{white-space:normal;line-height:1.7}
+.workflow-actions,.doc-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+button,.secondary,a.secondary{max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.6}
+button{min-height:40px}
+input,textarea,select{max-width:100%;min-width:0}
+.form-field input:not([type=checkbox]):not([type=radio]):not([type=range]),.form-field select,.form-field textarea,.manage-input,.manage-select{width:100%;min-height:46px;line-height:1.6;padding-block:10px}
+.form-field input[type=checkbox],.form-field input[type=radio]{width:18px;min-height:18px;height:18px;flex:0 0 18px}
+.form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.form-field label,.form-help,.inline-error,.case-field-message,.ui-input-hint{white-space:normal;overflow-wrap:anywhere;line-height:1.75}
+.form-field label{font-size:14px}.form-help,.case-field-message,.ui-input-hint{font-size:12px}
+textarea{resize:vertical;min-height:96px}
+.modal-backdrop{z-index:1200;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:20px;background:rgba(10,18,30,.58)}
+.modal{min-width:0;width:min(660px,100%);max-width:100%;max-height:calc(100dvh - 40px);margin:0;overflow-x:hidden;overflow-y:auto;padding:24px;border-radius:12px}
+.modal.audit-modal{width:min(1020px,100%)}
+.modal-head{align-items:flex-start;margin-bottom:16px}
+.modal-head>h2{min-width:0;flex:1;line-height:1.6}
+.modal-head>[data-close],.modal-head>.close-btn,.modal-head>.single-exit-button{flex:0 0 auto;width:auto;min-width:44px;height:auto;min-height:44px;margin:0;padding:8px 12px;font-size:13px}
+.modal-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.modal-actions button{flex:0 1 auto;min-height:44px}
+.user-row{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;padding:16px 0}
+.user-row>div:first-child{min-width:0;flex:1 1 240px}.user-row>.doc-actions{flex:1 1 280px;justify-content:flex-start}
+.user-row>.doc-actions button{min-height:44px;font-size:12px}
+.registry-table-wrap,.ui-table-wrap,.report-table-wrap{width:100%;min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.registry-table-wrap table,.ui-table-wrap table{min-width:640px;max-width:none}
+.modal table:not(.registry-table):not(.ui-table){table-layout:fixed;width:100%;max-width:100%}
+.modal table th,.modal table td{overflow-wrap:anywhere;vertical-align:top}
+.case-wizard-modal{display:flex;flex-direction:column;width:min(940px,100%);padding:0;overflow:hidden}
+.case-wizard-modal>.modal-head{padding:18px 22px;margin:0;flex-shrink:0}
+.case-wizard-shell{padding:14px 22px;min-width:0;flex-shrink:0}
+.case-wizard-nav{grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.case-wizard-nav button{grid-template-columns:28px minmax(0,1fr);gap:6px;min-height:56px;padding:6px}
+.case-wizard-nav button b{font-size:11px;white-space:normal;line-height:1.5;overflow:visible;text-overflow:clip}
+.case-wizard-nav button small{display:none}
+.case-wizard-modal #createFamilyForm{min-height:0;min-width:0;padding:0 22px 20px;overflow-y:auto;overflow-x:hidden}
+.case-wizard-step{min-height:0;padding:20px 0 8px}
+.case-wizard-actions{position:static;inset:auto;display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 0;padding:16px 0 0;background:var(--surface);backdrop-filter:none}
+.case-wizard-actions button{flex:1 1 120px;min-height:44px}
+.case-wizard-action-spacer{display:none}
+.case-draft-notice{margin:12px 22px 0;min-width:0;grid-template-columns:minmax(0,1fr) auto auto}
+.followup-modal,.action-modal,.manage-modal{padding:0;overflow-y:auto}
+.followup-modal .modal-actions{position:static;inset:auto;margin:20px 0 0;padding:16px 0 0}
+.followup-context{min-width:0;grid-template-columns:40px minmax(0,1fr);margin:16px 22px}.followup-context>span:last-child{grid-column:2}
+.followup-status-segment{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.action-filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.action-kanban{max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-x:contain}
+.ui-overlay{z-index:1200}.ui-calendar,.combobox-panel,.ui-menu{z-index:1350;max-width:calc(100vw - 24px);max-height:min(420px,calc(100dvh - 32px));overflow-y:auto}
+.ui-toast-viewport,.toast{z-index:1600;max-width:calc(100vw - 32px)}
+.ui-password-frame{min-width:0}.ui-input-action,.select-chevron,.combobox-chevron,.number-step{flex-shrink:0}
+.workspace-dashboard .workspace-nav-items[hidden]{display:none!important}
+@container (max-width:850px){
+ .workspace-family-card .family-toolbar{grid-template-areas:'search search search' 'status status status' 'refresh create import';grid-template-columns:repeat(3,minmax(0,1fr))}
+ .family-workspace{grid-template-columns:minmax(0,1fr)}
+ .family-list{max-height:320px}
+ .family-detail,.family-detail-v2{max-height:none;overflow-y:visible}
+ .workspace-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .family-record-head .detail-actions{justify-content:flex-start}
+}
+@media(max-width:980px){
+ .workspace-dashboard .dashboard-layout{grid-template-columns:minmax(0,1fr)}
+ .workspace-dashboard .ui-sidebar{position:fixed;top:0;right:0;z-index:900;width:min(320px,calc(100vw - 48px));height:100dvh;max-height:100dvh;border-radius:0;transform:translateX(110%)}
+ .workspace-nav-open .workspace-dashboard .ui-sidebar{transform:translateX(0)}
+ .workspace-nav-overlay{z-index:890}
+ .workspace-dashboard .ui-sidebar-nav{display:block;overflow-y:auto}
+ .workspace-dashboard .workspace-nav-group{display:block}
+ .workspace-dashboard .workspace-nav-items{display:grid!important}
+ .workspace-dashboard .workspace-nav-group-title{display:flex}
+ .workspace-dashboard .ui-sidebar-footer{display:block}
+ .auth-layout-v2{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:600px){
+ .shell{width:calc(100% - 24px);padding-top:12px}
+ .topbar{padding:12px;gap:12px;margin-bottom:16px}
+ .brand h1{font-size:17px}.brand .mark{width:40px;height:40px;flex-shrink:0}
+ .theme-choice{width:100%;justify-content:flex-end}.theme-choice label{display:block}
+ .workspace-dashboard .dashboard-head{padding:14px;gap:12px}
+ .dashboard-main{gap:16px}.workspace-family-card{padding:14px}
+ .workspace-family-card .family-toolbar{padding:10px;gap:10px;grid-template-areas:'search search' 'status status' 'refresh refresh' 'create import';grid-template-columns:repeat(2,minmax(0,1fr))}
+ .workspace-metric{min-height:100px;padding:12px;gap:8px}.workspace-metric small{font-size:12px}
+ .workspace-head-actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .workspace-overview-head h2{font-size:24px}
+ .family-workspace{margin-top:16px}.family-list{max-height:300px}
+ .family-record-head{padding:14px}.family-record-identity h2{font-size:20px}
+ .family-detail-v2>.simple-page-guide,.family-detail-v2>.simple-section-toggle,.family-detail-v2>.detail-grid,.family-detail-v2>.detail-section,.family-detail-v2>.finance-section,.family-detail-v2>.full-profile,.family-detail-v2>.ui-family-progress,.family-detail-v2>.archive-banner,.family-detail-v2>.followup-history,.family-detail-v2>.case-documents-section{margin-inline:12px;max-width:calc(100% - 24px)}
+ .family-detail-tabs{padding:12px;gap:6px}.family-detail-tabs button{flex-basis:85px;padding:6px;font-size:12px}
+ .detail-grid,.family-detail-v2 .detail-grid,.member-grid,.profile-grid{grid-template-columns:minmax(0,1fr)}
+ .form-grid,.case-wizard-step .form-grid,.case-review-grid,.manage-role-options{grid-template-columns:minmax(0,1fr)}
+ .form-field.full{grid-column:1}
+ .modal-backdrop,.modal-backdrop:has(.case-wizard-modal),.modal-backdrop:has(.followup-modal),.modal-backdrop:has(.action-modal){padding:12px;align-items:center}
+ .modal{width:100%;padding:18px;max-height:calc(100dvh - 24px);border-radius:12px}
+ .modal-head{gap:8px}.modal-head h2{font-size:21px}.modal-head>[data-close]{padding:8px;font-size:12px}
+ .modal-actions{flex-direction:row}.modal-actions button{flex:1 1 130px;width:auto}
+ .modal.case-wizard-modal,.modal.followup-modal,.modal.action-modal,.modal.manage-modal{padding:0;border-radius:12px}
+ .case-wizard-modal>.modal-head,.followup-modal>.modal-head,.manage-modal>.modal-head{padding:16px}
+ .case-wizard-shell{padding:12px 16px}
+ .case-wizard-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;gap:6px}
+ .case-wizard-nav li{min-width:0}.case-wizard-nav button{grid-template-columns:24px minmax(0,1fr);min-height:48px;gap:4px;padding:4px}.case-wizard-nav button>span{width:24px;height:24px;font-size:11px}
+ .case-wizard-modal #createFamilyForm{padding:0 16px 16px}
+ .case-draft-notice{grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-inline:16px}.case-draft-notice>div{grid-column:1/-1}
+ .followup-context{margin:12px 16px}.followup-modal #noteForm,.manage-modal-body{padding:16px}
+ .user-row>div:first-child,.user-row>.doc-actions{flex-basis:100%;max-width:100%}
+ .user-row>.doc-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.user-row>.doc-actions button{padding:8px;width:100%}
+ .ui-stepper{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .ui-step-copy small{display:block}
+ .finance-head>div:first-child,.finance-card-head>div:first-child{flex-basis:100%}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.family-item:hover,.info-card:hover,.member-card:hover,.finance-card:hover,.metric-card:hover,.fund-card:hover{transform:none!important}}
+
+.workspace-dashboard .workspace-nav-label{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.8;min-width:0}
+.workspace-dashboard .workspace-sidebar-close{width:auto;min-width:44px;min-height:44px;height:auto;padding:8px;font-size:13px;flex:0 0 auto}
+.family-list-copy .family-item-head{display:block}.family-list-copy .family-item-head b{display:block;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.8;overflow-wrap:anywhere}
+.family-list-copy>p{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.8;overflow-wrap:anywhere}
+.interaction-morph-button{min-height:44px;line-height:1.8}
+.form-field>.number-field,.form-field .number-field{width:100%;max-width:none;min-height:46px}
+.form-field .number-field input[type=number]{width:0!important;min-width:0!important;flex:1 1 0;min-height:44px}
+.form-field .number-step{flex:0 0 40px;min-height:44px}
+.ui-badge,.count-chip,.status,.priority,.finance-status,.archive-status,.admin-badge{height:auto;min-height:28px;line-height:1.8;white-space:normal;overflow-wrap:anywhere}
+.combobox-option{min-width:0;overflow-wrap:anywhere}.combobox-option>span:first-child{min-width:0;flex:1}

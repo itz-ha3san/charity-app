@@ -1,0 +1,293 @@
+{
+  "checks": [
+    {
+      "state": "dashboard-light",
+      "width": 1440,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-light",
+      "width": 1440,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "dashboard-dark",
+      "width": 1440,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-dark",
+      "width": 1440,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "financial-widths",
+      "width": 1440,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [
+        {
+          "left": 390,
+          "right": 1050,
+          "top": 27.9375,
+          "bottom": 752.046875,
+          "viewportHeight": 780
+        }
+      ],
+      "overlaps": []
+    },
+    {
+      "state": "dashboard-light",
+      "width": 1024,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-light",
+      "width": 1024,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "dashboard-dark",
+      "width": 1024,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-dark",
+      "width": 1024,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "financial-widths",
+      "width": 1024,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [
+        {
+          "left": 182,
+          "right": 842,
+          "top": 27.9375,
+          "bottom": 752.046875,
+          "viewportHeight": 780
+        }
+      ],
+      "overlaps": []
+    },
+    {
+      "state": "dashboard-light",
+      "width": 768,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-light",
+      "width": 768,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "navigation-light",
+      "width": 768,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "dashboard-dark",
+      "width": 768,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-dark",
+      "width": 768,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "navigation-dark",
+      "width": 768,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "financial-widths",
+      "width": 768,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [
+        {
+          "left": 54,
+          "right": 714,
+          "top": 27.9375,
+          "bottom": 752.046875,
+          "viewportHeight": 780
+        }
+      ],
+      "overlaps": []
+    },
+    {
+      "state": "dashboard-light",
+      "width": 390,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-light",
+      "width": 390,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "navigation-light",
+      "width": 390,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "dashboard-dark",
+      "width": 390,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-dark",
+      "width": 390,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "navigation-dark",
+      "width": 390,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "financial-widths",
+      "width": 390,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [
+        {
+          "left": 12,
+          "right": 378,
+          "top": 12,
+          "bottom": 768,
+          "viewportHeight": 780
+        }
+      ],
+      "overlaps": []
+    },
+    {
+      "state": "dashboard-light",
+      "width": 320,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-light",
+      "width": 320,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "navigation-light",
+      "width": 320,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "dashboard-dark",
+      "width": 320,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "login-dark",
+      "width": 320,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "navigation-dark",
+      "width": 320,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [],
+      "overlaps": []
+    },
+    {
+      "state": "financial-widths",
+      "width": 320,
+      "documentOverflow": 0,
+      "cardOverflow": [],
+      "modalBounds": [
+        {
+          "left": 12,
+          "right": 308,
+          "top": 12,
+          "bottom": 768,
+          "viewportHeight": 780
+        }
+      ],
+      "overlaps": []
+    }
+  ],
+  "errors": []
+}

@@ -35,7 +35,7 @@
     guide.innerHTML = `<div><b>کار بعدی چیست؟</b><span>برای ادامه، پیگیری تازه ثبت کنید یا اقدامات پرونده را مرور کنید.</span></div><div><button type="button" data-simple-target=".followup-history">پیگیری‌ها</button><button type="button" data-simple-target="#actionSection">اقدامات</button></div>`;
     head.after(guide);
     guide.querySelectorAll("[data-simple-target]").forEach((button) => {
-      button.onclick = () => document.querySelector(button.dataset.simpleTarget)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      button.onclick = () => {const section=document.querySelector(button.dataset.simpleTarget);if(!section)return;section.hidden=false;const toggle=section.previousElementSibling;if(toggle?.classList.contains("simple-section-toggle")){toggle.setAttribute("aria-expanded","true");toggle.querySelector("i").textContent="−";}section.scrollIntoView({ behavior:"smooth",block:"start" });};
     });
   }
 

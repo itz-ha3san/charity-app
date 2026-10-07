@@ -144,6 +144,9 @@
       button.onclick = () => {
         const target = detail.querySelector(`#${button.dataset.familyTab}`);
         if (!target) return;
+        target.hidden = false;
+        const toggle = target.previousElementSibling;
+        if(toggle?.classList.contains("simple-section-toggle")){toggle.setAttribute("aria-expanded","true");const icon=toggle.querySelector("i");if(icon)icon.textContent="−";}
         const top =
           target.offsetTop -
           tabs.offsetHeight -

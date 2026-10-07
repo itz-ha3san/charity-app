@@ -50,7 +50,7 @@
     input.addEventListener('focus',open); input.addEventListener('input',()=>{index=0;open();}); input.addEventListener('blur',()=>setTimeout(close,120));
     input.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){e.preventDefault();open();index=Math.min(filtered.length-1,index+1);render();}if(e.key==='ArrowUp'){e.preventDefault();index=Math.max(0,index-1);render();}if(e.key==='Enter'&&root.dataset.open==='true'&&filtered[index]){e.preventDefault();pick(filtered[index]);}if(e.key==='Escape')close();});
     addEventListener('resize',()=>root.dataset.open==='true'&&position(),{passive:true}); addEventListener('scroll',()=>root.dataset.open==='true'&&position(),true);
-    const api={setOptions(v){all=[...new Set(v.filter(Boolean))];if(root.dataset.open==='true')render();},destroy(){list.remove();root.replaceWith(input);comboMap.delete(input);}}; comboMap.set(input,api); return api;
+    const api={setOptions(v){const next=[...new Set(v.filter(Boolean))];if(next.length===all.length&&next.every((x,i)=>x===all[i]))return;all=next;if(root.dataset.open==='true')render();},destroy(){list.remove();root.replaceWith(input);comboMap.delete(input);}}; comboMap.set(input,api); return api;
   }
 
   function createOtp(root,{length=6,value='',size='md',onChange,onComplete,disabled=false}={}) {

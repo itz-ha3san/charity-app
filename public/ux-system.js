@@ -93,10 +93,7 @@ function familyProgress(f){
   head?.after(box);
   progress(box.querySelector('[data-family-bar]'),{value:pct,label:'میزان کامل‌بودن داده‌ها',showValue:true,size:'sm'});
   stepper(box.querySelector('[data-family-steps]'),[{label:'اطلاعات پایه',description:'هویت و تماس'},{label:'اعضای خانواده',description:'ترکیب خانوار'},{label:'سوابق پیگیری',description:'یادداشت‌ها و اقدامات'},{label:'پرونده جامع',description:'اطلاعات تکمیلی'},{label:'آماده پیگیری',description:'پرونده عملیاتی'}],current);
-  const bc=document.querySelector('#familyBreadcrumb')||document.createElement('nav');
-  bc.id='familyBreadcrumb';
-  if(!bc.isConnected)document.querySelector('.dashboard-main')?.prepend(bc);
-  breadcrumb(bc,[{label:'پرونده‌های خانوار',href:'#familyList'},{label:f.familySurname||'خانواده'},{label:f.headName||f.caseNumber}]);
+  document.querySelector('#familyBreadcrumb')?.remove();
 }
 
 function scan(root=document){root.querySelectorAll?.('table:not([data-ui-table])').forEach(table);root.querySelectorAll?.('.session-alert,.archive-banner').forEach(x=>alert(x,'destructive'));root.querySelectorAll?.('.message.success').forEach(x=>alert(x,'success'));root.querySelectorAll?.('.message.error').forEach(x=>{if(x.textContent.trim())alert(x,'destructive')});root.querySelectorAll?.('.metric-card').forEach(x=>x.classList.add('ui-stat'));root.querySelectorAll?.('.count-chip').forEach(x=>badge(x,'secondary'));root.querySelectorAll?.('.status,.priority').forEach(x=>badge(x,'outline'));root.querySelectorAll?.('.archive-status,.finance-status.rejected').forEach(x=>badge(x,'destructive'));root.querySelectorAll?.('.finance-status.paid,.finance-status.approved').forEach(x=>badge(x,'success'))}

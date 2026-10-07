@@ -93,7 +93,5 @@
 .switch[aria-checked="true"] .switch-thumb { background: var(--control-primary-fg); transform: translateX(-20px); }
 [dir="ltr"] .switch[aria-checked="true"] .switch-thumb { transform: translateX(20px); }
 
-@media (prefers-color-scheme: dark) {
-  :root { --control-popover:#252b33; --control-accent:#213852; --control-accent-fg:#9bc8f5; --control-primary:#5e9fe8; --control-primary-fg:#15202b; --control-muted:rgba(255,255,255,.65); --control-border:rgba(255,255,255,.18); --control-shadow-lg:0 20px 52px rgba(0,0,0,.42),0 4px 14px rgba(0,0,0,.24); }
-}
+html[data-theme="dark"] { --control-popover:#252b33; --control-accent:#213852; --control-accent-fg:#9bc8f5; --control-primary:#5e9fe8; --control-primary-fg:#15202b; --control-muted:rgba(255,255,255,.65); --control-border:rgba(255,255,255,.18); --control-shadow-lg:0 20px 52px rgba(0,0,0,.42),0 4px 14px rgba(0,0,0,.24); }
 @media (prefers-reduced-motion: reduce) { .combobox-panel { animation:none; } .combobox-chevron,.select-control select,.number-step,.radio-card,.switch,.switch-thumb { transition:none; } }

@@ -94,8 +94,8 @@ body.workspace-nav-open {
 }
 
 .workspace-dashboard .dashboard-layout {
-  grid-template-columns: 264px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 14px;
 }
 
 .workspace-dashboard .ui-sidebar {
@@ -297,9 +297,11 @@ body.workspace-nav-open {
 .workspace-family-card .family-toolbar {
   display: grid;
   grid-template-areas:
-    "search status status status"
-    ". refresh create import";
-  grid-template-columns: minmax(260px, 1fr) auto auto auto;
+    "search status status supervisor"
+    "actions actions actions actions";
+  grid-template-columns: minmax(250px, 1fr) minmax(0, auto) minmax(0, auto) minmax(200px, auto);
+  gap: 10px;
+  align-items: end;
   margin-top: 16px;
 }
 
@@ -315,30 +317,57 @@ body.workspace-nav-open {
 }
 
 .workspace-family-card .family-toolbar > .ui-segment {
-  width: min(360px, 100%);
+  width: 100%;
   min-width: 0;
-  justify-self: end;
+  justify-self: stretch;
 }
 
-.workspace-family-card #refreshBtn {
-  grid-area: refresh;
+.workspace-family-card .supervisor-filter {
+  grid-area: supervisor;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  gap: 6px;
 }
 
-.workspace-family-card #createBtn {
-  grid-area: create;
+.workspace-family-card .supervisor-filter label {
+  color: var(--muted);
+  font-size: 12px;
 }
 
-.workspace-family-card #importBtn {
-  grid-area: import;
+.workspace-family-card .supervisor-filter select {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+}
+
+.workspace-family-card .family-actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.workspace-family-card .family-actions > button {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .workspace-family-card .family-toolbar {
+    grid-template-areas:
+      "search search"
+      "status supervisor"
+      "actions actions";
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .workspace-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 11px;
-  color: var(--muted);
-  font-size: 12px;
+  display: none !important;
 }
 
 .workspace-breadcrumb b {
@@ -768,9 +797,8 @@ body.workspace-nav-open {
     grid-template-areas:
       "search"
       "status"
-      "refresh"
-      "create"
-      "import";
+      "supervisor"
+      "actions";
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -779,10 +807,19 @@ body.workspace-nav-open {
     justify-self: stretch;
   }
 
+  .workspace-family-card .supervisor-filter {
+    width: 100%;
+  }
+
   .workspace-family-card #refreshBtn,
   .workspace-family-card #createBtn,
   .workspace-family-card #importBtn {
     width: 100%;
+  }
+
+  .workspace-family-card .family-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -815,17 +852,241 @@ body.workspace-nav-open {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .workspace-metric[data-tone="orange"] .workspace-metric-icon {
-    background: rgba(213, 128, 59, 0.14);
-    color: #de9255;
-  }
+html[data-theme="dark"] .workspace-metric[data-tone="orange"] .workspace-metric-icon {
+  background: rgba(213, 128, 59, 0.14);
+  color: #de9255;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .workspace-dashboard .ui-sidebar,
   .workspace-nav-overlay,
   .workspace-metric {
+    transition: none;
+  }
+}
+
+/* A clearer, more useful daily overview. */
+.workspace-overview-head {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, var(--blue) 30%);
+  border-radius: 16px;
+  background: linear-gradient(
+    115deg,
+    var(--surface),
+    color-mix(in srgb, var(--blue-soft) 52%, var(--surface))
+  );
+}
+
+.workspace-overview-head::before {
+  position: absolute;
+  inset-block: 17px;
+  inset-inline-end: 0;
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(var(--blue), var(--green));
+  content: "";
+}
+
+.workspace-overview-head > * {
+  position: relative;
+  z-index: 1;
+}
+
+.workspace-date {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--blue-dark);
+}
+
+.workspace-overview-head h2 {
+  margin-top: 8px;
+  font-size: 30px;
+  line-height: 1.35;
+}
+
+.workspace-head-actions .workspace-refresh,
+.workspace-head-actions .primary {
+  min-height: 42px;
+  border-radius: 10px;
+}
+
+.workspace-metric {
+  position: relative;
+  overflow: hidden;
+  min-height: 100px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    var(--surface) 66%,
+    color-mix(in srgb, var(--metric-tint, var(--blue-soft)) 55%, var(--surface))
+  );
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+}
+
+.workspace-metric::after {
+  position: absolute;
+  inset-block: 16px;
+  inset-inline-end: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--metric-accent, var(--blue));
+  content: "";
+}
+
+.workspace-metric[data-tone="red"] {
+  --metric-accent: var(--red);
+  --metric-tint: var(--red-soft);
+}
+
+.workspace-metric[data-tone="orange"] {
+  --metric-accent: #d5803b;
+  --metric-tint: #fbebde;
+}
+
+.workspace-metric[data-tone="green"] {
+  --metric-accent: var(--green);
+  --metric-tint: var(--green-soft);
+}
+
+.workspace-metric-icon {
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+  border: 1px solid color-mix(in srgb, var(--metric-accent, var(--blue)) 22%, transparent);
+  border-radius: 12px;
+}
+
+.workspace-metric-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workspace-metric > span:not(.workspace-metric-icon) {
+  position: relative;
+  z-index: 1;
+}
+
+.workspace-metric small {
+  font-size: 12px;
+}
+
+.workspace-metric strong {
+  margin-top: 4px;
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+}
+
+.workspace-metric:focus-visible,
+.workspace-priority:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--blue) 38%, transparent);
+  outline-offset: 2px;
+}
+
+.workspace-focus-grid-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace-focus-card {
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
+}
+
+.workspace-card-head {
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.workspace-card-head h3 {
+  font-size: 18px;
+}
+
+.workspace-card-head > button {
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--blue) 20%, var(--border));
+  border-radius: 9px;
+  background: var(--blue-soft);
+}
+
+.workspace-card-head > button:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.workspace-priority-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 10px;
+}
+
+.workspace-priority {
+  min-height: 78px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.workspace-priority:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--blue) 38%, var(--border));
+}
+
+.workspace-all-clear {
+  justify-content: center;
+  min-height: 100px;
+  padding: 18px;
+  border: 1px dashed color-mix(in srgb, var(--green) 38%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--green-soft) 48%, var(--surface));
+  text-align: right;
+}
+
+.workspace-all-clear > span {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  font-size: 18px;
+}
+
+.workspace-all-clear b {
+  font-size: 15px;
+}
+
+.workspace-all-clear small {
+  margin-top: 3px;
+}
+
+@media (max-width: 720px) {
+  .workspace-overview-head {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .workspace-overview-head h2 {
+    font-size: 25px;
+  }
+
+  .workspace-head-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-priority {
     transition: none;
   }
 }
@@ -867,7 +1128,7 @@ body.workspace-nav-open {
   align-items: center;
 }
 
-/* Hide alerts from the sidebar menu; button is still used by dashboard hooks */
+/* Keep the alerts entry accessible in the sidebar. */
 .workspace-dashboard .ui-sidebar-item#alertsBtn {
-  display: none !important;
+  display: flex !important;
 }

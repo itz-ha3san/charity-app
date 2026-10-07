@@ -16,7 +16,8 @@
     "security:audit": "npm audit --audit-level=high",
     "production:check": "node scripts/production-check.mjs",
     "db:backup:rotate": "node scripts/backup-rotate.mjs",
-    "test:local-fixes": "tsx --test tests/local-fixes.test.ts"
+    "test:local-fixes": "tsx --test tests/local-fixes.test.ts",
+    "test:regressions": "node --test --test-concurrency=1 tests/regressions.test.cjs"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",

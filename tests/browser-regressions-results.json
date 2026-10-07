@@ -1,0 +1,121 @@
+{
+  "checks": [
+    {
+      "name": "system dark is initial theme",
+      "passed": true
+    },
+    {
+      "name": "switch light",
+      "passed": true
+    },
+    {
+      "name": "theme persists",
+      "passed": true
+    },
+    {
+      "name": "system preference follows OS",
+      "passed": true
+    },
+    {
+      "name": "one status selector only",
+      "passed": true
+    },
+    {
+      "name": "unread metric opens modal",
+      "passed": true
+    },
+    {
+      "name": "unread API flag sent",
+      "passed": true
+    },
+    {
+      "name": "profile submitted and header updated",
+      "passed": true
+    },
+    {
+      "name": "donor create request sent",
+      "passed": true
+    },
+    {
+      "name": "supervisor details visible",
+      "passed": true
+    },
+    {
+      "name": "delete defaults to preserve families",
+      "passed": true
+    },
+    {
+      "name": "replacement selector displayed",
+      "passed": true
+    },
+    {
+      "name": "registered supervisor select mounted",
+      "passed": true
+    },
+    {
+      "name": "case 9999 rejected",
+      "passed": true
+    },
+    {
+      "name": "Persian case digits normalize",
+      "passed": true
+    },
+    {
+      "name": "digits in names rejected",
+      "passed": true
+    },
+    {
+      "name": "error clears while typing",
+      "passed": true
+    },
+    {
+      "name": "owned housing hides deposit and rent",
+      "passed": true
+    },
+    {
+      "name": "rented housing shows cost",
+      "passed": true
+    },
+    {
+      "name": "adding member does not lock page",
+      "passed": true
+    },
+    {
+      "name": "member input stays responsive",
+      "passed": true
+    },
+    {
+      "name": "tab reveals comprehensiveSection",
+      "passed": true
+    },
+    {
+      "name": "tab reveals actionSection",
+      "passed": true
+    },
+    {
+      "name": "tab reveals specialistSection",
+      "passed": true
+    },
+    {
+      "name": "tab reveals financeSection",
+      "passed": true
+    },
+    {
+      "name": "search does not enter observer loop",
+      "passed": true
+    },
+    {
+      "name": "no uncaught JavaScript errors",
+      "passed": true
+    },
+    {
+      "name": "ordinary admin has no family audit button",
+      "passed": true
+    },
+    {
+      "name": "ordinary admin has profile entry",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

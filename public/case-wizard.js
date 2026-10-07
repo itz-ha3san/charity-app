@@ -93,7 +93,7 @@
     );
     control.classList.toggle("case-field-invalid", Boolean(message));
     control.setAttribute("aria-invalid", message ? "true" : "false");
-    output.textContent = message;
+    if (output.textContent !== message) output.textContent = message;
   }
 
   function validateUniqueNationalIds(form) {
@@ -134,15 +134,15 @@
     else if (
       control.name === "headPhone" &&
       value &&
-      !/^09\d{9}$/.test(onlyDigits(value))
+      !/^09\d{9}$/.test(toEnglishDigits(value))
     )
       message = "شماره موبایل را با ۰۹ و ۱۱ رقم وارد کنید.";
     else if (
       control.name === "familyPhone" &&
       value &&
-      !/^0\d{9,10}$/.test(onlyDigits(value))
+      !/^0\d{10}$/.test(toEnglishDigits(value))
     )
-      message = "شماره تلفن باید با صفر و ۱۰ یا ۱۱ رقم باشد.";
+      message = "شماره تلفن باید با صفر و دقیقاً ۱۱ رقم باشد.";
     else if (
       control.name === "headCardNumber" &&
       value &&
@@ -155,11 +155,19 @@
       !validJalaliDate(value)
     )
       message = "تاریخ شمسی را به‌شکل ۱۴۰۰/۰۱/۰۱ وارد کنید.";
-    else if (control.minLength > 0 && value.length < control.minLength)
+    else if (value && ["familySurname","headName","memberName"].includes(control.name) && !/^[\p{L}\p{M}\s\u200c'’.-]+$/u.test(value))
+      message = "نام فقط می‌تواند شامل حروف باشد.";
+    else if (value && ["headEducation","headJob","memberEducation","memberJob"].includes(control.name) && /\p{N}/u.test(value))
+      message = "در این فیلد عدد وارد نکنید.";
+    else if (value && control.name === "caseNumber" && !/^[1-9]\d{0,2}$/.test(toEnglishDigits(value)))
+      message = "شماره پرونده باید از ۱ تا ۹۹۹ باشد.";
+    else if (control.maxLength > 0 && value.length > control.maxLength)
+      message = `حداکثر ${fa(control.maxLength)} نویسه مجاز است.`;
+    else if (control.minLength > 0 && value && value.length < control.minLength)
       message = `حداقل ${fa(control.minLength)} نویسه وارد کنید.`;
 
     control.setCustomValidity(message);
-    if (!quiet || message) setFieldState(control, message, !message);
+    setFieldState(control, message, !message);
     if (!message && ["headNationalId", "memberNationalId"].includes(control.name))
       validateUniqueNationalIds(form);
     return !message;
@@ -170,6 +178,7 @@
       if (!control?.name || control.dataset.caseValidation) return;
       control.dataset.caseValidation = "true";
       ensureMessage(control);
+      if(control.name === "caseNumber") control.addEventListener("input",()=>{control.value=toEnglishDigits(control.value);validateControl(control,form)});
 
       if (
         [
@@ -219,19 +228,22 @@
       }
 
       control.addEventListener("blur", () => validateControl(control, form));
+      control.addEventListener("change", () => validateControl(control, form));
       control.addEventListener("input", () => {
-        if (control.validationMessage || control.closest(".case-field-has-error"))
-          validateControl(control, form, { quiet: true });
+        validateControl(control, form, { quiet: true });
       });
     };
 
     form.querySelectorAll("input,select,textarea").forEach(configure);
+    const type = form.elements.namedItem("housingType");
+    const syncHousing=()=>{const owned=["owned","owner","ملکی"].includes(type?.value);["housingDeposit","housingRent"].forEach(name=>{const c=form.elements.namedItem(name);if(!c)return;c.closest(".form-field").hidden=owned;c.disabled=owned;if(owned){c.value="0";c.setCustomValidity("");setFieldState(c,"",false)}})};
+    type?.addEventListener("change",syncHousing);syncHousing();
     const members = form.querySelector("#memberEditors");
     if (members)
       new MutationObserver(() => {
         members.querySelectorAll("input,select,textarea").forEach(configure);
         validateUniqueNationalIds(form);
-      }).observe(members, { childList: true, subtree: true });
+      }).observe(members, { childList: true });
   }
 
   function normalizeFormValues(form) {
@@ -704,6 +716,7 @@
     );
     moveFields(form, identity, [
       "caseNumber",
+      "supervisorId",
       "familySurname",
       "headName",
       "headNationalId",

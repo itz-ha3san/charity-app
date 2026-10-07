@@ -1,0 +1,717 @@
+/*
+ * VibeFarsi-based Charity UI layer
+ * Presentation only: no API, data-model, or workflow changes.
+ * Adapted for the project's existing HTML/JS architecture.
+ */
+:root {
+  --vf-bg: #f6f8fc;
+  --vf-surface: #ffffff;
+  --vf-surface-2: #f9fbff;
+  --vf-foreground: #102a43;
+  --vf-muted: #66778d;
+  --vf-border: #dbe4ef;
+  --vf-border-strong: #cbd7e5;
+  --vf-primary: #1d4ed8;
+  --vf-primary-2: #2563eb;
+  --vf-primary-soft: #edf4ff;
+  --vf-primary-soft-2: #e3edff;
+  --vf-navy: #102a43;
+  --vf-navy-2: #173f67;
+  --vf-success: #138a62;
+  --vf-success-soft: #e9f8f2;
+  --vf-warning: #b86a08;
+  --vf-warning-soft: #fff5df;
+  --vf-danger: #c43d4b;
+  --vf-danger-soft: #fff0f2;
+  --vf-radius-sm: 8px;
+  --vf-radius-md: 10px;
+  --vf-radius-lg: 14px;
+  --vf-radius-xl: 18px;
+  --vf-shadow-sm: 0 1px 2px rgba(16,42,67,.04), 0 5px 16px rgba(16,42,67,.035);
+  --vf-shadow-md: 0 10px 30px rgba(16,42,67,.07);
+  --vf-focus: 0 0 0 3px rgba(37,99,235,.16);
+}
+
+html[data-theme="light"] {
+  --canvas: var(--vf-bg);
+  --surface: var(--vf-surface);
+  --soft: var(--vf-surface-2);
+  --text: var(--vf-foreground);
+  --muted: var(--vf-muted);
+  --border: var(--vf-border);
+  --blue: var(--vf-primary-2);
+  --blue-dark: var(--vf-primary);
+  --blue-soft: var(--vf-primary-soft);
+  --field-background: var(--vf-surface);
+  --field-foreground: var(--vf-foreground);
+  --field-muted: var(--vf-muted);
+  --field-border: var(--vf-border);
+}
+
+html[data-theme="dark"] {
+  --vf-bg: #0c1626;
+  --vf-surface: #142238;
+  --vf-surface-2: #1a2b43;
+  --vf-foreground: #eef5ff;
+  --vf-muted: #a9bad0;
+  --vf-border: #2d425e;
+  --vf-border-strong: #3a5270;
+  --vf-primary: #9fc1ff;
+  --vf-primary-2: #72a4ff;
+  --vf-primary-soft: #1c385d;
+  --vf-primary-soft-2: #24466f;
+  --vf-navy: #081426;
+  --vf-navy-2: #102a4b;
+  --vf-success: #71d6ad;
+  --vf-success-soft: #163d32;
+  --vf-warning: #ffc46e;
+  --vf-warning-soft: #45351e;
+  --vf-danger: #ff9ba4;
+  --vf-danger-soft: #472b34;
+  --vf-shadow-sm: 0 1px 2px rgba(0,0,0,.15), 0 7px 22px rgba(0,0,0,.1);
+  --vf-shadow-md: 0 18px 42px rgba(0,0,0,.2);
+  --vf-focus: 0 0 0 3px rgba(114,164,255,.2);
+}
+
+html[data-theme] body {
+  background:
+    radial-gradient(circle at 92% -10%, color-mix(in srgb, var(--vf-primary-soft) 75%, transparent), transparent 31%),
+    var(--vf-bg) !important;
+  color: var(--vf-foreground) !important;
+}
+
+html[data-theme] button,
+html[data-theme] input,
+html[data-theme] textarea,
+html[data-theme] select {
+  font-family: CharityArabic, Vazirmatn, Tahoma, Arial, sans-serif !important;
+}
+
+/* VibeFarsi token-style focus */
+html[data-theme] :is(button, input, textarea, select):focus-visible {
+  outline: 0 !important;
+  box-shadow: var(--vf-focus) !important;
+}
+
+/* ------------------------------------------------------------------
+   Top application chrome
+   ------------------------------------------------------------------ */
+html[data-theme] .shell {
+  width: min(1500px, calc(100% - 40px));
+  padding: 18px 0 28px;
+}
+
+html[data-theme] .topbar {
+  min-height: 64px;
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--vf-border);
+  border-radius: var(--vf-radius-lg);
+  background: color-mix(in srgb, var(--vf-surface) 96%, transparent) !important;
+  box-shadow: var(--vf-shadow-sm);
+  backdrop-filter: blur(16px);
+}
+
+html[data-theme] .brand .mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--vf-navy-2);
+  box-shadow: none;
+}
+
+html[data-theme] .brand h1 {
+  color: var(--vf-foreground);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+html[data-theme] .brand p,
+html[data-theme] .theme-choice {
+  color: var(--vf-muted);
+}
+
+html[data-theme] .theme-choice select {
+  min-height: 38px;
+  border-color: var(--vf-border);
+  border-radius: var(--vf-radius-md);
+  background: var(--vf-surface);
+  color: var(--vf-foreground);
+}
+
+/* ------------------------------------------------------------------
+   VibeFarsi-style buttons
+   ------------------------------------------------------------------ */
+html[data-theme] :is(.primary, .secondary, .danger, .workspace-refresh, .workspace-head-actions button) {
+  min-height: 40px;
+  border-radius: var(--vf-radius-md);
+  font-size: 13px;
+  font-weight: 750;
+  transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
+}
+
+html[data-theme] :is(.primary, .secondary, .danger):active {
+  transform: scale(.985);
+}
+
+html[data-theme] .primary {
+  border-color: var(--vf-primary) !important;
+  background: var(--vf-primary) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(29,78,216,.14);
+}
+
+html[data-theme] .primary:hover {
+  background: var(--vf-primary-2) !important;
+  box-shadow: 0 10px 22px rgba(29,78,216,.2);
+}
+
+html[data-theme] .secondary {
+  border: 1px solid var(--vf-border) !important;
+  background: var(--vf-surface) !important;
+  color: var(--vf-foreground) !important;
+}
+
+html[data-theme] .secondary:hover {
+  border-color: var(--vf-border-strong) !important;
+  background: var(--vf-surface-2) !important;
+}
+
+html[data-theme] .danger {
+  border-color: color-mix(in srgb, var(--vf-danger) 22%, var(--vf-border)) !important;
+  background: var(--vf-danger-soft) !important;
+  color: var(--vf-danger) !important;
+}
+
+/* ------------------------------------------------------------------
+   Auth / sign-in
+   ------------------------------------------------------------------ */
+html[data-theme] .auth-card,
+html[data-theme] .intro,
+html[data-theme] .auth-card-v2,
+html[data-theme] .auth-visual {
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-xl) !important;
+  box-shadow: var(--vf-shadow-md) !important;
+}
+
+html[data-theme] .auth-card,
+html[data-theme] .auth-card-v2 {
+  background: var(--vf-surface) !important;
+}
+
+html[data-theme] .intro,
+html[data-theme] .auth-visual {
+  background: linear-gradient(145deg, var(--vf-navy), var(--vf-navy-2)) !important;
+  color: #fff !important;
+  border-color: #234a75 !important;
+}
+
+html[data-theme] .intro h2,
+html[data-theme] .auth-visual h2 {
+  color: #fff !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-theme] .intro-copy,
+html[data-theme] .auth-visual .visual-lead,
+html[data-theme] .auth-visual .visual-points {
+  color: #c7d8ee !important;
+}
+
+html[data-theme] :is(.field input, .input-shell, .input-shell input, .family-toolbar input, .family-toolbar select, .form-field input, .form-field select, .form-field textarea) {
+  border-color: var(--vf-border) !important;
+  border-radius: var(--vf-radius-md) !important;
+  background: var(--vf-surface) !important;
+  color: var(--vf-foreground) !important;
+  box-shadow: none;
+}
+
+html[data-theme] :is(.field input, .input-shell):focus-within,
+html[data-theme] :is(.field input, .form-field input, .form-field select, .form-field textarea):focus {
+  border-color: var(--vf-primary-2) !important;
+  box-shadow: var(--vf-focus) !important;
+}
+
+/* ------------------------------------------------------------------
+   Dashboard shell + VibeFarsi sidebar
+   ------------------------------------------------------------------ */
+html[data-theme] .workspace-dashboard .dashboard-head {
+  min-height: 76px;
+  padding: 14px 16px;
+  border: 1px solid var(--vf-border);
+  border-radius: var(--vf-radius-lg);
+  background: var(--vf-surface) !important;
+  box-shadow: var(--vf-shadow-sm);
+}
+
+html[data-theme] .workspace-dashboard .dashboard-head h2 {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+html[data-theme] .workspace-dashboard .dashboard-head .eyebrow {
+  color: var(--vf-primary) !important;
+  font-size: 11px;
+}
+
+html[data-theme] .workspace-dashboard .user-card {
+  border-color: var(--vf-border) !important;
+  border-radius: var(--vf-radius-md);
+  background: var(--vf-surface-2) !important;
+}
+
+html[data-theme] .workspace-dashboard .dashboard-layout {
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+}
+
+html[data-theme] .workspace-dashboard .ui-sidebar {
+  background: var(--vf-navy) !important;
+  border: 1px solid #1d3b60 !important;
+  border-radius: var(--vf-radius-lg) !important;
+  box-shadow: 0 16px 38px rgba(16,42,67,.12);
+}
+
+html[data-theme] .workspace-dashboard .ui-sidebar-head {
+  min-height: 76px;
+  padding: 14px;
+  border-color: #ffffff14 !important;
+}
+
+html[data-theme] .workspace-dashboard .workspace-sidebar-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--vf-primary-2);
+}
+
+html[data-theme] .workspace-dashboard .workspace-sidebar-brand b {
+  color: #fff;
+  font-size: 14px;
+}
+
+html[data-theme] .workspace-dashboard .workspace-sidebar-brand small {
+  color: #a9bed9;
+}
+
+html[data-theme] .workspace-dashboard .ui-sidebar-nav {
+  padding: 10px 8px;
+}
+
+html[data-theme] .workspace-dashboard .workspace-nav-group {
+  padding-top: 8px;
+  border-color: #ffffff12;
+}
+
+html[data-theme] .workspace-dashboard .workspace-nav-group-title {
+  min-height: 36px;
+  color: #9fb4d1;
+  font-size: 11px;
+}
+
+html[data-theme] .workspace-dashboard .ui-sidebar-item {
+  min-height: 42px;
+  padding: 8px 9px;
+  border: 0 !important;
+  border-radius: var(--vf-radius-md);
+  color: #c4d2e5 !important;
+  background: transparent !important;
+  font-size: 13px;
+}
+
+html[data-theme] .workspace-dashboard .ui-sidebar-item:hover {
+  color: #fff !important;
+  background: #ffffff0b !important;
+}
+
+html[data-theme] .workspace-dashboard .ui-sidebar-item[aria-current="page"] {
+  color: #fff !important;
+  background: var(--vf-primary-2) !important;
+  box-shadow: 0 7px 18px rgba(37,99,235,.2);
+}
+
+html[data-theme] .workspace-dashboard .ui-sidebar .workspace-nav-icon {
+  width: 30px;
+  height: 30px;
+  flex-basis: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: #ffffff0b !important;
+  color: inherit !important;
+}
+
+html[data-theme] .workspace-dashboard .ui-sidebar-item[aria-current="page"] .workspace-nav-icon {
+  background: #ffffff16 !important;
+}
+
+html[data-theme] .workspace-dashboard .ui-sidebar-footer {
+  padding: 12px 14px;
+  border-color: #ffffff14 !important;
+  background: #091b32 !important;
+  color: #a9bed9 !important;
+  font-size: 11px;
+}
+
+/* ------------------------------------------------------------------
+   Dashboard cards / stats / tables
+   ------------------------------------------------------------------ */
+html[data-theme] .workspace-overview-head {
+  border: 1px solid color-mix(in srgb, var(--vf-primary-2) 18%, var(--vf-border)) !important;
+  border-radius: var(--vf-radius-lg);
+  background: linear-gradient(110deg, var(--vf-surface), var(--vf-primary-soft)) !important;
+  box-shadow: none;
+}
+
+html[data-theme] .workspace-overview-head h2 {
+  color: var(--vf-foreground);
+  font-size: 27px;
+}
+
+html[data-theme] .workspace-metric,
+html[data-theme] .workspace-focus-card,
+html[data-theme] .workspace-family-card,
+html[data-theme] .workspace-card,
+html[data-theme] .metric-card,
+html[data-theme] .ui-stat,
+html[data-theme] .audit-card,
+html[data-theme] .finance-card,
+html[data-theme] .fund-card {
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-lg) !important;
+  background: var(--vf-surface) !important;
+  box-shadow: var(--vf-shadow-sm);
+}
+
+html[data-theme] .workspace-metric {
+  min-height: 104px;
+  padding: 16px;
+}
+
+html[data-theme] .workspace-metric:hover,
+html[data-theme] .workspace-focus-card:hover,
+html[data-theme] .metric-card:hover {
+  border-color: color-mix(in srgb, var(--vf-primary-2) 40%, var(--vf-border)) !important;
+  box-shadow: var(--vf-shadow-md);
+}
+
+html[data-theme] .workspace-metric-icon {
+  border-radius: 11px;
+  background: var(--vf-primary-soft) !important;
+  color: var(--vf-primary) !important;
+}
+
+html[data-theme] .workspace-metric strong,
+html[data-theme] .ui-stat-value,
+html[data-theme] .metric-card > b {
+  color: var(--vf-foreground) !important;
+}
+
+html[data-theme] .workspace-family-head {
+  border-color: var(--vf-border);
+}
+
+html[data-theme] .workspace-family-head .count-chip,
+html[data-theme] .count-chip {
+  border: 1px solid color-mix(in srgb, var(--vf-primary-2) 16%, var(--vf-border)) !important;
+  border-radius: 999px;
+  background: var(--vf-primary-soft) !important;
+  color: var(--vf-primary) !important;
+}
+
+html[data-theme] .workspace-family-card .family-toolbar {
+  padding: 8px;
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-lg);
+  background: var(--vf-surface-2) !important;
+}
+
+html[data-theme] .family-panel {
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-lg) !important;
+  background: var(--vf-surface) !important;
+  box-shadow: var(--vf-shadow-sm);
+}
+
+html[data-theme] .family-list {
+  background: var(--vf-surface-2) !important;
+}
+
+html[data-theme] .family-item-row .family-item {
+  border: 1px solid transparent !important;
+  border-radius: var(--vf-radius-md);
+  background: transparent !important;
+}
+
+html[data-theme] .family-item-row .family-item:hover {
+  background: var(--vf-surface) !important;
+  border-color: var(--vf-border) !important;
+}
+
+html[data-theme] .family-item-row .family-item.active {
+  background: var(--vf-primary-soft) !important;
+  border-color: color-mix(in srgb, var(--vf-primary-2) 25%, var(--vf-border)) !important;
+  box-shadow: inset -3px 0 0 var(--vf-primary-2);
+}
+
+html[data-theme] .family-list-avatar,
+html[data-theme] .family-record-avatar,
+html[data-theme] .family-member-avatar {
+  background: var(--vf-primary-soft) !important;
+  color: var(--vf-primary) !important;
+  border: 1px solid color-mix(in srgb, var(--vf-primary-2) 12%, var(--vf-border));
+}
+
+/* Tables follow the VibeFarsi data-table visual language. */
+html[data-theme] .ui-table-wrap,
+html[data-theme] .registry-table-wrap,
+html[data-theme] .report-table-wrap {
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-lg);
+  background: var(--vf-surface);
+  box-shadow: none;
+}
+
+html[data-theme] .ui-table,
+html[data-theme] .registry-table,
+html[data-theme] .optimized-table {
+  color: var(--vf-foreground);
+}
+
+html[data-theme] :is(.ui-table, .registry-table, .optimized-table) thead {
+  background: var(--vf-surface-2) !important;
+}
+
+html[data-theme] :is(.ui-table, .registry-table, .optimized-table) th {
+  height: 44px;
+  color: var(--vf-muted) !important;
+  font-size: 11px;
+  font-weight: 750;
+  border-color: var(--vf-border) !important;
+}
+
+html[data-theme] :is(.ui-table, .registry-table, .optimized-table) td {
+  border-color: var(--vf-border) !important;
+  font-size: 12px;
+}
+
+html[data-theme] :is(.ui-table, .registry-table, .optimized-table) tbody tr:hover {
+  background: var(--vf-primary-soft) !important;
+}
+
+/* ------------------------------------------------------------------
+   Family record: tabs + VibeFarsi accordion/card hierarchy
+   ------------------------------------------------------------------ */
+html[data-theme] .family-record-head {
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-lg);
+  background: var(--vf-surface) !important;
+  box-shadow: var(--vf-shadow-sm);
+}
+
+html[data-theme] .family-record-identity h2,
+html[data-theme] .detail-head h2 {
+  color: var(--vf-foreground) !important;
+  font-weight: 850;
+}
+
+html[data-theme] .family-record-status > span {
+  border-radius: 999px;
+  font-weight: 750;
+}
+
+html[data-theme] .family-detail-tabs {
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-lg);
+  background: var(--vf-surface-2) !important;
+  box-shadow: none;
+}
+
+html[data-theme] .family-detail-tabs button {
+  min-height: 40px;
+  padding: 7px 12px;
+  border: 1px solid transparent !important;
+  border-radius: var(--vf-radius-md) !important;
+  color: var(--vf-muted) !important;
+  background: transparent !important;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+html[data-theme] .family-detail-tabs button:hover {
+  color: var(--vf-foreground) !important;
+  background: var(--vf-surface) !important;
+}
+
+html[data-theme] .family-detail-tabs button[aria-current="page"] {
+  color: var(--vf-primary) !important;
+  background: var(--vf-surface) !important;
+  border-color: var(--vf-border) !important;
+  box-shadow: var(--vf-shadow-sm);
+  font-weight: 800;
+}
+
+html[data-theme] .family-detail-tabs button > span {
+  color: inherit;
+}
+
+html[data-theme] .simple-section-toggle {
+  min-height: 58px;
+  margin-block: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-lg) !important;
+  background: var(--vf-surface) !important;
+  color: var(--vf-foreground) !important;
+  box-shadow: none;
+}
+
+html[data-theme] .simple-section-toggle:hover,
+html[data-theme] .simple-section-toggle[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--vf-primary-2) 32%, var(--vf-border)) !important;
+  background: var(--vf-primary-soft) !important;
+}
+
+html[data-theme] .simple-section-toggle > i {
+  width: 32px;
+  height: 32px;
+  flex-basis: 32px;
+  border-radius: 9px;
+  background: var(--vf-primary-soft-2) !important;
+  color: var(--vf-primary) !important;
+}
+
+html[data-theme] .detail-grid,
+html[data-theme] .member-grid {
+  gap: 10px;
+}
+
+html[data-theme] .info-card,
+html[data-theme] .member-card,
+html[data-theme] .note-card,
+html[data-theme] .finance-summary,
+html[data-theme] .case-review-item {
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-md) !important;
+  background: var(--vf-surface-2) !important;
+}
+
+html[data-theme] .info-card:hover,
+html[data-theme] .member-card:hover,
+html[data-theme] .note-card:hover {
+  border-color: color-mix(in srgb, var(--vf-primary-2) 22%, var(--vf-border)) !important;
+}
+
+html[data-theme] .info-card > span,
+html[data-theme] .form-field label,
+html[data-theme] .workspace-card-kicker,
+html[data-theme] .family-item p,
+html[data-theme] .workspace-metric small {
+  color: var(--vf-muted) !important;
+}
+
+/* ------------------------------------------------------------------
+   Modal / Sheet / Dialog = VibeFarsi surface treatment
+   ------------------------------------------------------------------ */
+html[data-theme] .modal-backdrop {
+  background: rgba(6, 18, 34, .48) !important;
+  backdrop-filter: blur(4px);
+}
+
+html[data-theme] :is(.modal, .ui-dialog-panel, .ui-sheet-panel, .quick-drawer) {
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-xl) !important;
+  background: var(--vf-surface) !important;
+  color: var(--vf-foreground) !important;
+  box-shadow: 0 24px 70px rgba(8,24,45,.18) !important;
+}
+
+html[data-theme] .modal-head {
+  padding-bottom: 12px;
+  border-color: var(--vf-border) !important;
+}
+
+html[data-theme] .modal-head h2 {
+  color: var(--vf-foreground) !important;
+  font-size: 21px;
+  font-weight: 850;
+}
+
+html[data-theme] :is(.close-btn, .ui-dialog-close, .ui-sheet-close) {
+  border-radius: var(--vf-radius-md) !important;
+  border-color: var(--vf-border) !important;
+  background: var(--vf-surface-2) !important;
+  color: var(--vf-muted) !important;
+}
+
+/* ------------------------------------------------------------------
+   Badges / status / progress
+   ------------------------------------------------------------------ */
+html[data-theme] :is(.status, .priority, .finance-status, .archive-status, .ui-badge, .badge) {
+  border: 1px solid var(--vf-border) !important;
+  border-radius: 999px !important;
+  background: var(--vf-surface-2) !important;
+  color: var(--vf-muted) !important;
+  font-weight: 700;
+}
+
+html[data-theme] :is(.finance-status.paid, .finance-status.approved, .status.success, .badge.success) {
+  border-color: #b9e7d5 !important;
+  background: var(--vf-success-soft) !important;
+  color: var(--vf-success) !important;
+}
+
+html[data-theme] :is(.archive-status, .finance-status.rejected, .status.error, .badge.destructive) {
+  border-color: #f2c5cb !important;
+  background: var(--vf-danger-soft) !important;
+  color: var(--vf-danger) !important;
+}
+
+html[data-theme] .ui-progress-track,
+html[data-theme] .progress-track {
+  background: var(--vf-primary-soft-2) !important;
+}
+
+html[data-theme] .ui-progress-fill,
+html[data-theme] .progress-fill {
+  background: var(--vf-primary-2) !important;
+}
+
+/* Toasts */
+html[data-theme] .ui-toast-card {
+  border: 1px solid var(--vf-border) !important;
+  border-radius: var(--vf-radius-lg) !important;
+  background: var(--vf-surface) !important;
+  color: var(--vf-foreground) !important;
+  box-shadow: var(--vf-shadow-md) !important;
+}
+
+/* Empty/loading states */
+html[data-theme] :is(.empty-state, .audit-empty, .panel-loading) {
+  border-radius: var(--vf-radius-lg);
+  color: var(--vf-muted);
+}
+
+/* ------------------------------------------------------------------
+   Mobile
+   ------------------------------------------------------------------ */
+@media (max-width: 980px) {
+  html[data-theme] .shell { width: min(100% - 24px, 760px); }
+  html[data-theme] .workspace-dashboard .dashboard-layout { grid-template-columns: 1fr; }
+  html[data-theme] .workspace-dashboard .ui-sidebar {
+    border-radius: 0 !important;
+  }
+}
+
+@media (max-width: 650px) {
+  html[data-theme] .shell { padding-top: 10px; }
+  html[data-theme] .topbar { border-radius: 12px; }
+  html[data-theme] .workspace-dashboard .dashboard-head { padding: 12px; }
+  html[data-theme] .workspace-overview-head { padding: 18px; }
+  html[data-theme] .workspace-overview-head h2 { font-size: 23px; }
+  html[data-theme] .family-detail-tabs { overflow-x: auto; flex-wrap: nowrap !important; }
+  html[data-theme] .family-detail-tabs button { flex: 0 0 auto; }
+  html[data-theme] .family-record-head { border-radius: 12px !important; }
+}

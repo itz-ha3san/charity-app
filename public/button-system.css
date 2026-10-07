@@ -197,8 +197,7 @@
 .remove-member:hover { filter: brightness(.96); }
 .remove-member:active { transform: var(--button-press); }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+html[data-theme="dark"] {
     --button-primary: #f8fafc;
     --button-primary-hover: #e2e8f0;
     --button-primary-foreground: #17202a;
@@ -214,7 +213,6 @@
     --button-shadow: 0 1px 2px rgba(0,0,0,.22), 0 5px 14px rgba(0,0,0,.18);
     --button-shadow-press: 0 1px 2px rgba(0,0,0,.2);
   }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .btn,

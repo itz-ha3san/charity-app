@@ -1,7 +1,7 @@
 /* Visual refinement layer: keeps the product calm, legible and operational. */
 :root { --layout-ring: rgba(39,131,222,.10); --glass: rgba(255,255,255,.84); }
 body { background-attachment: fixed; }
-.shell { width: min(1200px, calc(100% - 48px)); }
+.shell { width: min(1440px, calc(100% - 24px)); }
 .topbar { position: sticky; top: 0; z-index: 40; margin-inline: -14px; padding: 14px; border-bottom: 1px solid transparent; border-radius: 0 0 16px 16px; background: color-mix(in srgb, var(--glass) 88%, transparent); backdrop-filter: blur(16px) saturate(1.2); }
 .mark { position: relative; isolation: isolate; overflow: hidden; }
 .mark::after { content:""; position:absolute; inset:-35%; z-index:-1; background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.34),transparent 70%); transform:translateX(75%); }
@@ -24,6 +24,6 @@ body { background-attachment: fixed; }
 .detail-section-title { gap:12px; }
 .toast { border:1px solid color-mix(in srgb, currentColor 16%, transparent); animation:toast-in 180ms cubic-bezier(.2,.8,.2,1); }
 @keyframes toast-in { from { opacity:0; transform:translateY(8px); } }
-@media (prefers-color-scheme: dark) { :root { --layout-ring:rgba(94,159,232,.12); --glass:rgba(25,30,36,.86); } }
-@media (max-width:850px) { .shell{width:min(100% - 28px,720px)} .topbar{margin-inline:-8px;padding-inline:8px} }
+html[data-theme="dark"] { --layout-ring:rgba(94,159,232,.12); --glass:rgba(25,30,36,.86); }
+@media (max-width:850px) { .shell{width:min(calc(100% - 20px),840px)} .topbar{margin-inline:-8px;padding-inline:8px} }
 @media (prefers-reduced-motion: reduce) { .modal-backdrop,.modal,.toast{animation:none}.family-item,.info-card,.member-card,.finance-card,.metric-card,.fund-card{transform:none!important} }

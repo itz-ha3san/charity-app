@@ -1,0 +1,20 @@
+✔ all TypeScript source files parse and transpile (406.123844ms)
+✔ names reject Latin, Persian and Arabic digits but accept Persian letters/ZWNJ (2.516328ms)
+✔ job and education disallow digits and more than 120 characters (1.540232ms)
+✔ phone format is strict and Persian digits normalize (0.936821ms)
+✔ case numbers bounded 1..999; names validate inside full family input (1.558445ms)
+✔ owned housing always zeroes deposit and rent server-side (0.22478ms)
+✔ Audit denied to normal admin, allowed to super admin on actual routes (36.857939ms)
+✔ self profile needs current password and ignores no privileged fields (10.08476ms)
+✔ password change revokes all sessions and never writes plaintext (0.710653ms)
+✔ supervisor removal requires explicit family disposition; destructive mode confirmation (11.105897ms)
+✔ pending supervisor removal preserves families and closes assignments (0.773004ms)
+✔ family supervisor selection cannot use inactive/out-of-scope supervisor (0.266541ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 896.888676

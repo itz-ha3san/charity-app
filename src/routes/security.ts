@@ -1,8 +1,88 @@
-import type{FastifyInstance}from"fastify";import{z}from"zod";import{allow,requireAuth}from"../auth.js";import{pool,tx}from"../db.js";
-export async function registerSecurityRoutes(app:FastifyInstance){app.addHook("preHandler",requireAuth);app.addHook("preHandler",allow("admin"));
-app.get("/security/events",async req=>{const q=z.object({limit:z.coerce.number().int().min(1).max(500).default(200)}).parse(req.query),r=await pool.query(`SELECT e.id,e.event_type "eventType",e.severity,e.username,e.ip_address "ipAddress",e.details,e.created_at "createdAt",u.display_name "actorName" FROM security_events e LEFT JOIN users u ON u.id=e.actor_id ORDER BY e.created_at DESC LIMIT $1`,[q.limit]);return{events:r.rows}});
-app.get("/security/sensitive-access",async req=>{const q=z.object({limit:z.coerce.number().int().min(1).max(500).default(200)}).parse(req.query),r=await pool.query(`SELECT l.id,l.family_id "familyId",f.case_number "caseNumber",l.resource_type "resourceType",l.resource_id "resourceId",l.action,l.access_reason "reason",l.ip_address "ipAddress",l.created_at "createdAt",u.display_name "actorName" FROM sensitive_access_logs l LEFT JOIN users u ON u.id=l.actor_id LEFT JOIN families f ON f.id=l.family_id ORDER BY l.created_at DESC LIMIT $1`,[q.limit]);return{events:r.rows}});
-app.get("/security/retention-policy",async()=>({policy:(await pool.query(`SELECT session_days "sessionDays",security_event_days "securityEventDays",deleted_document_days "deletedDocumentDays",backup_encryption_required "backupEncryptionRequired",updated_at "updatedAt" FROM data_retention_policy WHERE id=1`)).rows[0]}));
-app.put("/security/retention-policy",async(req)=>{const b=z.object({sessionDays:z.coerce.number().int().min(1).max(365),securityEventDays:z.coerce.number().int().min(90).max(3650),deletedDocumentDays:z.coerce.number().int().min(30).max(3650),backupEncryptionRequired:z.boolean()}).parse(req.body);await tx(async c=>{await c.query("UPDATE data_retention_policy SET session_days=$1,security_event_days=$2,deleted_document_days=$3,backup_encryption_required=$4,updated_by=$5,updated_at=now() WHERE id=1",[b.sessionDays,b.securityEventDays,b.deletedDocumentDays,b.backupEncryptionRequired,req.actor!.id]);await c.query("INSERT INTO audit_logs(actor_id,action,entity_type,details)VALUES($1,'privacy.retention.update','policy',$2)",[req.actor!.id,b])});return{policy:b}});
-app.get("/security/retention-preview",async()=>{const p=(await pool.query("SELECT * FROM data_retention_policy WHERE id=1")).rows[0],r=await pool.query(`SELECT (SELECT count(*)::int FROM sessions WHERE expires_at<now()-($1||' days')::interval) expired_sessions,(SELECT count(*)::int FROM family_documents WHERE deleted_at IS NOT NULL AND deleted_at<now()-($2||' days')::interval AND file_data IS NOT NULL) deleted_document_binaries`,[p.session_days,p.deleted_document_days]);return{dryRun:true,candidates:r.rows[0],note:"Audit and sensitive-access logs are immutable and never deleted by retention."}})
+import type { FastifyInstance } from "fastify";
+import { z } from "zod";
+import { allow, requireAuth, requireSuperAdmin } from "../auth.js";
+import { pool, tx } from "../db.js";
+export async function registerSecurityRoutes(app: FastifyInstance) {
+  app.addHook("preHandler", requireAuth);
+  app.addHook("preHandler", allow("admin"));
+  app.get(
+    "/security/events",
+    { preHandler: requireSuperAdmin },
+    async (req) => {
+      const q = z
+          .object({
+            limit: z.coerce.number().int().min(1).max(500).default(200),
+          })
+          .parse(req.query),
+        r = await pool.query(
+          `SELECT e.id,e.event_type "eventType",e.severity,e.username,e.ip_address "ipAddress",e.details,e.created_at "createdAt",u.display_name "actorName" FROM security_events e LEFT JOIN users u ON u.id=e.actor_id ORDER BY e.created_at DESC LIMIT $1`,
+          [q.limit],
+        );
+      return { events: r.rows };
+    },
+  );
+  app.get(
+    "/security/sensitive-access",
+    { preHandler: requireSuperAdmin },
+    async (req) => {
+      const q = z
+          .object({
+            limit: z.coerce.number().int().min(1).max(500).default(200),
+          })
+          .parse(req.query),
+        r = await pool.query(
+          `SELECT l.id,l.family_id "familyId",f.case_number "caseNumber",l.resource_type "resourceType",l.resource_id "resourceId",l.action,l.access_reason "reason",l.ip_address "ipAddress",l.created_at "createdAt",u.display_name "actorName" FROM sensitive_access_logs l LEFT JOIN users u ON u.id=l.actor_id LEFT JOIN families f ON f.id=l.family_id ORDER BY l.created_at DESC LIMIT $1`,
+          [q.limit],
+        );
+      return { events: r.rows };
+    },
+  );
+  app.get("/security/retention-policy", async () => ({
+    policy: (
+      await pool.query(
+        `SELECT session_days "sessionDays",security_event_days "securityEventDays",deleted_document_days "deletedDocumentDays",backup_encryption_required "backupEncryptionRequired",updated_at "updatedAt" FROM data_retention_policy WHERE id=1`,
+      )
+    ).rows[0],
+  }));
+  app.put("/security/retention-policy", async (req) => {
+    const b = z
+      .object({
+        sessionDays: z.coerce.number().int().min(1).max(365),
+        securityEventDays: z.coerce.number().int().min(90).max(3650),
+        deletedDocumentDays: z.coerce.number().int().min(30).max(3650),
+        backupEncryptionRequired: z.boolean(),
+      })
+      .parse(req.body);
+    await tx(async (c) => {
+      await c.query(
+        "UPDATE data_retention_policy SET session_days=$1,security_event_days=$2,deleted_document_days=$3,backup_encryption_required=$4,updated_by=$5,updated_at=now() WHERE id=1",
+        [
+          b.sessionDays,
+          b.securityEventDays,
+          b.deletedDocumentDays,
+          b.backupEncryptionRequired,
+          req.actor!.id,
+        ],
+      );
+      await c.query(
+        "INSERT INTO audit_logs(actor_id,action,entity_type,details)VALUES($1,'privacy.retention.update','policy',$2)",
+        [req.actor!.id, b],
+      );
+    });
+    return { policy: b };
+  });
+  app.get("/security/retention-preview", async () => {
+    const p = (
+        await pool.query("SELECT * FROM data_retention_policy WHERE id=1")
+      ).rows[0],
+      r = await pool.query(
+        `SELECT (SELECT count(*)::int FROM sessions WHERE expires_at<now()-($1||' days')::interval) expired_sessions,(SELECT count(*)::int FROM family_documents WHERE deleted_at IS NOT NULL AND deleted_at<now()-($2||' days')::interval AND file_data IS NOT NULL) deleted_document_binaries`,
+        [p.session_days, p.deleted_document_days],
+      );
+    return {
+      dryRun: true,
+      candidates: r.rows[0],
+      note: "Audit and sensitive-access logs are immutable and never deleted by retention.",
+    };
+  });
 }
