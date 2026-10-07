@@ -22,7 +22,6 @@
     futureBtn: "حامیان و انبار",
     opsBtn: "وضعیت سامانه",
     migrationBtn: "مهاجرت داده",
-    securityBtn: "امنیت و حریم خصوصی",
     usersBtn: "مدیریت کاربران",
   };
 
@@ -44,7 +43,6 @@
     "organizationBtn": "<circle cx=\"12\" cy=\"6\" r=\"3\"/><circle cx=\"6\" cy=\"17\" r=\"3\"/><circle cx=\"18\" cy=\"17\" r=\"3\"/><path d=\"M12 9v4M8.5 15l3.5-2M15.5 15 12 13\"/>",
     "futureBtn": "<path d=\"M6 5h12v14H6z\"/><path d=\"M9 8h6M9 12h6M9 16h4\"/>",
     "usersBtn": "<circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M3.5 19c.6-3.5 2.5-5 5.5-5s4.9 1.5 5.5 5\"/><path d=\"M15 5.5a3 3 0 0 1 0 5.5M16 14c2.5.2 4 1.8 4.5 4\"/>",
-    "securityBtn": "<path d=\"M12 3 19 6v5c0 5-3 8-7 10-4-2-7-5-7-10V6z\"/><path d=\"m9 12 2 2 4-5\"/>",
     "migrationBtn": "<path d=\"M12 16V4M8 8l4-4 4 4\"/><path d=\"M5 13v6h14v-6\"/>",
     "opsBtn": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M8.5 12h7\"/>",
     "trainingBtn": "<path d=\"m3 8 9-4 9 4-9 4z\"/><path d=\"M6 10v5c2 2 10 2 12 0v-5\"/><path d=\"M21 8v6\"/>",
@@ -82,7 +80,6 @@
         "organizationBtn",
         "futureBtn",
         "usersBtn",
-        "securityBtn",
         "migrationBtn",
         "opsBtn",
         "trainingBtn",
@@ -185,7 +182,7 @@
         <span class="workspace-sidebar-mark">خ</span>
         <span><b>مرکز عملیات</b><small>${role}</small></span>
       </div>
-      <button class="workspace-sidebar-close" type="button" aria-label="بستن منو">×</button>
+      <button class="workspace-sidebar-close" type="button" aria-label="بازگشت">بازگشت</button>
     `;
     head.querySelector(".workspace-sidebar-close").onclick = closeMobileNav;
     groupNavigation(aside);

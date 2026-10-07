@@ -8,8 +8,80 @@ function rangeSlider(root,{value=[0,100],min=0,max=100,step=1,label='محدود�
 function size(n){if(n<1024)return fa(n)+' بایت';if(n<1048576)return fa((n/1024).toFixed(1))+' کیلوبایت';return fa((n/1048576).toFixed(1))+' مگابایت'}
 function enhanceFile(input,{maxSize}={}){if(!input||input.hidden||input.dataset.uiFile)return;input.dataset.uiFile='1';const root=document.createElement('div');root.className='ui-upload';input.parentNode.insertBefore(root,input);input.style.display='none';const zone=document.createElement('div');zone.className='ui-upload-zone';zone.tabIndex=0;zone.setAttribute('role','button');zone.innerHTML=`<span class="ui-upload-icon">${ico.upload}</span><p>فایل را این‌جا رها کنید یا <u>انتخاب کنید</u></p><small>${input.accept?`فرمت‌های مجاز: ${esc(input.accept)}`:'فایل موردنظر را انتخاب کنید'}</small>`;const list=document.createElement('ul');list.className='ui-file-list';list.hidden=true;root.append(zone,input,list);let files=[];const emit=()=>input.dispatchEvent(new Event('change',{bubbles:true}));const render=()=>{list.hidden=!files.length;list.innerHTML=files.map((f,i)=>`<li class="ui-file"><span class="ui-file-name" dir="auto">${esc(f.name)}</span><span class="ui-file-size">${size(f.size)}</span><button type="button" class="ui-file-remove" data-i="${i}" aria-label="حذف">×</button></li>`).join('');list.querySelectorAll('button').forEach(b=>b.onclick=()=>{files.splice(Number(b.dataset.i),1);syncInput();render();emit()})};const syncInput=()=>{try{const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));input.files=dt.files}catch{}};const add=incoming=>{const arr=[...incoming];if(maxSize&&arr.some(f=>f.size>maxSize))return alert(`حجم فایل از ${size(maxSize)} بیشتر است.`);files=input.multiple?[...files,...arr]:arr.slice(0,1);syncInput();render();emit()};zone.onclick=()=>input.click();zone.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();input.click()}};zone.ondragover=e=>{e.preventDefault();zone.dataset.over='true'};zone.ondragleave=()=>zone.dataset.over='false';zone.ondrop=e=>{e.preventDefault();zone.dataset.over='false';add(e.dataTransfer.files)};input.addEventListener('change',e=>{if(e.isTrusted)add(input.files)});return root}
 const months=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'],week=['ش','ی','د','س','چ','پ','ج'];const jp=new Intl.DateTimeFormat('fa-IR-u-ca-persian-nu-latn',{year:'numeric',month:'numeric',day:'numeric'});function jal(d){const p=Object.fromEntries(jp.formatToParts(d).map(x=>[x.type,x.value]));return{jy:+p.year,jm:+p.month,jd:+p.day}}function fmt(d,weekday=true){return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{year:'numeric',month:'long',day:'numeric',...(weekday?{weekday:'long'}:{})}).format(d)}function findMonth(anchor,jy,jm){const out=[];for(let i=-55;i<=55;i++){const d=new Date(anchor);d.setDate(d.getDate()+i);const j=jal(d);if(j.jy===jy&&j.jm===jm)out.push({d,jd:j.jd})}return out.sort((a,b)=>a.jd-b.jd)}
-function calendar({value=null,onChange,min,max}={}){let anchor=value?new Date(value):new Date(),view=jal(anchor);const root=document.createElement('div');root.className='ui-calendar';const render=()=>{let days=findMonth(anchor,view.jy,view.jm);if(!days.length){anchor=new Date();for(let i=-500;i<500;i++){const d=new Date(anchor);d.setDate(d.getDate()+i);const j=jal(d);if(j.jy===view.jy&&j.jm===view.jm){anchor=d;days=findMonth(anchor,view.jy,view.jm);break}}}const first=days[0]?.d??anchor,offset=(first.getDay()+1)%7;root.innerHTML=`<div class="ui-cal-head"><strong class="ui-cal-title">${months[view.jm-1]} ${fa(view.jy)}</strong><div class="ui-cal-nav"><button type="button" data-m=-1 aria-label="ماه قبل">›</button><button type="button" data-m=1 aria-label="ماه بعد">‹</button></div></div><div class="ui-cal-grid">${week.map(x=>`<span class="ui-cal-week">${x}</span>`).join('')}${'<span class="ui-cal-empty"></span>'.repeat(offset)}${days.map(({d,jd})=>{const sel=value&&new Date(value).toDateString()===d.toDateString(),today=new Date().toDateString()===d.toDateString(),dis=(min&&d<min)||(max&&d>max);return`<button type="button" class="ui-cal-day" data-time="${d.getTime()}" data-friday="${d.getDay()===5}" data-today="${today}" aria-selected="${!!sel}" ${dis?'disabled':''}>${fa(jd)}</button>`}).join('')}</div>`;root.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{anchor=new Date(anchor);anchor.setDate(15);anchor.setMonth(anchor.getMonth()+Number(b.dataset.m));view=jal(anchor);render()});root.querySelectorAll('[data-time]').forEach(b=>b.onclick=()=>{value=new Date(Number(b.dataset.time));onChange?.(value);render()})};render();return root}
-function enhanceDate(input){if(!input||input.dataset.uiDate||input.type!=='date')return;input.dataset.uiDate='1';const root=document.createElement('div');root.className='ui-date-field';input.parentNode.insertBefore(root,input);input.hidden=true;root.append(input);const btn=document.createElement('button');btn.type='button';btn.className='ui-date-trigger';root.append(btn);let panel=null;const current=()=>input.value?new Date(input.value+'T12:00:00'):null;const update=()=>{const d=current();btn.innerHTML=`<span class="ui-date-copy"><span class="ui-date-icon">${ico.cal}</span><span>${d?fmt(d):'انتخاب تاریخ'}</span></span>${d?'<span class="ui-date-clear" role="button" aria-label="پاک کردن">×</span>':''}`;btn.querySelector('.ui-date-clear')?.addEventListener('click',e=>{e.stopPropagation();input.value='';input.dispatchEvent(new Event('change',{bubbles:true}));update()})};const close=()=>{panel?.remove();panel=null};btn.onclick=()=>{if(panel)return close();panel=calendar({value:current(),min:input.min?new Date(input.min+'T12:00:00'):null,max:input.max?new Date(input.max+'T12:00:00'):null,onChange:d=>{input.value=d.toISOString().slice(0,10);input.dispatchEvent(new Event('change',{bubbles:true}));update();close()}});document.body.append(panel);const r=btn.getBoundingClientRect();panel.style.top=(r.bottom+5)+'px';panel.style.left=Math.max(8,Math.min(innerWidth-278,r.left))+'px';setTimeout(()=>document.addEventListener('mousedown',outside,{once:true}),0)};const outside=e=>{if(!root.contains(e.target)&&!panel?.contains(e.target))close()};update();return root}
+function calendar({value=null,onChange,min,max}={}){let anchor=value?new Date(value):new Date(),view=jal(anchor);const root=document.createElement('div');root.className='ui-calendar';const render=()=>{let days=findMonth(anchor,view.jy,view.jm);if(!days.length){anchor=new Date();for(let i=-500;i<500;i++){const d=new Date(anchor);d.setDate(d.getDate()+i);const j=jal(d);if(j.jy===view.jy&&j.jm===view.jm){anchor=d;days=findMonth(anchor,view.jy,view.jm);break}}}const first=days[0]?.d??anchor,offset=(first.getDay()+1)%7;root.innerHTML=`<div class="ui-cal-head"><strong class="ui-cal-title">${months[view.jm-1]} ${fa(view.jy)}</strong><div class="ui-cal-nav"><button type="button" data-m=-1 aria-label="ماه قبل">›</button><button type="button" data-m=1 aria-label="ماه بعد">‹</button></div></div><div class="ui-cal-grid">${week.map(x=>`<span class="ui-cal-week">${x}</span>`).join('')}${'<span class="ui-cal-empty"></span>'.repeat(offset)}${days.map(({d,jd})=>{const sel=value&&new Date(value).toDateString()===d.toDateString(),today=new Date().toDateString()===d.toDateString(),dis=(min&&new Date(d).setHours(0,0,0,0)<new Date(min).setHours(0,0,0,0))||(max&&new Date(d).setHours(0,0,0,0)>new Date(max).setHours(0,0,0,0));return`<button type="button" class="ui-cal-day" data-time="${d.getTime()}" data-friday="${d.getDay()===5}" data-today="${today}" aria-selected="${!!sel}" ${dis?'disabled':''}>${fa(jd)}</button>`}).join('')}</div>`;root.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{anchor=new Date(anchor);anchor.setDate(15);anchor.setMonth(anchor.getMonth()+Number(b.dataset.m));view=jal(anchor);render()});root.querySelectorAll('[data-time]').forEach(b=>b.onclick=()=>{value=new Date(Number(b.dataset.time));onChange?.(value);render()})};render();return root}
+function enhanceDate(input) {
+  if (!input || input.dataset.uiDate || input.type !== 'date') return;
+  input.dataset.uiDate = '1';
+  const root = document.createElement('div');
+  root.className = 'ui-date-field';
+  input.parentNode.insertBefore(root, input);
+  input.hidden = true;
+  root.append(input);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'ui-date-trigger';
+  root.append(btn);
+  let panel = null;
+  const current = () => input.value ? new Date(input.value + 'T12:00:00') : null;
+  const outside = (event) => {
+    if (!root.contains(event.target) && !panel?.contains(event.target)) close();
+  };
+  const escape = (event) => {
+    if (event.key === 'Escape' && panel) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      close();
+      btn.focus();
+    }
+  };
+  const close = () => {
+    panel?.remove();
+    panel = null;
+    btn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('mousedown', outside, true);
+    document.removeEventListener('keydown', escape, true);
+  };
+  const update = () => {
+    const d = current();
+    btn.innerHTML = `<span class="ui-date-copy"><span class="ui-date-icon">${ico.cal}</span><span>${d ? fmt(d) : 'انتخاب تاریخ'}</span></span>${d ? '<span class="ui-date-clear" role="button" aria-label="پاک کردن">×</span>' : ''}`;
+    btn.querySelector('.ui-date-clear')?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      close();
+      input.value = '';
+      update();
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  };
+  btn.setAttribute('aria-expanded', 'false');
+  btn.onclick = (event) => {
+    event.stopPropagation();
+    if (panel?.isConnected) return close();
+    close();
+    panel = calendar({
+      value: current(),
+      min: input.min ? new Date(input.min + 'T12:00:00') : null,
+      max: input.max ? new Date(input.max + 'T12:00:00') : null,
+      onChange: (d) => {
+        // Close before change handlers or DOM enhancement can run.
+        close();
+        input.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        update();
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+    document.body.append(panel);
+    const rect = btn.getBoundingClientRect();
+    panel.style.top = (rect.bottom + 5) + 'px';
+    panel.style.left = Math.max(8, Math.min(innerWidth - 278, rect.left)) + 'px';
+    btn.setAttribute('aria-expanded', 'true');
+    // Keep this listener after interactions INSIDE the calendar, until closed.
+    document.addEventListener('mousedown', outside, true);
+    document.addEventListener('keydown', escape, true);
+  };
+  input.addEventListener('change', update);
+  update();
+  return root;
+}
 function commandItems(){const selectors=['#createBtn','#importBtn','#refreshBtn','#logoutBtn','#publicSupportBtn','#publicTrackBtn','.ops-nav button','.ops-nav a'];return[...document.querySelectorAll(selectors.join(','))].filter(x=>x.offsetParent!==null&&!x.disabled).map((x,i)=>({id:x.id||'cmd'+i,label:x.textContent.trim(),group:x.closest('.ops-nav')?'عملیات سامانه':'دسترسی سریع',run:()=>x.click()}))}
 function commandDialog(items=commandItems()){let q='',index=0;const overlay=document.createElement('div');overlay.className='ui-overlay ui-command-overlay';overlay.innerHTML=`<div class="ui-command" role="dialog" aria-modal="true" aria-label="جست‌وجوی سریع"><div class="ui-command-search">${ico.search}<input autofocus placeholder="دستور یا جست‌وجو…" role="combobox" aria-expanded="true"><kbd class="ui-kbd">Esc</kbd></div><div class="ui-command-list" role="listbox"></div></div>`;const input=overlay.querySelector('input'),list=overlay.querySelector('.ui-command-list'),fold=s=>en(s).toLowerCase().replace(/\u200c/g,'').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/آ/g,'ا').trim();const filtered=()=>{const t=fold(q);return t?items.filter(x=>fold(x.label).includes(t)):items};const render=()=>{const f=filtered();index=Math.max(0,Math.min(index,f.length-1));list.innerHTML=f.length?f.map((x,i)=>`${i===0||x.group!==f[i-1]?.group?`<div class="ui-command-group">${esc(x.group||'')}</div>`:''}<button class="ui-command-item" role="option" data-i="${i}" data-active="${i===index}"><span>${esc(x.label)}</span>${i===index?'↵':''}</button>`).join(''):'<div class="ui-command-empty">چیزی پیدا نشد</div>';list.querySelectorAll('button').forEach(b=>{b.onmouseenter=()=>{index=Number(b.dataset.i);render()};b.onclick=()=>{f[Number(b.dataset.i)]?.run();close()}})};const unlock=lock(),close=()=>{unlock();overlay.remove()};overlay.onclick=e=>{if(e.target===overlay)close()};input.oninput=()=>{q=input.value;index=0;render()};input.onkeydown=e=>{const f=filtered();if(e.key==='ArrowDown'){e.preventDefault();index=Math.min(f.length-1,index+1);render()}if(e.key==='ArrowUp'){e.preventDefault();index=Math.max(0,index-1);render()}if(e.key==='Enter'&&f[index]){f[index].run();close()}if(e.key==='Escape')close()};document.body.append(overlay);render();input.focus();return{close}}
 function dialog({title='',description='',content='',footer='',role='dialog',onClose}={}){const prev=document.activeElement,overlay=document.createElement('div');overlay.className='ui-overlay';overlay.innerHTML=`<div class="ui-dialog-panel" role="${role}" aria-modal="true"><div class="ui-dialog-head"><div><h2>${esc(title)}</h2>${description?`<p>${esc(description)}</p>`:''}</div>${role==='dialog'?`<button class="ui-dialog-close" aria-label="بستن">${ico.x}</button>`:''}</div><div class="ui-dialog-body"></div>${footer?`<div class="ui-dialog-footer">${footer}</div>`:''}</div>`;const body=overlay.querySelector('.ui-dialog-body');if(typeof content==='string')body.innerHTML=content;else if(content)body.append(content);const unlock=lock(),close=()=>{unlock();overlay.remove();prev?.focus();onClose?.()};overlay.querySelector('.ui-dialog-close')?.addEventListener('click',close);overlay.onclick=e=>{if(role==='dialog'&&e.target===overlay)close()};overlay.onkeydown=e=>{if(e.key==='Escape'&&role==='dialog')close();if(e.key==='Tab'){const f=focusables(overlay);if(!f.length)return;const i=f.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();f.at(-1).focus()}else if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus()}}};document.body.append(overlay);focusables(overlay)[0]?.focus();return{element:overlay,close}}
