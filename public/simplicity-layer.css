@@ -150,3 +150,9 @@
   display: grid;
   gap: 2px;
 }
+.member-id-display { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+.member-id-display > b { overflow: hidden; color: var(--text); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.member-id-toggle { display: grid; place-items: center; width: 27px; height: 27px; flex: 0 0 27px; padding: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--muted); cursor: pointer; }
+.member-id-toggle:hover, .member-id-toggle[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dark); }
+.member-id-toggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.member-id-toggle svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }

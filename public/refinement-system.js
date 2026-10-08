@@ -192,12 +192,13 @@
     closeDrawer();
     const root=document.createElement('div');
     root.className='quick-drawer-backdrop';
-    root.innerHTML=`<aside class="quick-drawer" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><div><small>پیش‌نمایش سریع</small><h2>${esc(title)}</h2></div><button type="button" class="drawer-close" aria-label="بستن">×</button></header><div class="quick-drawer-body">${html}</div></aside>`;
+    root.innerHTML=`<aside class="quick-drawer quick-family-preview" role="dialog" aria-modal="true" aria-labelledby="quickPreviewTitle"><div class="quick-preview-grabber" aria-hidden="true"></div><header class="quick-preview-header"><div class="quick-preview-heading"><span class="quick-preview-file-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3.75h7l4 4v12.5H7z"/><path d="M14 3.75v4h4M9.5 12h6M9.5 15.5h6"/></svg></span><div><small>پیش‌نمایش پرونده</small><h2 id="quickPreviewTitle">${esc(title)}</h2></div></div><button type="button" class="drawer-close" aria-label="بستن پیش‌نمایش" title="بستن">×</button></header><div class="quick-drawer-body">${html}</div></aside>`;
     document.body.append(root);
     root.querySelector('.drawer-close').onclick=closeDrawer;
     root.addEventListener('click',e=>{if(e.target===root)closeDrawer();});
     document.addEventListener('keydown',drawerEsc);
     document.body.classList.add('drawer-open');
+    root.querySelector('.drawer-close').focus({preventScroll:true});
     return root;
   }
   function drawerEsc(e){if(e.key==='Escape')closeDrawer();}
@@ -212,10 +213,17 @@
       b.onclick=e=>{
         e.stopPropagation();
         const name=item.querySelector('b')?.textContent || 'پرونده';
-        const p=item.querySelector('p')?.textContent || '';
-        const priority=item.querySelector('.priority')?.textContent || '';
-        openDrawer(name, `<div class="preview-stat"><b>اطلاعات پرونده</b><span>${esc(p)}</span></div><div class="preview-stat"><b>اولویت / وضعیت</b><span>${esc(priority)}</span></div><div class="preview-actions"><button type="button" class="primary">مشاهده پرونده کامل</button></div>`);
-        document.querySelector('.quick-drawer .primary').onclick=()=>{closeDrawer();item.click();};
+        const row=item.closest('.family-item-row');
+        const familyName=row?.dataset.familySurname || '';
+        const caseNumber=row?.dataset.caseNumber || '';
+        const memberCount=row?.dataset.memberCount || '—';
+        const priority=item.querySelector('.priority')?.textContent?.trim() || 'ثبت نشده';
+        const archived=item.classList.contains('archived');
+        const priorityTone=/فوری|بحرانی|urgent/i.test(priority)?'urgent':/بالا|high/i.test(priority)?'high':/کم|پایین|low/i.test(priority)?'low':'medium';
+        const meta=[familyName&&`خانواده ${familyName}`,caseNumber&&`پرونده ${caseNumber}`].filter(Boolean).join(' · ');
+        const summary=`<div class="quick-preview-overview"><div class="quick-preview-section-title"><span>خلاصه پرونده</span><span class="quick-preview-live ${archived?'is-archived':''}"><i></i>${archived?'آرشیوشده':'فعال'}</span></div><div class="quick-preview-summary-grid"><article class="quick-preview-stat"><span>شماره پرونده</span><strong>${esc(caseNumber||'—')}</strong></article><article class="quick-preview-stat"><span>نام خانوادگی</span><strong>${esc(familyName||'—')}</strong></article><article class="quick-preview-stat"><span>اعضای خانوار</span><strong>${esc(memberCount)} <small>نفر</small></strong></article></div><div class="quick-preview-priority"><span>اولویت رسیدگی</span><b class="quick-preview-priority-badge ${priorityTone}"><i></i>${esc(priority)}</b></div></div><div class="quick-preview-hint"><span aria-hidden="true">ⓘ</span><p>برای دیدن اطلاعات و پیگیری‌های این پرونده، نمای کامل را باز کنید.</p></div><div class="preview-actions"><button type="button" class="primary quick-preview-open">باز کردن پرونده کامل <span aria-hidden="true">←</span></button></div>`;
+        openDrawer(name, summary);
+        document.querySelector('.quick-drawer .quick-preview-open').onclick=()=>{closeDrawer();item.click();};
       };
     });
   }

@@ -1,6 +1,16 @@
 (() => {
   const fa = (value) =>
     new Intl.NumberFormat("fa-IR").format(Number(value) || 0);
+  const escapeHtml = (value) =>
+    String(value ?? "").replace(/[&<>"']/g, (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+    );
 
   const labels = {
     advancedSearchBtn: "جست‌وجوی پیشرفته",
@@ -170,7 +180,7 @@
     const head = aside.querySelector(".ui-sidebar-head");
     head.innerHTML = `
       <div class="workspace-sidebar-brand">
-        <span class="workspace-sidebar-mark">خ</span>
+        <img class="workspace-sidebar-mark" src="${document.documentElement.dataset.theme === "dark" ? "/brand/charity-logo-dark.png" : "/brand/charity-logo.png"}" data-brand-logo alt="نشان خیریه">
         <span><b>مرکز عملیات</b><small>${role}</small></span>
       </div>
       <button class="workspace-sidebar-close" type="button" aria-label="بازگشت">بازگشت</button>
@@ -228,22 +238,18 @@
         <div>
           <div class="workspace-date">${date}</div>
           <h2>نمای امروز</h2>
-          <p>مواردی که به توجه یا اقدام شما نیاز دارند.</p>
-        </div>
-        <div class="workspace-head-actions">
-          <button class="workspace-refresh" type="button" aria-label="به‌روزرسانی نمای امروز">↻ <span>به‌روزرسانی</span></button>
-          ${document.querySelector("#createBtn") ? '<button type="button" class="primary" data-workspace-action="createBtn">+ پرونده جدید</button>' : ""}
         </div>
       </div>
+      <div class="workspace-metrics-heading"><b>خلاصه وضعیت</b></div>
       <div class="workspace-metrics" aria-label="خلاصه وضعیت">
-        <button class="workspace-metric" data-tone="blue" data-workspace-action="advancedSearchBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></span><span><small>پرونده‌های فعال</small><strong data-metric="active">—</strong></span></button>
-        <button class="workspace-metric" data-tone="red" data-workspace-action="overdueBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg></span><span><small>پیگیری عقب‌افتاده</small><strong data-metric="overdue">—</strong></span></button>
-        <button class="workspace-metric" data-tone="orange" data-workspace-action="advancedSearchBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 16 5-5 3 3 6-7"/><path d="M14 7h5v5"/></svg></span><span><small>موارد فوری</small><strong data-metric="urgent">—</strong></span></button>
-        <button class="workspace-metric" data-tone="green" data-workspace-action="alertsBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span><span><small>هشدار خوانده‌نشده</small><strong data-metric="alerts">—</strong></span></button>
+        <button class="workspace-metric" data-tone="blue" data-workspace-action="activeFamiliesBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></span><span class="workspace-metric-copy"><small>پرونده‌های فعال</small><strong data-metric="active">—</strong><span class="workspace-metric-caption">خانوارهای در جریان رسیدگی</span></span></button>
+        <button class="workspace-metric" data-tone="red" data-workspace-action="overdueBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg></span><span class="workspace-metric-copy"><small>پیگیری عقب‌افتاده</small><strong data-metric="overdue">—</strong><span class="workspace-metric-caption">موعد اقدام گذشته است</span></span></button>
+        <button class="workspace-metric" data-tone="orange" data-workspace-action="urgentFamiliesBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 16 5-5 3 3 6-7"/><path d="M14 7h5v5"/></svg></span><span class="workspace-metric-copy"><small>موارد فوری</small><strong data-metric="urgent">—</strong><span class="workspace-metric-caption">فهرست پرونده‌های فوری</span></span></button>
+        <button class="workspace-metric" data-tone="green" data-workspace-action="alertsBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span><span class="workspace-metric-copy"><small>هشدار خوانده‌نشده</small><strong data-metric="alerts">—</strong><span class="workspace-metric-caption">نیازمند مرور</span></span></button>
       </div>
       <div class="workspace-focus-grid workspace-focus-grid-single">
         <article class="workspace-focus-card">
-          <div class="workspace-card-head"><div><span class="workspace-card-kicker">اولویت‌ها</span><h3>نیازمند توجه شما</h3></div><button type="button" data-workspace-action="alertsBtn">مشاهده همه</button></div>
+          <div class="workspace-card-head"><div><span class="workspace-card-kicker">اولویت‌ها</span><h3>نیازمند توجه شما</h3></div><button type="button" data-workspace-action="attentionItemsBtn">مشاهده همه</button></div>
           <div class="workspace-priority-list" data-priority-list>
             <div class="workspace-loading"><i></i><span>در حال دریافت وضعیت…</span></div>
           </div>
@@ -256,10 +262,17 @@
         const target = document.querySelector(
           `#${button.dataset.workspaceAction}`,
         );
-        if(button.dataset.workspaceAction === "alertsBtn" && typeof openAlerts === "function") openAlerts("",true); else target?.click();
+        runOverviewAction(button.dataset.workspaceAction, target);
       });
     });
-    section.querySelector(".workspace-refresh").onclick = loadOverview;
+  }
+
+  function runOverviewAction(action, target) {
+    if (action === "activeFamiliesBtn") return window.openActiveFamilyList?.();
+    if (action === "urgentFamiliesBtn") return window.openUrgentFamilyList?.();
+    if (action === "attentionItemsBtn") return window.openAttentionItems?.();
+    if (action === "alertsBtn" && typeof openAlerts === "function") return openAlerts("", true);
+    target?.click();
   }
 
   async function request(path) {
@@ -287,21 +300,28 @@
     const root = document.querySelector(".workspace-overview");
     if (!root) return;
     root.classList.add("is-loading");
-    const [dashboard, alerts, overdue] = await Promise.allSettled([
+    const [dashboard, alerts, overdue, urgent] = await Promise.allSettled([
       request("/api/dashboard"),
       request("/api/alerts?includeRead=false"),
       request("/api/follow-ups/overdue"),
+      request(
+        "/api/families/search/advanced?status=active&priority=" +
+          encodeURIComponent("فوری") +
+          "&limit=5",
+      ),
     ]);
     const data = dashboard.status === "fulfilled" ? dashboard.value : {};
     const alertData = alerts.status === "fulfilled" ? alerts.value : {};
+    const urgentData = urgent.status === "fulfilled" ? urgent.value : {};
     const overdueCount =
       overdue.status === "fulfilled"
         ? overdue.value.items?.length || 0
         : data.overdue || 0;
+    const urgentFamilies = urgentData.families || [];
     const values = {
       active: data.active,
       overdue: overdueCount,
-      urgent: data.urgent,
+      urgent: urgentData.total ?? data.urgent,
       alerts: alertData.unread,
     };
     Object.entries(values).forEach(([key, value]) => {
@@ -318,10 +338,10 @@
       ),
       priorityRow(
         "orange",
-        data.urgent,
+        urgentData.total ?? data.urgent,
         "پرونده‌های با اولویت فوری",
-        "این پرونده‌ها به بررسی سریع نیاز دارند.",
-        "advancedSearchBtn",
+        "فهرست فوری‌ها در همین پنل نمایش داده می‌شود.",
+        "urgentFamiliesBtn",
       ),
       priorityRow(
         "blue",
@@ -331,12 +351,39 @@
         "alertsBtn",
       ),
     ].join("");
+    const urgentTotal = Number(urgentData.total ?? data.urgent ?? 0);
+    const urgentPreview = urgentFamilies.length
+      ? `<div class="workspace-urgent-preview"><div class="workspace-urgent-preview-head"><b>پرونده‌های فوری</b><span>${fa(urgentData.total || urgentFamilies.length)} مورد</span></div><div class="workspace-urgent-preview-list">${urgentFamilies
+          .map(
+            (family) => `<button type="button" class="workspace-urgent-family" data-overview-family="${escapeHtml(family.id)}">
+              <span><b>پرونده ${escapeHtml(family.caseNumber)} · ${escapeHtml(family.headName)}</b><small>${escapeHtml(family.familySurname || "نام خانوادگی ثبت نشده")} · ${escapeHtml(family.priority || "فوری")}</small></span>
+              <i aria-hidden="true">←</i>
+            </button>`,
+          )
+          .join("")}</div>${
+          Number(urgentData.total) > urgentFamilies.length
+            ? `<button type="button" class="workspace-urgent-more" data-workspace-action="urgentFamiliesBtn">مشاهدهٔ همهٔ موارد فوری (${fa(urgentData.total)})</button>`
+            : ""
+        }</div>`
+      : urgentTotal
+        ? `<div class="workspace-urgent-preview"><div class="workspace-urgent-preview-head"><b>پرونده‌های فوری</b><span>${fa(urgentTotal)} مورد</span></div><p class="workspace-urgent-unavailable">برای دیدن پرونده‌ها روی این بخش بزنید.</p><button type="button" class="workspace-urgent-more" data-workspace-action="urgentFamiliesBtn">نمایش موارد فوری</button></div>`
+        : "";
     const list = root.querySelector("[data-priority-list]");
     list.innerHTML =
-      rows ||
+      rows + urgentPreview ||
       '<div class="workspace-all-clear"><span>✓</span><div><b>همه‌چیز مرتب است</b><small>در حال حاضر مورد فوری ثبت نشده است.</small></div></div>';
     list.querySelectorAll("[data-workspace-action]").forEach((button) => {
-      button.onclick = () => {if(button.dataset.workspaceAction==="alertsBtn"&&typeof openAlerts === "function")openAlerts("",true);else document.querySelector(`#${button.dataset.workspaceAction}`)?.click();};
+      button.onclick = () =>
+        runOverviewAction(
+          button.dataset.workspaceAction,
+          document.querySelector(`#${button.dataset.workspaceAction}`),
+        );
+    });
+    list.querySelectorAll("[data-overview-family]").forEach((button) => {
+      button.onclick = () => {
+        const id = button.dataset.overviewFamily;
+        if (id && typeof loadDetail === "function") loadDetail(id);
+      };
     });
     root.classList.remove("is-loading");
   }

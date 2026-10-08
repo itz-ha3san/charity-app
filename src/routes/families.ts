@@ -82,6 +82,7 @@ const validId = (v: string) => {
   list = z.object({
     search: z.string().trim().max(100).default(""),
     supervisorId: z.string().uuid().optional(),
+    liaisonId: z.string().uuid().optional(),
     status: z.enum(["active", "archived", "all"]).default("active"),
     limit: z.coerce.number().int().min(1).max(100).default(50),
     offset: z.coerce.number().int().min(0).default(0),
@@ -113,6 +114,10 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
     if (q.supervisorId) {
       p.push(q.supervisorId);
       w += ` AND EXISTS(SELECT 1 FROM family_supervisor_assignments fs WHERE fs.family_id=f.id AND fs.supervisor_id=$${p.length} AND fs.ends_at IS NULL)`;
+    }
+    if (q.liaisonId) {
+      p.push(q.liaisonId);
+      w += ` AND (f.assigned_to=$${p.length} OR EXISTS(SELECT 1 FROM family_supervisor_assignments lfa JOIN supervisors ls ON ls.id=lfa.supervisor_id WHERE lfa.family_id=f.id AND lfa.ends_at IS NULL AND ls.active AND ls.liaison_id=$${p.length}))`;
     }
     if (q.search) {
       p.push(`%${q.search}%`);

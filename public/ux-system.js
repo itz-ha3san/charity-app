@@ -10,90 +10,42 @@ function alert(root,variant='info'){root.classList.add('ui-alert');root.dataset.
 function table(el){if(el.dataset.uiTable)return;el.dataset.uiTable='1';el.classList.add('ui-table');if(!el.parentElement.classList.contains('ui-table-wrap')){const w=document.createElement('div');w.className='ui-table-wrap';el.parentNode.insertBefore(w,el);w.append(el)}return el}
 function sidebar(nav){if(!nav||nav.dataset.uiSidebar)return;nav.dataset.uiSidebar='1';nav.classList.add('ui-sidebar-source');const dash0=document.querySelector('#dashboard'),prev=dash0&&dash0.querySelector(':scope > .dashboard-layout');if(prev){const pm=prev.querySelector(':scope > .dashboard-main'),keep=pm?[...pm.children].filter(x=>!x.classList.contains('workspace-overview')&&!x.classList.contains('ui-sidebar-source')):[];prev.replaceWith(...keep)}const layout=document.createElement('div');layout.className='dashboard-layout';const aside=document.createElement('aside');aside.className='ui-sidebar';aside.innerHTML='<div class="ui-sidebar-head"><b>مرکز عملیات</b><span>دسترسی سریع به بخش‌های سامانه</span></div><nav class="ui-sidebar-nav"></nav><div class="ui-sidebar-footer">برای جست‌وجوی سریع Ctrl K را فشار دهید</div>';const group=document.createElement('div');group.className='ui-sidebar-group';group.dataset.open='true';group.innerHTML='<button type="button" class="ui-sidebar-group-title">بخش‌ها <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button><div class="ui-sidebar-items"></div>';aside.querySelector('.ui-sidebar-nav').append(group);const items=group.querySelector('.ui-sidebar-items');[...nav.children].forEach(b=>{b.classList.remove('secondary','primary');b.classList.add('ui-sidebar-item');items.append(b)});group.querySelector('.ui-sidebar-group-title').onclick=()=>group.dataset.open=String(group.dataset.open!=='true');const dash=document.querySelector('#dashboard'),main=document.createElement('div');main.className='dashboard-main';const head=dash.querySelector('.dashboard-head');head.after(layout);layout.append(aside,main);main.append(nav);[...dash.children].filter(x=>x!==head&&x!==layout&&x.id!=='sessionAlert').forEach(x=>main.append(x));window.dispatchEvent(new CustomEvent('uisidebarready',{detail:{aside}}));return aside}
 /* ---------------- Family completeness ---------------- */
-const familyFieldLabels={
-  caseNumber:'شماره پرونده',
-  familySurname:'نام خانوادگی',
-  headName:'نام فرد اصلی خانوار',
-  headNationalId:'کد ملی فرد اصلی خانوار',
-  headPhone:'شماره تماس فرد اصلی خانوار',
-  headBirthDate:'تاریخ تولد فرد اصلی خانوار',
-  headJob:'شغل فرد اصلی خانوار',
-  headEducation:'تحصیلات فرد اصلی خانوار',
-  address:'نشانی',
-  housingType:'نوع مسکن',
-  housingCost:'اجاره یا ودیعه',
-  members:'اعضای خانوار',
-  notes:'توضیحات پرونده',
-  priority:'اولویت',
-  insurance:'بیمه',
-  medical:'وضعیت درمانی',
-  notesHistory:'سابقه پیگیری',
-  profileData:'اطلاعات کامل پرونده'
-};
-
-function familyCompleteness(f){
-  if(!f) return {percent:0,missing:[],present:0,total:0};
-  const isAdmin=window.currentActor?.role==='admin'||window.currentActor?.position==='ceo';
-  const checks=[
-    ['caseNumber',Boolean(f.caseNumber)],
-    ['familySurname',Boolean(f.familySurname)],
-    ['headName',Boolean(f.headName)],
-    ['headNationalId',Boolean(f.headNationalId)],
-    ['headPhone',Boolean(f.headPhone)],
-    ['headBirthDate',Boolean(f.headBirthDate)],
-    ['headJob',Boolean(f.headJob)],
-    ['headEducation',Boolean(f.headEducation?.description||f.headEducation?.level)],
-    ['address',Boolean(f.address&&String(f.address).trim())],
-    ['housingType',Boolean(f.housingType)],
-    ['housingCost',Number(f.housingRent)>0||Number(f.housingDeposit)>0],
-    ['members',Boolean(f.members?.length)],
-    ['notes',Boolean(f.notes&&String(f.notes).trim())],
-    ['priority',Boolean(f.priority)],
-['insurance',Boolean(f.insurance&&(f.insurance.type||f.insurance.cost))],
-['medical',Boolean(f.medical && (typeof f.medical.hasCondition === 'boolean' || String(f.medical.description||'').trim()))],
-    ['notesHistory',Boolean(f.notesHistory?.length)],
-    ...(isAdmin?[['profileData',Boolean(f.profileData&&Object.keys(f.profileData).length)]]:[])
+function familyCompleteness(f,canonical){
+  if(canonical)return canonical;
+  const required=[
+    ['caseNumber',Boolean(f?.caseNumber)],
+    ['familySurname',Boolean(f?.familySurname)],
+    ['headName',Boolean(f?.headName)],
+    ['headNationalId',Boolean(f?.headNationalId)],
+    ['headPhone',Boolean(f?.headPhone)],
   ];
-  const present=checks.filter(([,ok])=>ok).length;
-  const total=checks.length;
-  const percent=total?Math.round(present*100/total):0;
-  const missing=checks.filter(([,ok])=>!ok).map(([key])=>familyFieldLabels[key]||key);
-  return {percent,missing,present,total};
+  const missing=required.filter(([,ok])=>!ok).map(([key])=>key);
+  const completeFields=required.length-missing.length;
+  return {percent:required.length?Math.round(completeFields*100/required.length):100,completeFields,totalFields:required.length,requiredMissingFields:missing,missingFields:missing};
 }
 
 function completeness(f){return familyCompleteness(f).percent}
 
-function familyProgress(f){
+function familyProgress(f,canonical){
   const detail=document.querySelector('#familyDetail');
-  if(!detail) return;
+  if(!detail)return;
   detail.querySelector('.ui-family-progress')?.remove();
-  const info=familyCompleteness(f);
-  const pct=info.percent;
-  const members=!!f.members?.length;
-  const history=!!f.notesHistory?.length;
-  const full=!!(f.profileData&&Object.keys(f.profileData).length);
-  const core=!!(f.caseNumber&&f.headName&&f.headNationalId&&f.headPhone);
-  const current=!core?0:!members?1:!history?2:!full?3:4;
-  const summary=pct<50?'اطلاعات پایه نیاز به تکمیل دارد.':pct<80?'پرونده در حال تکمیل است.':'پرونده اطلاعات مناسبی برای پیگیری دارد.';
-  const preview=info.missing.slice(0,8);
-  const extra=info.missing.length-preview.length;
-  const missingHtml=info.missing.length
-    ? `<div class="ui-family-missing" role="status">
-         <b>موارد ناقص (${fa(info.missing.length)} مورد):</b>
-         <div class="ui-family-missing-list">
-           ${preview.map(x=>`<span class="ui-family-missing-chip">${esc(x)}</span>`).join('')}
-           ${extra>0?`<span class="ui-family-missing-chip ui-family-missing-chip-more">و ${fa(extra)} مورد دیگر</span>`:''}
-         </div>
-       </div>`
-    : '';
+  const info=familyCompleteness(f,canonical),pct=Math.max(0,Math.min(100,Number(info.percent)||0));
+  const missing=(info.missingFields||[]).length;
   const box=document.createElement('section');
   box.className='ui-family-progress';
-  box.innerHTML=`<div class="ui-family-progress-top"><div><h3>تکمیل اطلاعات خانواده</h3><p>${summary}</p></div><div class="ui-complete-score" style="--score:${pct*3.6}deg"><span>${fa(pct)}٪</span></div></div>${missingHtml}<div data-family-bar></div><ol data-family-steps></ol>`;
+  box.innerHTML=`<div class="ui-family-progress-top"><div class="ui-family-progress-copy"><span class="ui-family-progress-kicker">وضعیت پرونده</span><h3>فیلدهای اجباری</h3><p>${fa(info.completeFields||0)} از ${fa(info.totalFields||0)} فیلد ضروری تکمیل شده است.</p>${missing?`<button type="button" class="ui-family-progress-link" data-open-completeness>رفتن به فهرست موارد ناقص</button>`:'<span class="ui-family-progress-done">همه فیلدهای اجباری تکمیل‌اند</span>'}</div><div class="ui-complete-score" role="img" aria-label="${fa(pct)} درصد از فیلدهای اجباری تکمیل شده" style="--score:${pct*3.6}deg"><span>${fa(pct)}٪</span></div></div><div data-family-bar></div>`;
   const head=detail.querySelector('.detail-head');
   head?.after(box);
-  progress(box.querySelector('[data-family-bar]'),{value:pct,label:'میزان کامل‌بودن داده‌ها',showValue:true,size:'sm'});
-  stepper(box.querySelector('[data-family-steps]'),[{label:'اطلاعات پایه',description:'هویت و تماس'},{label:'اعضای خانواده',description:'ترکیب خانوار'},{label:'سوابق پیگیری',description:'یادداشت‌ها و اقدامات'},{label:'پرونده جامع',description:'اطلاعات تکمیلی'},{label:'آماده پیگیری',description:'پرونده عملیاتی'}],current);
-  document.querySelector('#familyBreadcrumb')?.remove();
+  progress(box.querySelector('[data-family-bar]'),{value:pct,label:'پیشرفت فیلدهای اجباری',showValue:false,size:'sm'});
+  box.querySelector('[data-open-completeness]')?.addEventListener('click',()=>{
+    const section=detail.querySelector('#comprehensiveSection');
+    if(!section)return;
+    const toggle=section.previousElementSibling;
+    if(toggle?.classList.contains('simple-section-toggle'))toggle.click();
+    else section.hidden=false;
+    section.scrollIntoView({behavior:'smooth',block:'start'});
+  });
 }
 
 function scan(root=document){root.querySelectorAll?.('table:not([data-ui-table])').forEach(table);root.querySelectorAll?.('.session-alert,.archive-banner').forEach(x=>alert(x,'destructive'));root.querySelectorAll?.('.message.success').forEach(x=>alert(x,'success'));root.querySelectorAll?.('.message.error').forEach(x=>{if(x.textContent.trim())alert(x,'destructive')});root.querySelectorAll?.('.metric-card').forEach(x=>x.classList.add('ui-stat'));root.querySelectorAll?.('.count-chip').forEach(x=>badge(x,'secondary'));root.querySelectorAll?.('.status,.priority').forEach(x=>badge(x,'outline'));root.querySelectorAll?.('.archive-status,.finance-status.rejected').forEach(x=>badge(x,'destructive'));root.querySelectorAll?.('.finance-status.paid,.finance-status.approved').forEach(x=>badge(x,'success'))}

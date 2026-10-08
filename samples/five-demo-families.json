@@ -1,0 +1,457 @@
+{
+  "schemaVersion": "families-v3",
+  "recordType": "family",
+  "description": "پنج پروندهٔ کاملاً ساختگی برای نمایش رابط کاربری؛ فقط در محیط آزمایشی وارد شود.",
+  "families": [
+    {
+      "caseNumber": "701",
+      "familySurname": "محمدی",
+      "headName": "زهرا محمدی",
+      "headNationalId": "9876500015",
+      "headBirthDate": "1360/08/14",
+      "headPhone": "09000000001",
+      "familyPhone": "",
+      "headEducation": {
+        "level": "دیپلم",
+        "description": "دیپلم",
+        "field": "",
+        "universityTerm": "",
+        "grades": []
+      },
+      "headJob": "خیاط خانگی",
+      "insurance": {
+        "type": "ثبت نشده",
+        "status": "نیازمند بررسی",
+        "cardNumber": ""
+      },
+      "medical": {
+        "hasCondition": true,
+        "description": "نیازمند ارزیابی و پیگیری درمانی؛ هزینه دارو بالاست.",
+        "monthlyCost": 4200000
+      },
+      "housingType": "استیجاری",
+      "housingDeposit": 180000000,
+      "housingRent": 8500000,
+      "housing": {
+        "type": "استیجاری",
+        "deposit": 180000000,
+        "monthlyRent": 8500000,
+        "address": "تهران، محله نمونه، کوچه آزمایشی"
+      },
+      "address": "تهران، محله نمونه، کوچه آزمایشی",
+      "notes": "نمونه ساختگی برای بررسی پنل‌ها؛ هزینه درمان بالا و بیمه نیازمند بررسی است.",
+      "incomeDescription": "درآمد متغیر از خیاطی خانگی؛ برای پرداخت اجاره و دارو کافی نیست.",
+      "debt": {
+        "amount": 45000000,
+        "reason": "هزینه درمان و اجاره"
+      },
+      "transportationCost": 1200000,
+      "utilityCost": 900000,
+      "monthlyInstallments": 1500000,
+      "monthlyAid": 0,
+      "priority": "فوری",
+      "members": [
+        {
+          "name": "آرمان محمدی",
+          "relation": "فرزند",
+          "nationalId": "9876503014",
+          "birthDate": "1392/04/12",
+          "education": {
+            "level": "پایه هشتم",
+            "description": "پایه هشتم",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "محصل"
+        },
+        {
+          "name": "هستی محمدی",
+          "relation": "فرزند",
+          "nationalId": "9876503022",
+          "birthDate": "1392/04/12",
+          "education": {
+            "level": "پایه پنجم ابتدایی",
+            "description": "پایه پنجم ابتدایی",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "محصل"
+        },
+        {
+          "name": "مهدی محمدی",
+          "relation": "همسر",
+          "nationalId": "9876503030",
+          "birthDate": "1358/03/20",
+          "education": {
+            "level": "ابتدایی",
+            "description": "ابتدایی",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "کارگر روزمزد"
+        }
+      ],
+      "notesHistory": [
+        {
+          "text": "DEMO · نیاز به پیگیری فوری درمان و بررسی پوشش بیمه.",
+          "status": "در انتظار پیگیری",
+          "institutionNote": "پرونده آزمایشی؛ اطلاعات ساختگی."
+        }
+      ],
+      "documents": [],
+      "nextFollowUp": "2025-01-01",
+      "caseItems": [
+        {
+          "title": "بررسی پوشش بیمه",
+          "status": "نیازمند پیگیری"
+        }
+      ]
+    },
+    {
+      "caseNumber": "702",
+      "familySurname": "حسینی",
+      "headName": "مریم حسینی",
+      "headNationalId": "9876500023",
+      "headBirthDate": "1368/02/09",
+      "headPhone": "09000000002",
+      "familyPhone": "09000000012",
+      "headEducation": {
+        "level": "کلاس نهم متوسطه اول",
+        "description": "کلاس نهم متوسطه اول",
+        "field": "",
+        "universityTerm": "",
+        "grades": []
+      },
+      "headJob": "خانه‌دار",
+      "insurance": {
+        "type": "بیمه سلامت",
+        "status": "نیازمند تمدید",
+        "renewalDate": ""
+      },
+      "medical": {
+        "hasCondition": false,
+        "description": "ثبت نشده؛ نیاز به تکمیل سابقه سلامت.",
+        "monthlyCost": 0
+      },
+      "housingType": "استیجاری",
+      "housingDeposit": 90000000,
+      "housingRent": 6200000,
+      "housing": {
+        "type": "استیجاری",
+        "deposit": 90000000,
+        "monthlyRent": 6200000,
+        "address": "کرج، نشانی آزمایشی"
+      },
+      "address": "کرج، نشانی آزمایشی",
+      "notes": "نمونه ساختگی برای بررسی پرونده آموزشی؛ یک عضو در معرض افت تحصیلی است.",
+      "incomeDescription": "درآمد ناپایدار؛ منبع درآمد دوم ثبت نشده است.",
+      "debt": {
+        "amount": 0,
+        "reason": ""
+      },
+      "transportationCost": 500000,
+      "utilityCost": 1100000,
+      "monthlyInstallments": 0,
+      "monthlyAid": 0,
+      "priority": "بالا",
+      "members": [
+        {
+          "name": "رضا حسینی",
+          "relation": "فرزند",
+          "nationalId": "9876503049",
+          "birthDate": "1389/09/04",
+          "education": {
+            "level": "پایه دهم متوسطه",
+            "description": "پایه دهم متوسطه",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "محصل"
+        },
+        {
+          "name": "نگار حسینی",
+          "relation": "فرزند",
+          "nationalId": "9876503057",
+          "birthDate": "1393/06/17",
+          "education": {
+            "level": "پایه ششم ابتدایی",
+            "description": "پایه ششم ابتدایی",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "محصل"
+        }
+      ],
+      "notesHistory": [
+        {
+          "text": "DEMO · بررسی وضعیت تحصیلی، غیبت‌های مدرسه و تمدید بیمه.",
+          "status": "باز",
+          "institutionNote": "نمونه ساختگی."
+        }
+      ],
+      "documents": [],
+      "educationSupport": {
+        "need": "پیگیری افت تحصیلی و هماهنگی با مدرسه",
+        "status": "نیازمند ارزیابی"
+      },
+      "nextFollowUp": "2024-12-20",
+      "caseItems": [
+        {
+          "title": "هماهنگی آموزشی",
+          "status": "باز"
+        }
+      ]
+    },
+    {
+      "caseNumber": "703",
+      "familySurname": "کریمی",
+      "headName": "فاطمه کریمی",
+      "headNationalId": "9876500031",
+      "headBirthDate": "1374/11/25",
+      "headPhone": "09000000003",
+      "familyPhone": "",
+      "headEducation": {
+        "level": "راهنمایی",
+        "description": "راهنمایی",
+        "field": "",
+        "universityTerm": "",
+        "grades": []
+      },
+      "headJob": "",
+      "insurance": {
+        "type": "",
+        "status": "اطلاعات ناقص"
+      },
+      "medical": {
+        "hasCondition": true,
+        "description": "نیازمند ارزیابی تخصصی؛ اطلاعات تشخیص ثبت نشده است.",
+        "monthlyCost": 0
+      },
+      "housingType": "ساکن با خانواده",
+      "housingDeposit": 0,
+      "housingRent": 0,
+      "housing": {
+        "type": "ساکن با خانواده",
+        "address": ""
+      },
+      "address": "",
+      "notes": "نمونه ساختگی با اطلاعات ناقص شغل، نشانی و بیمه؛ مناسب نمایش حالت تکمیل پرونده.",
+      "incomeDescription": "منبع درآمد مشخص نشده است.",
+      "debt": {
+        "amount": 0,
+        "reason": "ثبت نشده"
+      },
+      "transportationCost": 0,
+      "utilityCost": 0,
+      "monthlyInstallments": 0,
+      "monthlyAid": 0,
+      "priority": "فوری",
+      "members": [
+        {
+          "name": "پارسا کریمی",
+          "relation": "فرزند",
+          "nationalId": "9876503065",
+          "birthDate": "1398/01/12",
+          "education": {
+            "level": "پایه سوم ابتدایی",
+            "description": "پایه سوم ابتدایی",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "محصل"
+        }
+      ],
+      "notesHistory": [
+        {
+          "text": "DEMO · تکمیل نشانی، شغل و مشخصات بیمه لازم است.",
+          "status": "اطلاعات ناقص",
+          "institutionNote": "نمونه ساختگی."
+        }
+      ],
+      "documents": [],
+      "caseItems": [
+        {
+          "title": "تکمیل اطلاعات هویتی و شغلی",
+          "status": "ناقص"
+        }
+      ],
+      "nextFollowUp": ""
+    },
+    {
+      "caseNumber": "704",
+      "familySurname": "رضایی",
+      "headName": "حسن رضایی",
+      "headNationalId": "9876500041",
+      "headBirthDate": "1359/05/06",
+      "headPhone": "09000000004",
+      "familyPhone": "",
+      "headEducation": {
+        "level": "ابتدایی",
+        "description": "ابتدایی",
+        "field": "",
+        "universityTerm": "",
+        "grades": []
+      },
+      "headJob": "کارگر ساختمانی",
+      "insurance": {
+        "type": "تأمین اجتماعی",
+        "status": "فعال"
+      },
+      "medical": {
+        "hasCondition": false,
+        "description": "ثبت نشده",
+        "monthlyCost": 0
+      },
+      "housingType": "استیجاری",
+      "housingDeposit": 120000000,
+      "housingRent": 7200000,
+      "housing": {
+        "type": "استیجاری",
+        "deposit": 120000000,
+        "monthlyRent": 7200000,
+        "address": "شیراز، نشانی آزمایشی"
+      },
+      "address": "شیراز، نشانی آزمایشی",
+      "notes": "نمونه ساختگی؛ اجاره و بدهی خانوار بالا و پیگیری مسکن مورد نیاز است.",
+      "incomeDescription": "کار روزمزد؛ درآمد ماهانه متغیر و بدون فیش حقوقی.",
+      "debt": {
+        "amount": 38000000,
+        "reason": "اجاره و قبوض معوق"
+      },
+      "transportationCost": 800000,
+      "utilityCost": 1600000,
+      "monthlyInstallments": 2200000,
+      "monthlyAid": 0,
+      "priority": "بالا",
+      "members": [
+        {
+          "name": "نیلوفر رضایی",
+          "relation": "فرزند",
+          "nationalId": "9876503073",
+          "birthDate": "1390/02/03",
+          "education": {
+            "level": "پایه نهم متوسطه اول",
+            "description": "پایه نهم متوسطه اول",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "محصل"
+        },
+        {
+          "name": "سینا رضایی",
+          "relation": "فرزند",
+          "nationalId": "9876503081",
+          "birthDate": "1400/08/22",
+          "education": {
+            "level": "پیش‌دبستانی",
+            "description": "پیش‌دبستانی",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "کودک"
+        }
+      ],
+      "notesHistory": [
+        {
+          "text": "DEMO · ارزیابی توان پرداخت اجاره و معرفی حمایت مسکن.",
+          "status": "در حال پیگیری",
+          "institutionNote": "نمونه ساختگی."
+        }
+      ],
+      "documents": [],
+      "caseItems": [
+        {
+          "title": "بررسی کمک مسکن",
+          "status": "نیازمند تصمیم"
+        }
+      ],
+      "nextFollowUp": "2025-02-14"
+    },
+    {
+      "caseNumber": "705",
+      "familySurname": "نوری",
+      "headName": "سمیه نوری",
+      "headNationalId": "9876500058",
+      "headBirthDate": "1371/07/18",
+      "headPhone": "09000000005",
+      "familyPhone": "",
+      "headEducation": {
+        "level": "دیپلم",
+        "description": "دیپلم",
+        "field": "",
+        "universityTerm": "",
+        "grades": []
+      },
+      "headJob": "آرایشگر",
+      "insurance": {
+        "type": "بیمه سلامت",
+        "status": "نیازمند بررسی مدارک"
+      },
+      "medical": {
+        "hasCondition": false,
+        "description": "اطلاعات سلامت هنوز ثبت نشده است.",
+        "monthlyCost": 0
+      },
+      "housingType": "استیجاری",
+      "housingDeposit": 60000000,
+      "housingRent": 4800000,
+      "housing": {
+        "type": "استیجاری",
+        "deposit": 60000000,
+        "monthlyRent": 4800000,
+        "address": "تبریز، نشانی آزمایشی"
+      },
+      "address": "تبریز، نشانی آزمایشی",
+      "notes": "نمونه ساختگی؛ تکمیل مدارک شغلی، بیمه و ثبت اعضای خانواده لازم است.",
+      "incomeDescription": "درآمد مستقل از خدمات خانگی؛ مدرک درآمد ثبت نشده است.",
+      "debt": {
+        "amount": 12000000,
+        "reason": "هزینه درمان و اجاره"
+      },
+      "transportationCost": 350000,
+      "utilityCost": 900000,
+      "monthlyInstallments": 500000,
+      "monthlyAid": 0,
+      "priority": "متوسط",
+      "members": [
+        {
+          "name": "امیر نوری",
+          "relation": "فرزند",
+          "nationalId": "9876503091",
+          "birthDate": "1395/12/05",
+          "education": {
+            "level": "پایه چهارم ابتدایی",
+            "description": "پایه چهارم ابتدایی",
+            "field": "",
+            "universityTerm": "",
+            "grades": []
+          },
+          "job": "محصل"
+        }
+      ],
+      "notesHistory": [
+        {
+          "text": "DEMO · تکمیل مدارک درآمد و بیمه و بررسی نیازهای درمانی.",
+          "status": "باز",
+          "institutionNote": "نمونه ساختگی."
+        }
+      ],
+      "documents": [],
+      "caseItems": [
+        {
+          "title": "بررسی مدارک بیمه و درآمد",
+          "status": "ناقص"
+        }
+      ],
+      "nextFollowUp": ""
+    }
+  ]
+}

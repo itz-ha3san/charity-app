@@ -123,3 +123,21 @@ html[data-theme="dark"] .ui-family-missing-chip {
   color: #f0c793;
   border-color: color-mix(in srgb, #d5803b 45%, transparent);
 }
+/* One canonical progress summary; actionable empty fields live in the detail panel. */
+.ui-family-progress { padding: 14px 16px; }
+.ui-family-progress-top { gap: 12px; }
+.ui-family-progress-copy { min-width: 0; }
+.ui-family-progress-kicker { color: var(--blue-dark); font-size: 10px; font-weight: 800; }
+.ui-family-progress h3 { margin: 1px 0 2px; font-size: 14px; }
+.ui-family-progress-copy p { font-size: 11px; }
+.ui-family-progress-link { margin-top: 6px; padding: 0; border: 0; background: transparent; color: var(--blue-dark); font: inherit; font-size: 11px; font-weight: 800; text-align: start; cursor: pointer; }
+.ui-family-progress-link:hover { text-decoration: underline; }
+.ui-family-progress-done { display: inline-flex; margin-top: 6px; color: var(--green); font-size: 11px; font-weight: 800; }
+.ui-family-progress .ui-progress { margin-top: 10px; }
+.ui-family-progress .ui-progress-head { display: none; }
+.ui-family-progress .ui-progress-track { height: 5px; }
+.ui-family-progress .ui-complete-score { width: 50px; height: 50px; font-size: 11px; }
+@media (max-width: 520px) {
+  .ui-family-progress { padding: 11px 12px; }
+  .ui-family-progress .ui-complete-score { width: 44px; height: 44px; }
+}

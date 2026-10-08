@@ -23,6 +23,12 @@
     if (themeColor) {
       themeColor.content = preference === "dark" ? "#101722" : "#f5f7fb";
     }
+    const logoSrc = preference === "dark"
+      ? "/brand/charity-logo-dark.png"
+      : "/brand/charity-logo.png";
+    document.querySelectorAll("img[data-brand-logo]").forEach((logo) => {
+      if (new URL(logo.src, location.href).pathname !== logoSrc) logo.src = logoSrc;
+    });
   };
 
   const icons = {
