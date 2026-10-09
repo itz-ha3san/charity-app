@@ -452,3 +452,62 @@ html[data-theme="dark"] .auth-privacy {
   border-color: #31543f;
   color: #9bd5b2;
 }
+/* Login polish: contained controls, inline validation, and a calmer mobile layout */
+.auth-layout-v2 {
+  grid-template-columns: minmax(330px, .88fr) minmax(0, 1.12fr);
+  align-items: center;
+  min-height: 0;
+}
+.auth-card-v2 {
+  width: 100%;
+  min-width: 0;
+  padding: clamp(28px, 3.6vw, 44px);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.auth-card-head { margin-bottom: 26px; }
+.auth-card-head h2 { letter-spacing: -.35px; }
+.auth-field { min-width: 0; margin-bottom: 17px; }
+.auth-field .input-shell {
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.auth-field .input-shell input {
+  width: 0;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
+  padding: 10px 46px 10px 72px;
+  color: var(--text);
+}
+.auth-field .input-shell input::placeholder { color: var(--muted); opacity: .78; }
+.auth-field #loginUsername { direction: rtl; text-align: right; }
+.auth-field > .inline-error {
+  width: 100%;
+  margin: 6px 0 0;
+  padding-inline: 3px;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+.auth-field .field-invalid { border-color: var(--red); }
+.auth-card-v2 .message:empty { display: none; }
+.auth-card-v2 .message:not(:empty) { margin-top: 12px; }
+.auth-privacy { margin-top: 17px; }
+
+@media (max-width: 850px) {
+  .auth-layout-v2 { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .auth-card-v2 { width: min(100%, 540px); margin-inline: auto; }
+  .auth-visual { width: 100%; min-height: 340px; padding: 30px; }
+}
+@media (max-width: 520px) {
+  .auth-card-v2 { padding: 24px 20px; }
+  .auth-card-head { margin-bottom: 22px; }
+  .auth-card-head h2 { font-size: 27px; }
+  .auth-field { margin-bottom: 14px; }
+  .auth-visual { min-height: 0; padding: 24px; }
+}

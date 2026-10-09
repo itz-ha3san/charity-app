@@ -38,19 +38,22 @@ const strongPassword = z
   .regex(/[A-Z]/, "PASSWORD_UPPERCASE_REQUIRED")
   .regex(/\d/, "PASSWORD_DIGIT_REQUIRED");
 const uuid = z.string().uuid(),
-  roles = ["admin", "caseworker", "accountant", "viewer"] as const,
   positions = [
-    "ceo",
-    "supervision_deputy",
-    "finance_deputy",
-    "finance_officer",
-    "health_officer",
-    "education_officer",
-    "health_deputy",
-    "education_deputy",
     "liaison",
-    "viewer",
+    "education_deputy",
+    "supervision_deputy",
+    "health_deputy",
+    "finance_deputy",
+    "ceo",
   ] as const,
+  permissionGroupByPosition = {
+    liaison: "caseworker",
+    education_deputy: "caseworker",
+    supervision_deputy: "caseworker",
+    health_deputy: "caseworker",
+    finance_deputy: "accountant",
+    ceo: "admin",
+  } as const,
   noteInput = z.object({
     text: z.string().trim().min(1).max(5000),
     status: z.string().trim().max(100).default(""),
@@ -69,7 +72,7 @@ const uuid = z.string().uuid(),
       "image/png",
       "image/webp",
     ]),
-    category: z.enum(["شناسایی", "درمانی", "مالی", "مسکن", "سایر"]),
+    category: z.enum(["شناسایی", "درمانی", "مالی", "مسکن", "آموزشی", "سایر"]),
     description: z.string().max(1000).default(""),
     expiresAt: z.string().date().nullable().optional(),
     sensitive: z.boolean().default(false),
@@ -80,9 +83,10 @@ const uuid = z.string().uuid(),
   });
 async function familyAccess(
   id: string,
-  actor: { id: string; role: string },
+  actor: { id: string; role: string; position?: string },
   reply: FastifyReply,
   write = false,
+  financeDeputyNotes = false,
 ) {
   const q = await pool.query(
     "SELECT id,case_number,archived,assigned_to FROM families WHERE id=$1",
@@ -94,7 +98,9 @@ async function familyAccess(
   }
   if (
     !(write
-      ? await canWorkFamily(actor as any, id)
+      ? (await canWorkFamily(actor as any, id)) ||
+        (financeDeputyNotes && actor.position === "finance_deputy" &&
+          (await canViewFamily(actor as any, id)))
       : await canViewFamily(actor as any, id))
   ) {
     reply.code(403).send({ error: "FAMILY_SCOPE_FORBIDDEN" });
@@ -144,6 +150,8 @@ const userRefColumns: [string, string][] = [
   ["financial_cases", "approved_by"],
   ["financial_cases", "cancelled_by"],
   ["financial_cases", "created_by"],
+  ["liaison_messages", "sender_id"],
+  ["liaison_message_recipients", "recipient_id"],
   ["financial_cases", "rejected_by"],
   ["financial_payments", "created_by"],
   ["fund_budgets", "created_by"],
@@ -192,6 +200,9 @@ async function logPasswordIfEnabled(
     [userId, password, actorId],
   );
 }
+const canDelegateFollowUp = (actor: { id: string; role: string; position?: string }) =>
+  actor.role === "admin" ||
+  ["ceo", "supervision_deputy", "health_deputy", "education_deputy", "finance_deputy"].includes(actor.position ?? "");
 async function validAssignee(id: string | null | undefined) {
   if (!id) return null;
   const q = await pool.query(
@@ -204,15 +215,19 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
   app.addHook("preHandler", requireAuth);
   app.post(
     "/families/:id/notes",
-    { preHandler: allow("admin", "caseworker") },
+    { preHandler: allow("admin", "caseworker", "accountant") },
     async (req, reply) => {
       const familyId = uuid.parse((req.params as { id: string }).id),
         b = noteInput.parse(req.body),
-        f = await familyAccess(familyId, req.actor!, reply, true);
+        f = await familyAccess(familyId, req.actor!, reply, true, true);
       if (!f) return;
-      const assignee = await validAssignee(b.assigneeId);
-      if (b.assigneeId && !assignee)
+      const mayDelegate = canDelegateFollowUp(req.actor!);
+      const isLiaison = req.actor!.position === "liaison";
+      const requestedAssignee = mayDelegate ? b.assigneeId : req.actor!.id;
+      const assignee = await validAssignee(requestedAssignee);
+      if (requestedAssignee && !assignee)
         return reply.code(400).send({ error: "INVALID_ASSIGNEE" });
+      const followUpStatus = isLiaison ? "باز" : b.followUpStatus;
       const id = await tx(async (c) => {
         const q = await c.query(
           `INSERT INTO notes(family_id,body,status,institution_note,follow_up_status,next_follow_up_at,assignee_id,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
@@ -221,15 +236,11 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
             b.text,
             b.status,
             b.institutionNote,
-            b.followUpStatus,
+            followUpStatus,
             b.nextFollowUpAt ?? null,
             assignee,
             req.actor!.id,
           ],
-        );
-        await c.query(
-          "UPDATE families SET assigned_to=COALESCE($2,assigned_to),updated_at=now() WHERE id=$1",
-          [familyId, assignee],
         );
         await c.query(
           "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details) VALUES($1,'note.create','family',$2,$3)",
@@ -239,7 +250,7 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
             {
               caseNumber: f.case_number,
               noteId: q.rows[0].id,
-              status: b.followUpStatus,
+              status: followUpStatus,
               nextFollowUpAt: b.nextFollowUpAt,
               assigneeId: assignee,
             },
@@ -252,7 +263,7 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
   );
   app.patch(
     "/notes/:noteId",
-    { preHandler: allow("admin", "caseworker") },
+    { preHandler: allow("admin", "caseworker", "accountant") },
     async (req, reply) => {
       const noteId = uuid.parse((req.params as { noteId: string }).noteId),
         b = noteInput.partial().parse(req.body),
@@ -261,14 +272,26 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
           [noteId],
         );
       if (!n.rowCount) return reply.code(404).send({ error: "NOTE_NOT_FOUND" });
-      if (n.rows[0].archived)
+      const note = n.rows[0];
+      const family = await familyAccess(note.family_id, req.actor!, reply, true, true);
+      if (!family) return;
+      if (note.archived)
         return reply.code(409).send({ error: "FAMILY_ARCHIVED" });
-      const assignee =
-        b.assigneeId === undefined
-          ? n.rows[0].assignee_id
-          : await validAssignee(b.assigneeId);
-      if (b.assigneeId && !assignee)
+      const mayDelegate = canDelegateFollowUp(req.actor!);
+      if (!mayDelegate && note.created_by !== req.actor!.id && note.assignee_id !== req.actor!.id)
+        return reply.code(403).send({ error: "NOTE_SCOPE_FORBIDDEN" });
+      if (req.actor!.position === "liaison" && note.created_by !== req.actor!.id)
+        return reply.code(403).send({ error: "NOTE_SCOPE_FORBIDDEN" });
+      const assignee = mayDelegate
+        ? b.assigneeId === undefined
+          ? note.assignee_id
+          : await validAssignee(b.assigneeId)
+        : note.assignee_id;
+      if (mayDelegate && b.assigneeId && !assignee)
         return reply.code(400).send({ error: "INVALID_ASSIGNEE" });
+      const followUpStatus = req.actor!.position === "liaison"
+        ? null
+        : b.followUpStatus ?? null;
       await tx(async (c) => {
         await c.query(
           `UPDATE notes SET body=COALESCE($2,body),status=COALESCE($3,status),institution_note=COALESCE($4,institution_note),follow_up_status=COALESCE($5,follow_up_status),next_follow_up_at=CASE WHEN $6::boolean THEN $7::timestamptz ELSE next_follow_up_at END,assignee_id=CASE WHEN $8::boolean THEN $9::uuid ELSE assignee_id END,updated_at=now() WHERE id=$1`,
@@ -277,10 +300,10 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
             b.text ?? null,
             b.status ?? null,
             b.institutionNote ?? null,
-            b.followUpStatus ?? null,
+            followUpStatus,
             b.nextFollowUpAt !== undefined,
             b.nextFollowUpAt ?? null,
-            b.assigneeId !== undefined,
+            mayDelegate && b.assigneeId !== undefined,
             assignee,
           ],
         );
@@ -301,8 +324,33 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
     },
   );
   app.get("/follow-ups/overdue", async (req) => {
-    const p = req.actor!.role === "caseworker" ? [req.actor!.id] : [],
-      filter = p.length ? "AND n.assignee_id=$1" : "";
+    const actor = req.actor!,
+      p: unknown[] = [];
+    let filter = "";
+    if (actor.position === "liaison") {
+      p.push(actor.id);
+      filter = `AND (f.assigned_to=$1
+        OR EXISTS(SELECT 1 FROM family_supervisor_assignments fa
+          JOIN supervisors s ON s.id=fa.supervisor_id
+          WHERE fa.family_id=f.id AND fa.ends_at IS NULL AND s.active
+            AND s.liaison_id=$1)
+        OR (f.created_by=$1 AND NOT EXISTS(
+          SELECT 1 FROM family_supervisor_assignments fa
+          WHERE fa.family_id=f.id AND fa.ends_at IS NULL)))`;
+    } else if (
+      ["health_officer", "education_officer"].includes(actor.position)
+    ) {
+      p.push(actor.id, actor.position === "health_officer" ? "health" : "education");
+      filter = `AND EXISTS(SELECT 1 FROM service_referrals sr
+        WHERE sr.family_id=f.id AND sr.assigned_to=$1 AND sr.domain=$2
+          AND sr.status IN ('open','in_progress'))`;
+    } else if (
+      !globalFamilyAccess(actor) &&
+      !financeAccess(actor) &&
+      !(actor.role === "viewer" && actor.position === "viewer")
+    ) {
+      filter = "AND false";
+    }
     const q = await pool.query(
       `SELECT n.id AS "noteId",n.family_id AS "familyId",f.case_number AS "caseNumber",f.head_name AS "headName",n.body AS text,n.follow_up_status AS status,n.next_follow_up_at AS "nextFollowUpAt",u.display_name AS "assigneeName" FROM notes n JOIN families f ON f.id=n.family_id LEFT JOIN users u ON u.id=n.assignee_id WHERE f.archived=false AND n.next_follow_up_at<now() AND n.follow_up_status NOT IN ('انجام شد','لغو شد') ${filter} ORDER BY n.next_follow_up_at LIMIT 200`,
       p,
@@ -531,13 +579,13 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
   );
   app.get("/assignees", async () => {
     const q = await pool.query(
-      "SELECT id,display_name AS name,role,position FROM users WHERE active AND role IN ('admin','caseworker') ORDER BY display_name",
+      "SELECT id,display_name AS name,position FROM users WHERE active AND role IN ('admin','caseworker') ORDER BY display_name",
     );
     return { users: q.rows };
   });
   app.get("/users", { preHandler: allow("admin") }, async () => {
     const q = await pool.query(
-      `SELECT u.id,u.username,u.display_name AS "displayName",u.role,u.position,u.active,u.created_at AS "createdAt",count(s.id) FILTER(WHERE s.expires_at>now())::int AS "activeSessions" FROM users u LEFT JOIN sessions s ON s.user_id=u.id GROUP BY u.id ORDER BY u.created_at`,
+      `SELECT u.id,u.username,u.display_name AS "displayName",u.position,u.active,u.created_at AS "createdAt",count(s.id) FILTER(WHERE s.expires_at>now())::int AS "activeSessions" FROM users u LEFT JOIN sessions s ON s.user_id=u.id GROUP BY u.id ORDER BY u.created_at`,
     );
     return { users: q.rows };
   });
@@ -547,8 +595,7 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
         username: z.string().trim().min(3).max(64),
         displayName: z.string().trim().min(2).max(100),
         password: strongPassword,
-        role: z.enum(roles),
-        position: z.enum(positions).optional(),
+        position: z.enum(positions),
       })
       .safeParse(req.body);
     if (!parsed.success)
@@ -556,15 +603,7 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
         .code(400)
         .send({ error: "VALIDATION_ERROR", issues: parsed.error.issues });
     const b = parsed.data,
-      position =
-        b.position ??
-        (b.role === "admin"
-          ? "ceo"
-          : b.role === "accountant"
-            ? "finance_officer"
-            : b.role === "caseworker"
-              ? "liaison"
-              : "viewer"),
+      permissionGroup = permissionGroupByPosition[b.position],
       dupe = await pool.query("SELECT 1 FROM users WHERE username=$1", [
         b.username.toLowerCase(),
       ]);
@@ -582,8 +621,8 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
           b.username.toLowerCase(),
           b.displayName,
           await hashPassword(b.password),
-          b.role,
-          position,
+          permissionGroup,
+          b.position,
         ],
       );
       await logPasswordIfEnabled(
@@ -596,11 +635,7 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
     });
     await pool.query(
       "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details) VALUES($1,'user.create','user',$2,$3)",
-      [
-        req.actor!.id,
-        q.rows[0].id,
-        { username: b.username, role: b.role, position },
-      ],
+      [req.actor!.id, q.rows[0].id, { username: b.username, position: b.position }],
     );
     return reply.code(201).send({ userId: q.rows[0].id });
   });
@@ -612,23 +647,26 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
         b = z
           .object({
             displayName: z.string().trim().min(2).max(100).optional(),
-            role: z.enum(roles).optional(),
             position: z.enum(positions).optional(),
             active: z.boolean().optional(),
           })
           .refine((x) => Object.keys(x).length > 0)
-          .parse(req.body);
-      if (
-        id === req.actor!.id &&
-        (b.active === false || (b.role && b.role !== "admin"))
-      )
-        return reply.code(409).send({ error: "CANNOT_REMOVE_OWN_ADMIN" });
-      const current = await pool.query("SELECT * FROM users WHERE id=$1", [id]);
+          .parse(req.body),
+        current = await pool.query("SELECT * FROM users WHERE id=$1", [id]);
       if (!current.rowCount)
         return reply.code(404).send({ error: "USER_NOT_FOUND" });
+      const nextPosition = b.position ?? current.rows[0].position,
+        nextPermissionGroup = b.position
+          ? permissionGroupByPosition[b.position]
+          : current.rows[0].role;
+      if (
+        id === req.actor!.id &&
+        (b.active === false || nextPermissionGroup !== "admin")
+      )
+        return reply.code(409).send({ error: "CANNOT_REMOVE_OWN_ADMIN" });
       if (
         current.rows[0].role === "admin" &&
-        (b.active === false || (b.role && b.role !== "admin"))
+        (b.active === false || nextPermissionGroup !== "admin")
       ) {
         const n = await pool.query(
           "SELECT count(*)::int n FROM users WHERE active AND role='admin'",
@@ -638,13 +676,13 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
       }
       await tx(async (c) => {
         await c.query(
-          "UPDATE users SET display_name=COALESCE($2,display_name),role=COALESCE($3,role),active=COALESCE($4,active),position=COALESCE($5,position) WHERE id=$1",
+          "UPDATE users SET display_name=COALESCE($2,display_name),role=$3,active=COALESCE($4,active),position=$5 WHERE id=$1",
           [
             id,
             b.displayName ?? null,
-            b.role ?? null,
+            nextPermissionGroup,
             b.active ?? null,
-            b.position ?? null,
+            nextPosition,
           ],
         );
         if (b.active === false) {
@@ -663,14 +701,12 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
               changedFields: Object.keys(b),
               before: {
                 displayName: current.rows[0].display_name,
-                role: current.rows[0].role,
                 position: current.rows[0].position,
                 active: current.rows[0].active,
               },
               after: {
                 displayName: b.displayName ?? current.rows[0].display_name,
-                role: b.role ?? current.rows[0].role,
-                position: b.position ?? current.rows[0].position,
+                position: nextPosition,
                 active: b.active ?? current.rows[0].active,
               },
             },
@@ -714,7 +750,7 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
       w += ` AND (u.username ILIKE $${p.length} OR u.display_name ILIKE $${p.length})`;
     }
     const users = await pool.query(
-      `SELECT u.id,u.username,u.display_name AS "displayName",u.role,u.position,u.active,u.created_at AS "createdAt",u.password_changed_at AS "passwordChangedAt",u.must_change_password AS "mustChangePassword",u.failed_login_count AS "failedLoginCount",u.locked_until AS "lockedUntil",split_part(u.password_hash,'$',2) AS algo,left(u.password_hash,32) AS "hashPrefix",length(u.password_hash) AS "hashLength",count(s.id) FILTER(WHERE s.expires_at>now())::int AS "activeSessions",max(s.created_at) AS "lastSessionAt" FROM users u LEFT JOIN sessions s ON s.user_id=u.id WHERE ${w} GROUP BY u.id ORDER BY u.created_at DESC`,
+      `SELECT u.id,u.username,u.display_name AS "displayName",u.position,u.active,u.created_at AS "createdAt",u.password_changed_at AS "passwordChangedAt",u.must_change_password AS "mustChangePassword",u.failed_login_count AS "failedLoginCount",u.locked_until AS "lockedUntil",split_part(u.password_hash,'$',2) AS algo,left(u.password_hash,32) AS "hashPrefix",length(u.password_hash) AS "hashLength",count(s.id) FILTER(WHERE s.expires_at>now())::int AS "activeSessions",max(s.created_at) AS "lastSessionAt" FROM users u LEFT JOIN sessions s ON s.user_id=u.id WHERE ${w} GROUP BY u.id ORDER BY u.created_at DESC`,
       p,
     );
     let passwords: Record<

@@ -14,6 +14,7 @@ import { allow, requireAuth, requireSuperAdmin } from "../auth.js";
 import {
   canViewFamily,
   canWorkFamily,
+  canReadFullFamilyProfile,
   globalFamilyAccess,
   financeAccess,
 } from "../scope.js";
@@ -42,6 +43,7 @@ const validId = (v: string) => {
       birthDate: z.string().default(""),
       education: education.optional(),
       job: descriptiveText.default(""),
+      monthlyIncome: z.coerce.number().int().nonnegative().max(9_000_000_000_000).default(0),
     })
     .passthrough(),
   note = z
@@ -87,6 +89,103 @@ const validId = (v: string) => {
     limit: z.coerce.number().int().min(1).max(100).default(50),
     offset: z.coerce.number().int().min(0).default(0),
   });
+const liaisonEditableKeys = [
+  "caseNumber",
+  "familySurname",
+  "headName",
+  "headNationalId",
+  "headBirthDate",
+  "headPhone",
+  "headCardNumber",
+  "familyPhone",
+  "headEducation",
+  "headJob",
+  "insurance",
+  "medical",
+  "incomeDescription",
+  "debt",
+  "transportationCost",
+  "utilityCost",
+  "monthlyInstallments",
+  "monthlyAid",
+  "sponsor",
+  "nextFollowUp",
+  "housingType",
+  "housingDeposit",
+  "housingRent",
+  "housing",
+  "address",
+  "notes",
+  "priority",
+  "members",
+] as const;
+const liaisonEditableKey = z.enum(liaisonEditableKeys);
+const technicalProposalKeys = new Set([
+  "id",
+  "createdAt",
+  "updatedAt",
+  "createdBy",
+  "createdById",
+]);
+function sameProposalValue(before: unknown, after: unknown, path = ""): boolean {
+  const empty = (value: unknown) =>
+    value === null ||
+    value === undefined ||
+    (typeof value === "string" && value.trim() === "");
+  const leaf = path.split(".").pop()?.replace(/\[\d+\]/g, "") ?? "";
+  if (leaf === "hasCondition")
+    return Boolean(before) === Boolean(after);
+  const numericKeys = new Set([
+    "cost",
+    "monthlyCost",
+    "amount",
+    "deposit",
+    "rent",
+    "monthlyRent",
+    "housingDeposit",
+    "housingRent",
+    "transportationCost",
+    "utilityCost",
+    "monthlyInstallments",
+    "monthlyAid",
+    "monthlyIncome",
+  ]);
+  if (numericKeys.has(leaf)) {
+    const number = (value: unknown) =>
+      empty(value) ? 0 : Number(value);
+    const a = number(before);
+    const b = number(after);
+    if (Number.isFinite(a) && Number.isFinite(b)) return a === b;
+  }
+  if (empty(before) || empty(after)) return empty(before) && empty(after);
+  if (Array.isArray(before) || Array.isArray(after)) {
+    if (!Array.isArray(before) || !Array.isArray(after)) return false;
+    return (
+      before.length === after.length &&
+      before.every((value, index) =>
+        sameProposalValue(value, after[index], `${path}[${index}]`),
+      )
+    );
+  }
+  const isObject = (value: unknown): value is Record<string, unknown> =>
+    Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  if (isObject(before) || isObject(after)) {
+    if (!isObject(before) || !isObject(after)) return false;
+    const keys = [
+      ...new Set([...Object.keys(before), ...Object.keys(after)]),
+    ].filter((key) => !technicalProposalKeys.has(key));
+    return keys.every((key) =>
+      sameProposalValue(before[key], after[key], path ? `${path}.${key}` : key),
+    );
+  }
+  if (
+    typeof before === "string" &&
+    typeof after === "string" &&
+    /(?:date|at)$/i.test(leaf)
+  )
+    return before.slice(0, 10) === after.slice(0, 10);
+  return String(before).trim() === String(after).trim();
+}
 export async function registerFamilyRoutes(app: FastifyInstance) {
   app.addHook("preHandler", requireAuth);
   app.get("/families", async (req) => {
@@ -144,13 +243,17 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
       [id],
     );
     if (!f.rowCount) return reply.code(404).send({ error: "FAMILY_NOT_FOUND" });
-    const [m, n] = await Promise.all([
+    const [m, n, tags] = await Promise.all([
       pool.query(
-        `SELECT id,name,relation,national_id AS "nationalId",birth_date AS "birthDate",education,job FROM family_members WHERE family_id=$1 ORDER BY created_at`,
+        `SELECT id,name,relation,national_id AS "nationalId",birth_date AS "birthDate",education,job,monthly_income::text AS "monthlyIncome" FROM family_members WHERE family_id=$1 ORDER BY created_at`,
         [id],
       ),
       pool.query(
         `SELECT n.id,n.body AS text,n.status,n.institution_note AS "institutionNote",n.follow_up_status AS "followUpStatus",n.next_follow_up_at AS "nextFollowUpAt",n.assignee_id AS "assigneeId",u.display_name AS "assigneeName",n.created_at AS "createdAt",n.updated_at AS "updatedAt" FROM notes n LEFT JOIN users u ON u.id=n.assignee_id WHERE n.family_id=$1 ORDER BY n.created_at DESC`,
+        [id],
+      ),
+      pool.query(
+        `SELECT t.id,t.name,t.color FROM family_tag_assignments a JOIN family_tag_definitions t ON t.id=a.tag_id WHERE a.family_id=$1 AND t.active ORDER BY t.name`,
         [id],
       ),
     ]);
@@ -187,8 +290,10 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
       housing: pd.housing ?? {},
       members: m.rows,
       notesHistory: n.rows,
+      tags: tags.rows,
     };
-    if (!globalFamilyAccess(req.actor!)) delete detail.profileData;
+    const mayReadFullProfile = await canReadFullFamilyProfile(req.actor!, id);
+    if (!mayReadFullProfile) delete detail.profileData;
     return { family: detail };
   });
 
@@ -234,6 +339,8 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
         return reply.code(403).send({ error: "FORBIDDEN" });
       const f = family.parse(req.body);
       normalizeHousing(f);
+      if (req.actor!.position === "liaison" && f.supervisorId)
+        return reply.code(403).send({ error: "SUPERVISOR_ASSIGNMENT_MANAGER_ONLY" });
       if (f.supervisorId) {
         const supervisor = await pool.query(
           "SELECT liaison_id FROM supervisors WHERE id=$1 AND active",
@@ -287,7 +394,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
         await applySupervisor(c, req.actor!, familyId, f.supervisorId);
         for (const m of f.members)
           await c.query(
-            "INSERT INTO family_members(family_id,name,relation,national_id,birth_date,education,job) VALUES($1,$2,$3,$4,$5,$6,$7)",
+            "INSERT INTO family_members(family_id,name,relation,national_id,birth_date,education,job,monthly_income) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
             [
               familyId,
               m.name,
@@ -296,6 +403,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
               m.birthDate,
               jsonbValue(m.education),
               m.job,
+              m.monthlyIncome ?? 0,
             ],
           );
         for (const n of f.notesHistory)
@@ -336,9 +444,133 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
         !(await canWorkFamily(req.actor!, id))
       )
         return reply.code(403).send({ error: "FAMILY_SCOPE_FORBIDDEN" });
-      const f = family.omit({ notesHistory: true }).parse(req.body);
-      normalizeHousing(f);
-      if (f.supervisorId) {
+      const isLiaison = req.actor!.position === "liaison";
+      let proposedInput: Record<string, unknown>;
+      let requestedFields: string[] = [];
+      const rawBody = req.body as Record<string, unknown>;
+      if (isLiaison) {
+        if (
+          !rawBody ||
+          typeof rawBody !== "object" ||
+          !Object.prototype.hasOwnProperty.call(rawBody, "proposedData")
+        )
+          return reply.code(400).send({ error: "CHANGED_FIELDS_REQUIRED" });
+        const request = z
+          .object({
+            changedFields: z
+              .array(liaisonEditableKey)
+              .min(1)
+              .max(liaisonEditableKeys.length),
+            proposedData: z.record(z.unknown()),
+          })
+          .strict()
+          .parse(rawBody);
+        proposedInput = request.proposedData;
+        requestedFields = [...new Set(request.changedFields)];
+      } else {
+        proposedInput = rawBody;
+      }
+      const current = await pool.query(
+        "SELECT id,case_number,family_surname,head_name,head_national_id,head_birth_date,head_phone,head_card_number,family_phone,head_education,head_job,insurance,housing_type,housing_deposit,housing_rent,address,notes,priority,archived,profile_data FROM families WHERE id=$1",
+        [id],
+      );
+      if (!current.rowCount)
+        return reply.code(404).send({ error: "FAMILY_NOT_FOUND" });
+      if (current.rows[0].archived)
+        return reply.code(409).send({ error: "FAMILY_ARCHIVED" });
+      const currentMemberRows = await pool.query(
+        `SELECT name,relation,national_id AS "nationalId",birth_date AS "birthDate",education,job,monthly_income::text AS "monthlyIncome"
+         FROM family_members WHERE family_id=$1 ORDER BY created_at`,
+        [id],
+      );
+      const currentAssignment = await pool.query(
+        "SELECT supervisor_id FROM family_supervisor_assignments WHERE family_id=$1 AND ends_at IS NULL",
+        [id],
+      );
+      const row = current.rows[0];
+      const profileData =
+        row.profile_data &&
+        typeof row.profile_data === "object" &&
+        !Array.isArray(row.profile_data)
+          ? (row.profile_data as Record<string, unknown>)
+          : {};
+      const housingProfile =
+        profileData.housing &&
+        typeof profileData.housing === "object" &&
+        !Array.isArray(profileData.housing)
+          ? (profileData.housing as Record<string, unknown>)
+          : {};
+      const insurance =
+        row.insurance &&
+        typeof row.insurance === "object" &&
+        Object.keys(row.insurance).length
+          ? row.insurance
+          : profileData.insurance ?? {};
+      const currentData: Record<string, unknown> = {
+        ...profileData,
+        caseNumber: row.case_number,
+        familySurname: row.family_surname,
+        headName: row.head_name,
+        headNationalId: row.head_national_id,
+        headBirthDate: row.head_birth_date ?? "",
+        headPhone: row.head_phone,
+        headCardNumber: row.head_card_number ?? "",
+        familyPhone: row.family_phone ?? "",
+        headEducation: row.head_education ?? {},
+        headJob: row.head_job ?? "",
+        insurance,
+        medical: profileData.medical ?? {},
+        incomeDescription: profileData.incomeDescription ?? "",
+        debt: profileData.debt ?? {},
+        transportationCost: profileData.transportationCost ?? 0,
+        utilityCost: profileData.utilityCost ?? 0,
+        monthlyInstallments: profileData.monthlyInstallments ?? 0,
+        monthlyAid: profileData.monthlyAid ?? 0,
+        sponsor: profileData.sponsor ?? "",
+        nextFollowUp: profileData.nextFollowUp ?? "",
+        supervisorId: currentAssignment.rows[0]?.supervisor_id ?? null,
+        housingType: row.housing_type,
+        housingDeposit: Number(row.housing_deposit ?? 0),
+        housingRent: Number(row.housing_rent ?? 0),
+        housing: {
+          ...housingProfile,
+          type: row.housing_type,
+          deposit: Number(row.housing_deposit ?? 0),
+          rent: Number(row.housing_rent ?? 0),
+          address: row.address ?? "",
+        },
+        address: row.address ?? "",
+        notes: row.notes ?? "",
+        priority: row.priority,
+        members: currentMemberRows.rows,
+      };
+      let actualChangedFields: string[] = [];
+      let mergedInput: Record<string, unknown> = proposedInput;
+      if (isLiaison) {
+        const patch: Record<string, unknown> = {};
+        for (const key of requestedFields) {
+          if (!Object.prototype.hasOwnProperty.call(proposedInput, key)) continue;
+          if (sameProposalValue(currentData[key], proposedInput[key], key))
+            continue;
+          patch[key] = proposedInput[key];
+          actualChangedFields.push(key);
+        }
+        if (!actualChangedFields.length)
+          return reply.code(409).send({ error: "NO_CHANGES" });
+        mergedInput = { ...currentData, ...patch };
+      }
+      const f = family.omit({ notesHistory: true }).parse(mergedInput);
+      const membersChanged = !sameProposalValue(
+        currentData.members,
+        f.members,
+        "members",
+      );
+      if (!isLiaison || actualChangedFields.includes("housingType"))
+        normalizeHousing(f);
+      if (
+        f.supervisorId &&
+        (!isLiaison || actualChangedFields.includes("supervisorId"))
+      ) {
         const supervisor = await pool.query(
           "SELECT liaison_id FROM supervisors WHERE id=$1 AND active",
           [f.supervisorId],
@@ -350,17 +582,20 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
         )
           return reply.code(400).send({ error: "INVALID_SUPERVISOR" });
       }
+      if (isLiaison && actualChangedFields.includes("housingType") && f.housingType === "owned") {
+        f.housingDeposit = 0;
+        f.housingRent = 0;
+        f.housing = { ...(f.housing ?? {}), deposit: 0, rent: 0 };
+        for (const key of ["housingDeposit", "housingRent", "housing"])
+          if (!actualChangedFields.includes(key)) actualChangedFields.push(key);
+      }
+      const requestPatch: Record<string, unknown> = {};
+      if (isLiaison)
+        for (const key of actualChangedFields)
+          requestPatch[key] = (f as unknown as Record<string, unknown>)[key];
       const nids = [f.headNationalId, ...f.members.map((m) => m.nationalId)];
       if (new Set(nids).size !== nids.length)
         return reply.code(409).send({ error: "DUPLICATE_IN_FILE" });
-      const current = await pool.query(
-        "SELECT id,case_number,head_name,family_surname,head_national_id,head_phone,priority,archived FROM families WHERE id=$1",
-        [id],
-      );
-      if (!current.rowCount)
-        return reply.code(404).send({ error: "FAMILY_NOT_FOUND" });
-      if (current.rows[0].archived)
-        return reply.code(409).send({ error: "FAMILY_ARCHIVED" });
       const ex = await pool.query(
         `SELECT 'caseNumber' type,case_number value FROM families WHERE case_number=$1 AND id<>$3 UNION ALL SELECT 'nationalId',head_national_id FROM families WHERE head_national_id=ANY($2::text[]) AND id<>$3 UNION ALL SELECT 'nationalId',national_id FROM family_members WHERE national_id=ANY($2::text[]) AND family_id<>$3`,
         [f.caseNumber, nids, id],
@@ -370,25 +605,99 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
           .code(409)
           .send({ error: "DUPLICATE_VALUE", conflicts: ex.rows });
       if (req.actor!.position === "liaison") {
-        const pending = await tx(async (c) => {
-          const q = await c.query(
-            "INSERT INTO family_change_requests(family_id,requested_by,proposed_data) VALUES($1,$2,$3) RETURNING id",
-            [id, req.actor!.id, f],
-          );
-          await c.query(
-            "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details) VALUES($1,'family.change.request','family',$2,$3)",
-            [
-              req.actor!.id,
-              id,
-              {
-                caseNumber: f.caseNumber,
-                changeRequestId: q.rows[0].id,
-                status: "pending",
-              },
-            ],
-          );
-          return q.rows[0].id;
-        });
+        const requestData = {
+          // Version 3 means the request is a server-validated, explicit patch.
+          // Older v2 full-form snapshots must never be approved as field diffs.
+          version: 3,
+          changedFields: actualChangedFields,
+          patch: requestPatch,
+          snapshot: f,
+        };
+        let pending: string;
+        try {
+          pending = await tx(async (c) => {
+            // Serialize edits for this family so repeated submissions update the
+            // existing request instead of failing on the pending-request index.
+            await c.query("SELECT id FROM families WHERE id=$1 FOR UPDATE", [id]);
+            const existing = await c.query(
+              "SELECT id,proposed_data FROM family_change_requests WHERE family_id=$1 AND status='pending' LIMIT 1 FOR UPDATE",
+              [id],
+            );
+            let requestId: string;
+            if (existing.rowCount) {
+              requestId = existing.rows[0].id;
+              const previous = existing.rows[0].proposed_data as
+                | Record<string, unknown>
+                | null;
+              let storedRequestData: Record<string, unknown> = requestData;
+              if (
+                previous?.version === 3 &&
+                previous.patch &&
+                typeof previous.patch === "object" &&
+                !Array.isArray(previous.patch) &&
+                Array.isArray(previous.changedFields)
+              ) {
+                const previousPatch = {
+                  ...(previous.patch as Record<string, unknown>),
+                };
+                // If a liaison revisits a field while a request is pending,
+                // replace that proposal (or remove it when reverted to the
+                // saved value) without discarding other pending edits.
+                requestedFields.forEach((key) => delete previousPatch[key]);
+                Object.assign(previousPatch, requestPatch);
+                const untouchedPreviousFields = (
+                  previous.changedFields as string[]
+                ).filter((key) => !requestedFields.includes(key));
+                const combinedFields = [
+                  ...new Set([
+                    ...untouchedPreviousFields,
+                    ...actualChangedFields,
+                  ]),
+                ];
+                storedRequestData = {
+                  version: 3,
+                  changedFields: combinedFields,
+                  patch: previousPatch,
+                  snapshot: { ...currentData, ...previousPatch },
+                };
+              }
+              await c.query(
+                "UPDATE family_change_requests SET requested_by=$2,proposed_data=$3,updated_at=now() WHERE id=$1",
+                [requestId, req.actor!.id, storedRequestData],
+              );
+            } else {
+              const q = await c.query(
+                "INSERT INTO family_change_requests(family_id,requested_by,proposed_data) VALUES($1,$2,$3) RETURNING id",
+                [id, req.actor!.id, requestData],
+              );
+              requestId = q.rows[0].id;
+            }
+            await c.query(
+              "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details) VALUES($1,'family.change.request','family',$2,$3)",
+              [
+                req.actor!.id,
+                id,
+                {
+                  caseNumber: f.caseNumber,
+                  changeRequestId: requestId,
+                  status: "pending",
+                changedFields: actualChangedFields,
+                },
+              ],
+            );
+            return requestId;
+          });
+        } catch (error) {
+          const dbError = error as { code?: string; message?: string };
+          if (
+            dbError.code === "42P01" &&
+            dbError.message?.includes("family_change_requests")
+          )
+            return reply
+              .code(503)
+              .send({ error: "MIGRATIONS_REQUIRED" });
+          throw error;
+        }
         return reply
           .code(202)
           .send({ familyId: id, changeRequestId: pending, status: "pending" });
@@ -419,20 +728,25 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
           ],
         );
         await applySupervisor(c, req.actor!, id, f.supervisorId);
-        await c.query("DELETE FROM family_members WHERE family_id=$1", [id]);
-        for (const m of f.members)
-          await c.query(
-            "INSERT INTO family_members(family_id,name,relation,national_id,birth_date,education,job) VALUES($1,$2,$3,$4,$5,$6,$7)",
-            [
-              id,
-              m.name,
-              m.relation,
-              m.nationalId,
-              m.birthDate,
-              jsonbValue(m.education),
-              m.job,
-            ],
-          );
+        // Editing an unrelated field (for example, the case number) must
+        // never rebuild the members table from incidental form serialization.
+        if (membersChanged) {
+          await c.query("DELETE FROM family_members WHERE family_id=$1", [id]);
+          for (const m of f.members)
+            await c.query(
+              "INSERT INTO family_members(family_id,name,relation,national_id,birth_date,education,job,monthly_income) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
+              [
+                id,
+                m.name,
+                m.relation,
+                m.nationalId,
+                m.birthDate,
+                jsonbValue(m.education),
+                m.job,
+                m.monthlyIncome ?? 0,
+              ],
+            );
+        }
         const before = current.rows[0],
           changedFields = [
             ["caseNumber", before.case_number, f.caseNumber],
@@ -453,7 +767,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
               caseNumber: f.caseNumber,
               changedFields,
               memberCount: f.members.length,
-              membersUpdated: true,
+              membersUpdated: membersChanged,
             },
           ],
         );
@@ -650,7 +964,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
           out.push(id);
           for (const m of f.members)
             await c.query(
-              "INSERT INTO family_members(family_id,name,relation,national_id,birth_date,education,job) VALUES($1,$2,$3,$4,$5,$6,$7)",
+              "INSERT INTO family_members(family_id,name,relation,national_id,birth_date,education,job,monthly_income) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
               [
                 id,
                 m.name,
@@ -659,6 +973,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
                 m.birthDate,
                 jsonbValue(m.education),
                 m.job,
+                m.monthlyIncome ?? 0,
               ],
             );
           for (const n of f.notesHistory)

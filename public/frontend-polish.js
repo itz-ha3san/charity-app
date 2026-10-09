@@ -66,7 +66,7 @@
     else if(archived){/* keep dashboard useful even when alert permission is unavailable */}
   }
   const bind=()=>{
-    const actions=[['quickNewCase',()=>$('#createBtn')?.click()],['quickOverdue',()=>$('#overdueBtn')?.click()],['quickAlerts',()=>$('#alertsBtn')?.click()]];
+    const actions=[['quickNewCase',()=>$('#createBtn')?.click()],['quickOverdue',()=>typeof openOverdue==='function'?openOverdue():$('#alertsBtn')?.click()],['quickAlerts',()=>$('#alertsBtn')?.click()]];
     actions.forEach(([id,fn])=>{const b=$('#'+id);if(b&&!b.dataset.bound){b.dataset.bound='1';b.onclick=fn}});
   };
   let overviewBusy=false;
@@ -88,8 +88,8 @@
   const palette=$('#commandPalette'),input=$('#commandInput'),list=$('#commandList');
   const commands=[
     ['پرونده جدید','ثبت یک خانوار جدید',()=>$('#createBtn')?.click()],
-    ['پیگیری‌های عقب‌افتاده','مشاهده موارد موعد گذشته',()=>$('#overdueBtn')?.click()],
-    ['هشدارها','بررسی هشدارهای سامانه',()=>$('#alertsBtn')?.click()],
+    ['پیگیری‌های عقب‌افتاده','مشاهده موارد موعد گذشته',()=>typeof openOverdue==='function'?openOverdue():$('#alertsBtn')?.click()],
+    ['مرکز پیگیری','هشدارها و کارتابل‌ها',()=>$('#alertsBtn')?.click()],
     ['به‌روزرسانی پرونده‌ها','دریافت آخرین اطلاعات',()=>$('#refreshBtn')?.click()],
     ['تغییر پوسته','روشن / تاریک',()=>$('#themeToggle')?.click()]
   ];

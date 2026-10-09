@@ -190,6 +190,201 @@ test("case numbers bounded 1..999; names validate inside full family input", () 
     false,
   );
 });
+test("approving a case-number-only liaison request never rewrites family members", async () => {
+  const route = (
+    await routes("src/routes/approvals.ts", "registerApprovalRoutes")
+  ).get("post:/family-change-requests/:id/review");
+  const calls = [];
+  const snapshot = {
+    caseNumber: "2",
+    familySurname: "خانواده نمونه",
+    headName: "سرپرست نمونه",
+    headNationalId: "1000000011",
+    headPhone: "09121234567",
+    members: [
+      {
+        name: "عضو نمونه",
+        relation: "فرزند",
+        nationalId: "1234567891",
+        birthDate: "1390/01/01",
+        education: "ابتدایی",
+        job: "محصل",
+        monthlyIncome: 0,
+      },
+    ],
+  };
+  query = async (sql, params) => {
+    calls.push([sql, params]);
+    if (sql.startsWith("SELECT c.*,f.case_number,f.archived"))
+      return {
+        rows: [
+          {
+            id: F,
+            family_id: B,
+            case_number: "001",
+            archived: false,
+            status: "pending",
+            proposed_data: {
+              version: 3,
+              changedFields: ["caseNumber"],
+              patch: { caseNumber: "2" },
+              snapshot,
+            },
+          },
+        ],
+        rowCount: 1,
+      };
+    return { rows: [], rowCount: 1 };
+  };
+  const result = await route.handler(
+    {
+      actor,
+      params: { id: F },
+      body: { decision: "approve", note: "تأیید شماره پرونده" },
+    },
+    reply(),
+  );
+  assert.equal(result.status, "approved");
+  assert.ok(
+    calls.some(([sql]) => sql.startsWith("UPDATE families SET case_number=")),
+  );
+  assert.ok(
+    !calls.some(([sql]) => sql.startsWith("DELETE FROM family_members")),
+  );
+  assert.ok(
+    !calls.some(([sql]) => sql.startsWith("INSERT INTO family_members")),
+  );
+});
+test("older full-snapshot change requests cannot be approved", async () => {
+  const route = (
+    await routes("src/routes/approvals.ts", "registerApprovalRoutes")
+  ).get("post:/family-change-requests/:id/review");
+  query = async (sql) =>
+    sql.startsWith("SELECT c.*,f.case_number,f.archived")
+      ? {
+          rows: [
+            {
+              id: F,
+              family_id: B,
+              case_number: "001",
+              archived: false,
+              status: "pending",
+              proposed_data: {
+                version: 2,
+                changedFields: ["caseNumber", "members"],
+                patch: { caseNumber: "2", members: [] },
+                snapshot: {},
+              },
+            },
+          ],
+          rowCount: 1,
+        }
+      : { rows: [], rowCount: 1 };
+  const response = reply();
+  await route.handler(
+    {
+      actor,
+      params: { id: F },
+      body: { decision: "approve", note: "تأیید درخواست قدیمی" },
+    },
+    response,
+  );
+  assert.equal(response.statusCode, 409);
+  assert.equal(
+    response.body.error,
+    "LEGACY_CHANGE_REQUEST_REQUIRES_RESUBMISSION",
+  );
+});
+test("liaison case-number edits persist only the named field even when form sends a full snapshot", async () => {
+  const route = (
+    await routes("src/routes/families.ts", "registerFamilyRoutes")
+  ).get("patch:/families/:id");
+  const calls = [];
+  const member = {
+    name: "عضو نمونه",
+    relation: "فرزند",
+    nationalId: "1234567891",
+    birthDate: "1390/01/01",
+    education: "ابتدایی",
+    job: "محصل",
+    monthlyIncome: "0",
+  };
+  query = async (sql, params) => {
+    calls.push([sql, params]);
+    if (sql.startsWith("SELECT 1 FROM families f LEFT JOIN family_supervisor"))
+      return { rows: [{ "?column?": 1 }], rowCount: 1 };
+    if (sql.startsWith("SELECT id,case_number,family_surname"))
+      return {
+        rows: [
+          {
+            id: F,
+            case_number: "1",
+            family_surname: "خانواده نمونه",
+            head_name: "سرپرست نمونه",
+            head_national_id: "1000000011",
+            head_birth_date: "1360/01/01",
+            head_phone: "09121234567",
+            head_card_number: "",
+            family_phone: "",
+            head_education: "",
+            head_job: "",
+            insurance: {},
+            housing_type: "rent",
+            housing_deposit: 1000,
+            housing_rent: 500,
+            address: "",
+            notes: "",
+            priority: "متوسط",
+            archived: false,
+            profile_data: {},
+          },
+        ],
+        rowCount: 1,
+      };
+    if (sql.startsWith("SELECT name,relation,national_id"))
+      return { rows: [member], rowCount: 1 };
+    if (sql.startsWith("SELECT supervisor_id FROM family_supervisor"))
+      return { rows: [], rowCount: 0 };
+    if (sql.startsWith("SELECT 'caseNumber' type"))
+      return { rows: [], rowCount: 0 };
+    if (sql.startsWith("SELECT id FROM families WHERE id=$1 FOR UPDATE"))
+      return { rows: [{ id: F }], rowCount: 1 };
+    if (sql.startsWith("SELECT id,proposed_data FROM family_change_requests"))
+      return { rows: [], rowCount: 0 };
+    if (sql.startsWith("INSERT INTO family_change_requests"))
+      return { rows: [{ id: B }], rowCount: 1 };
+    return { rows: [], rowCount: 1 };
+  };
+  const response = reply();
+  await route.handler(
+    {
+      actor: { ...actor, role: "caseworker", position: "liaison" },
+      params: { id: F },
+      body: {
+        changedFields: ["caseNumber"],
+        proposedData: {
+          caseNumber: "2",
+          // Simulate an old/buggy form serialization that alters unrelated
+          // member data: the server must ignore it because the field was not
+          // explicitly edited.
+          members: [
+            { ...member, name: "نام خراب‌شده", nationalId: "9876543210" },
+          ],
+        },
+      },
+    },
+    response,
+  );
+  assert.equal(response.statusCode, 202);
+  assert.equal(response.body.status, "pending");
+  const insert = calls.find(([sql]) =>
+    sql.startsWith("INSERT INTO family_change_requests"),
+  );
+  assert.equal(insert[1][2].version, 3);
+  assert.deepEqual(insert[1][2].changedFields, ["caseNumber"]);
+  assert.deepEqual(insert[1][2].patch, { caseNumber: "2" });
+  assert.equal(insert[1][2].snapshot.members[0].name, member.name);
+});
 test("owned housing always zeroes deposit and rent server-side", () => {
   const f = {
     housingType: "owned",
@@ -398,4 +593,214 @@ test("family supervisor selection cannot use inactive/out-of-scope supervisor", 
       B,
     ),
   );
+});
+
+test("liaison cannot assign family supervisor or specialist referral", async () => {
+  const org = await routes("src/routes/organization.ts", "registerOrganizationRoutes");
+  const liaison = { id: A, role: "caseworker", position: "liaison" };
+  let r = reply();
+  await org.get("post:/families/:id/supervisor").handler(
+    { actor: liaison, params: { id: F }, body: { supervisorId: B } },
+    r,
+  );
+  assert.equal(r.statusCode, 403);
+  query = async (sql) => sql.startsWith("SELECT 1 FROM families f LEFT JOIN")
+    ? { rows: [{ ok: 1 }], rowCount: 1 }
+    : { rows: [], rowCount: 0 };
+  r = reply();
+  await org.get("post:/families/:id/referrals").handler(
+    { actor: liaison, params: { id: F }, body: {} },
+    r,
+  );
+  assert.equal(r.statusCode, 403);
+});
+
+test("liaison follow-up is always open and assigned to its author", async () => {
+  const route = (await routes("src/routes/operations.ts", "registerOperationsRoutes"))
+    .get("post:/families/:id/notes");
+  const liaison = { id: A, role: "caseworker", position: "liaison" };
+  const calls = [];
+  query = async (sql, params) => {
+    calls.push([sql, params]);
+    if (sql.startsWith("SELECT id,case_number,archived,assigned_to FROM families"))
+      return { rows: [{ id: F, case_number: "1", archived: false, assigned_to: A }], rowCount: 1 };
+    if (sql.startsWith("SELECT 1 FROM families f LEFT JOIN family_supervisor_assignments"))
+      return { rows: [{ ok: 1 }], rowCount: 1 };
+    if (sql.startsWith("SELECT id FROM users WHERE id=$1 AND active"))
+      return { rows: [{ id: A }], rowCount: 1 };
+    if (sql.startsWith("INSERT INTO notes"))
+      return { rows: [{ id: B }], rowCount: 1 };
+    return { rows: [], rowCount: 1 };
+  };
+  const r = reply();
+  const result = await route.handler({
+    actor: liaison,
+    params: { id: F },
+    body: { text: "با خانواده تماس گرفته شد", followUpStatus: "انجام شد", assigneeId: B },
+  }, r);
+  assert.equal(r.statusCode, 201);
+  assert.equal(r.body.noteId, B);
+  const insert = calls.find(([sql]) => sql.startsWith("INSERT INTO notes"));
+  assert.equal(insert[1][4], "باز");
+  assert.equal(insert[1][6], A);
+  assert.ok(!calls.some(([sql]) => sql.includes("UPDATE families SET assigned_to")));
+});
+
+test("liaison cannot edit another staff member's follow-up", async () => {
+  const route = (await routes("src/routes/operations.ts", "registerOperationsRoutes"))
+    .get("patch:/notes/:noteId");
+  const liaison = { id: A, role: "caseworker", position: "liaison" };
+  let updates = 0;
+  query = async (sql) => {
+    if (sql.startsWith("SELECT n.*,f.archived,f.case_number"))
+      return { rows: [{ id: B, family_id: F, archived: false, case_number: "1", created_by: B, assignee_id: B }], rowCount: 1 };
+    if (sql.startsWith("SELECT id,case_number,archived,assigned_to FROM families"))
+      return { rows: [{ id: F, case_number: "1", archived: false, assigned_to: A }], rowCount: 1 };
+    if (sql.startsWith("SELECT 1 FROM families f LEFT JOIN family_supervisor_assignments"))
+      return { rows: [{ ok: 1 }], rowCount: 1 };
+    if (sql.startsWith("UPDATE notes")) updates++;
+    return { rows: [], rowCount: 1 };
+  };
+  const r = reply();
+  await route.handler({ actor: liaison, params: { noteId: B }, body: { followUpStatus: "انجام شد" } }, r);
+  assert.equal(r.statusCode, 403);
+  assert.equal(updates, 0);
+});
+
+
+test("liaison cannot assign a supervisor while creating a family", async () => {
+  const route = (await routes("src/routes/families.ts", "registerFamilyRoutes"))
+    .get("post:/families");
+  const r = reply();
+  await route.handler({
+    actor: { id: A, role: "caseworker", position: "liaison" },
+    body: {
+      caseNumber: "7",
+      familySurname: "خانواده نمونه",
+      headName: "سرپرست نمونه",
+      headNationalId: "1000000011",
+      headPhone: "09121234567",
+      supervisorId: B,
+      members: [],
+    },
+  }, r);
+  assert.equal(r.statusCode, 403);
+  assert.equal(r.body.error, "SUPERVISOR_ASSIGNMENT_MANAGER_ONLY");
+});
+
+test("deputies can delegate a follow-up to another active worker", async () => {
+  const route = (await routes("src/routes/operations.ts", "registerOperationsRoutes"))
+    .get("post:/families/:id/notes");
+  const deputy = { id: A, role: "accountant", position: "finance_deputy" };
+  const calls = [];
+  query = async (sql, params) => {
+    calls.push([sql, params]);
+    if (sql.startsWith("SELECT id,case_number,archived,assigned_to FROM families"))
+      return { rows: [{ id: F, case_number: "1", archived: false, assigned_to: null }], rowCount: 1 };
+    if (sql.startsWith("SELECT id FROM users WHERE id=$1 AND active"))
+      return { rows: [{ id: B }], rowCount: 1 };
+    if (sql.startsWith("INSERT INTO notes"))
+      return { rows: [{ id: B }], rowCount: 1 };
+    return { rows: [], rowCount: 1 };
+  };
+  const r = reply();
+  await route.handler({
+    actor: deputy,
+    params: { id: F },
+    body: { text: "تماس برای تکمیل درخواست مالی", followUpStatus: "در حال پیگیری", assigneeId: B },
+  }, r);
+  assert.equal(r.statusCode, 201);
+  const insert = calls.find(([sql]) => sql.startsWith("INSERT INTO notes"));
+  assert.equal(insert[1][4], "در حال پیگیری");
+  assert.equal(insert[1][6], B);
+});
+
+test("top quick follow-up requires family selection while family action stays preselected", () => {
+  const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+  const start = html.indexOf("async function openQuickFollowupForm()");
+  const end = html.indexOf("async function loadFinancialCases", start);
+  const topAction = html.slice(start, end);
+  assert.match(topAction, /openFamilyFollowupForm\(null\)/);
+  assert.doesNotMatch(topAction, /selectedId/);
+  assert.match(html, /if\(nb\)nb\.onclick=\(\)=>openFamilyFollowupForm\(f\)/);
+  const operations = fs.readFileSync(path.join(root, "public/operations-experience.js"), "utf8");
+  assert.doesNotMatch(operations, /function openNoteForm\(/);
+  assert.doesNotMatch(operations, /window\.openNoteForm/);
+});
+
+test("family details return active tags for the family header", async () => {
+  const route = (
+    await routes("src/routes/families.ts", "registerFamilyRoutes")
+  ).get("get:/families/:id");
+  const previousQuery = query;
+  query = async (sql) => {
+    if (sql.includes("FROM families WHERE id=$1"))
+      return {
+        rows: [
+          {
+            id: F,
+            caseNumber: "101",
+            familySurname: "نمونه",
+            headName: "سرپرست نمونه",
+            headNationalId: "1000000011",
+            headPhone: "09120000000",
+            insurance: {},
+            profileData: {},
+          },
+        ],
+        rowCount: 1,
+      };
+    if (sql.includes("FROM family_members"))
+      return { rows: [], rowCount: 0 };
+    if (sql.includes("FROM notes n"))
+      return { rows: [], rowCount: 0 };
+    if (sql.includes("FROM family_tag_assignments"))
+      return {
+        rows: [{ id: B, name: "نیازمند پیگیری", color: "orange" }],
+        rowCount: 1,
+      };
+    if (sql.includes("FROM family_supervisor_assignments"))
+      return { rows: [], rowCount: 0 };
+    return { rows: [], rowCount: 0 };
+  };
+  try {
+    const response = reply();
+    const result = await route.handler(
+      { actor, params: { id: F } },
+      response,
+    );
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(result.family.tags, [
+      { id: B, name: "نیازمند پیگیری", color: "orange" },
+    ]);
+  } finally {
+    query = previousQuery;
+  }
+});
+
+test("liaisons can create a tag and the completion link opens the profile", async () => {
+  const tagRoute = (
+    await routes("src/routes/comprehensive.ts", "registerComprehensiveRoutes")
+  ).get("post:/family-tags");
+  const previousQuery = query;
+  query = async () => ({ rows: [{ id: B }], rowCount: 1 });
+  try {
+    const response = reply();
+    await tagRoute.handler(
+      {
+        actor: { id: A, role: "caseworker", position: "liaison" },
+        body: { name: "نیاز درمانی", color: "green" },
+      },
+      response,
+    );
+    assert.equal(response.statusCode, 201);
+    assert.equal(response.body.tagId, B);
+  } finally {
+    query = previousQuery;
+  }
+  const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+  const ux = fs.readFileSync(path.join(root, "public/ux-system.js"), "utf8");
+  assert.ok(html.includes('id="comprehensiveSection" class="full-profile"'));
+  assert.ok(ux.includes("detail.querySelector('#comprehensiveSection')"));
+  assert.ok(ux.includes("section.open=true"));
 });

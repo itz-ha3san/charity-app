@@ -14,79 +14,27 @@
 
   const labels = {
     advancedSearchBtn: "جست‌وجوی پیشرفته",
-    ceoDashboardC7: "داشبورد مدیرعامل",
-    supervisionDashboardC7: "داشبورد سرپرستی",
-    financeDashboardC7: "داشبورد مالی",
-    alertsBtn: "هشدارها",
-    financialInboxBtn: "کارتابل مالی",
-    specialistInboxBtn: "کارتابل تخصصی",
-    actionInboxBtn: "کارتابل اقدامات",
-    approvalQueueBtn: "کارتابل تأییدها",
-    dashboardReportBtn: "داشبورد و گزارش‌ها",
-    overdueBtn: "پیگیری‌های عقب‌افتاده",
-    fundsBtn: "صندوق‌ها و بودجه",
-    supervisionInboxBtn: "کارتابل سرپرستی",
-    futureBtn: "حامیان و انبار",
-    opsBtn: "وضعیت سامانه",
-    migrationBtn: "مهاجرت داده",
-    usersBtn: "مدیریت کاربران",
+    familiesBtn: "خانواده‌ها",
+    alertsBtn: "مرکز پیگیری",
+    financeHubBtn: "امور مالی",
+    managementHubBtn: "مدیریت و گزارش‌ها",
   };
 
   const icons = {
     "workspaceHome": "<path d=\"M3 11.5 12 4l9 7.5\"/><path d=\"M5.5 10.5V20h13v-9.5\"/><path d=\"M9.5 20v-5h5v5\"/>",
     "advancedSearchBtn": "<circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><path d=\"m16 16 4.5 4.5\"/><path d=\"M8 10.5h5\"/>",
+    "familiesBtn": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\"/><path d=\"M8 8h8M8 12h8M8 16h5\"/>",
     "alertsBtn": "<path d=\"M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9\"/><path d=\"M10 21h4\"/>",
-    "overdueBtn": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7v5l3 2\"/><path d=\"M16.5 3.8 19 5.5\"/>",
-    "approvalQueueBtn": "<path d=\"M5 4h14v16H5z\"/><path d=\"m8 12 2.2 2.2L16 8.5\"/><path d=\"M8 7h5\"/>",
-    "financialInboxBtn": "<rect x=\"3.5\" y=\"5\" width=\"17\" height=\"14\" rx=\"2\"/><path d=\"M3.5 9h17\"/><path d=\"M7 14h3\"/>",
-    "specialistInboxBtn": "<path d=\"M12 4v16M4 12h16\"/><circle cx=\"12\" cy=\"12\" r=\"8.5\"/>",
-    "actionInboxBtn": "<path d=\"M5 5h14v14H5z\"/><path d=\"m8 12 2.5 2.5L16 9\"/>",
-    "supervisionInboxBtn": "<path d=\"M4 18V9M10 18V5M16 18v-7M20 18H3\"/><path d=\"m4 7 6-3 6 3 4-2\"/>",
-    "ceoDashboardC7": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\"/><path d=\"M8 16v-4M12 16V8M16 16v-7\"/>",
-    "supervisionDashboardC7": "<circle cx=\"12\" cy=\"8\" r=\"3\"/><path d=\"M5 20c.8-4 3.2-6 7-6s6.2 2 7 6\"/><path d=\"M18 5.5 20 7.5\"/>",
-    "financeDashboardC7": "<path d=\"M5 18V9M10 18V6M15 18v-4M20 18H3\"/><path d=\"m4 7 5-3 5 3 5-2\"/>",
-    "dashboardReportBtn": "<path d=\"M5 4h14v16H5z\"/><path d=\"M8 16v-4M12 16V8M16 16v-6\"/>",
-    "fundsBtn": "<path d=\"M4 8h16v12H4z\"/><path d=\"M6 8V6h12v2\"/><path d=\"M12 11v6\"/><path d=\"M9 14h6\"/>",
-    "futureBtn": "<path d=\"M6 5h12v14H6z\"/><path d=\"M9 8h6M9 12h6M9 16h4\"/>",
-    "usersBtn": "<circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M3.5 19c.6-3.5 2.5-5 5.5-5s4.9 1.5 5.5 5\"/><path d=\"M15 5.5a3 3 0 0 1 0 5.5M16 14c2.5.2 4 1.8 4.5 4\"/>",
-    "migrationBtn": "<path d=\"M12 16V4M8 8l4-4 4 4\"/><path d=\"M5 13v6h14v-6\"/>",
-    "opsBtn": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M8.5 12h7\"/>",
+    "financeHubBtn": "<path d=\"M4 8h16v12H4z\"/><path d=\"M6 8V6h12v2\"/><path d=\"M12 11v6\"/><path d=\"M9 14h6\"/>",
+    "managementHubBtn": "<path d=\"M4 19h16M6 16V9M12 16V5M18 16v-4\"/><path d=\"m5 7 6-3 5 3 3-2\"/>",
 };
 
-  const groups = [
-    {
-      title: "فضای کاری",
-      ids: ["alertsBtn","advancedSearchBtn", "overdueBtn"],
-    },
-    {
-      title: "کارتابل‌ها",
-      ids: [
-        "approvalQueueBtn",
-        "financialInboxBtn",
-        "specialistInboxBtn",
-        "actionInboxBtn",
-        "supervisionInboxBtn",
-      ],
-    },
-    {
-      title: "گزارش‌ها",
-      ids: [
-        "ceoDashboardC7",
-        "supervisionDashboardC7",
-        "financeDashboardC7",
-        "dashboardReportBtn",
-      ],
-    },
-    {
-      title: "مدیریت",
-      ids: [
-        "fundsBtn",
-        "futureBtn",
-        "usersBtn",
-        "migrationBtn",
-        "opsBtn",
-      ],
-    },
+  const navItems = [
+    "familiesBtn",
+    "advancedSearchBtn",
+    "alertsBtn",
+    "financeHubBtn",
+    "managementHubBtn",
   ];
 
 
@@ -122,8 +70,7 @@
     home.type = "button";
     home.className = "ui-sidebar-item workspace-home";
     home.setAttribute("aria-current", "page");
-    home.innerHTML =
-      '<span class="workspace-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${icons.workspaceHome}</svg></span><span class="workspace-nav-label">نمای امروز</span>';
+    home.innerHTML = `<span class="workspace-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${icons.workspaceHome}</svg></span><span class="workspace-nav-label">نمای امروز</span>`;
     home.onclick = () => {
       document
         .querySelector(".workspace-overview")
@@ -134,21 +81,13 @@
     nav.append(home);
     setTimeout(() => setActive(home), 80);
 
-    groups.forEach((group, index) => {
-      const buttons = group.ids.map((id) => existing.get(id)).filter(Boolean);
-      if (!buttons.length) return;
-      const section = document.createElement("section");
-      section.className = "workspace-nav-group";
-      const title = document.createElement("button");
-      title.type = "button";
-      title.className = "workspace-nav-group-title";
-      const initiallyOpen = index < 2;
-      title.setAttribute("aria-expanded", String(initiallyOpen));
-      title.innerHTML = `<span>${group.title}</span><span class="workspace-nav-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m7 9 5 5 5-5"/></svg></span>`;
-      const items = document.createElement("div");
-      items.className = "ui-sidebar-items workspace-nav-items";
-      items.hidden = !initiallyOpen;
-      buttons.forEach((button) => {
+    nav.classList.add("workspace-nav-flat");
+    const items = document.createElement("div");
+    items.className = "ui-sidebar-items workspace-nav-items";
+    navItems
+      .map((id) => existing.get(id))
+      .filter(Boolean)
+      .forEach((button) => {
         cleanLabel(button);
         button.addEventListener("click", () => {
           setActive(button);
@@ -156,15 +95,7 @@
         });
         items.append(button);
       });
-      title.onclick = () => {
-        const open = title.getAttribute("aria-expanded") === "true";
-        title.setAttribute("aria-expanded", String(!open));
-        items.hidden = open;
-      };
-      section.append(title, items);
-      nav.append(section);
-      if (index > 1) section.classList.add("workspace-nav-secondary");
-    });
+    nav.append(items);
   }
 
   function setActive(button) {
@@ -238,8 +169,21 @@
         <div>
           <div class="workspace-date">${date}</div>
           <h2>نمای امروز</h2>
+          <p>اولویت‌های امروز و پیگیری خانواده‌ها، یک‌جا</p>
         </div>
       </div>
+      <section class="workspace-notices" aria-labelledby="workspaceNoticesTitle">
+        <header class="workspace-notices-head">
+          <div><span class="workspace-card-kicker">برای شروع کار</span><h3 id="workspaceNoticesTitle">پیام‌ها و موارد مهم</h3></div>
+          <div class="workspace-notice-tools">
+            <button type="button" data-workspace-action="messagesBtn">صندوق پیام‌ها <span data-message-unread>۰</span></button>
+            <button type="button" data-workspace-action="alertsBtn">همه هشدارها</button>
+          </div>
+        </header>
+        <div class="workspace-notice-list" data-notice-list>
+          <div class="workspace-loading"><i></i><span>در حال بررسی پیام‌ها و هشدارها…</span></div>
+        </div>
+      </section>
       <div class="workspace-metrics-heading"><b>خلاصه وضعیت</b></div>
       <div class="workspace-metrics" aria-label="خلاصه وضعیت">
         <button class="workspace-metric" data-tone="blue" data-workspace-action="activeFamiliesBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></span><span class="workspace-metric-copy"><small>پرونده‌های فعال</small><strong data-metric="active">—</strong><span class="workspace-metric-caption">خانوارهای در جریان رسیدگی</span></span></button>
@@ -249,7 +193,7 @@
       </div>
       <div class="workspace-focus-grid workspace-focus-grid-single">
         <article class="workspace-focus-card">
-          <div class="workspace-card-head"><div><span class="workspace-card-kicker">اولویت‌ها</span><h3>نیازمند توجه شما</h3></div><button type="button" data-workspace-action="attentionItemsBtn">مشاهده همه</button></div>
+          <div class="workspace-card-head"><div><span class="workspace-card-kicker">پیگیری‌ها</span><h3>نیازمند اقدام</h3></div><button type="button" data-workspace-action="attentionItemsBtn">مشاهده همه</button></div>
           <div class="workspace-priority-list" data-priority-list>
             <div class="workspace-loading"><i></i><span>در حال دریافت وضعیت…</span></div>
           </div>
@@ -271,6 +215,8 @@
     if (action === "activeFamiliesBtn") return window.openActiveFamilyList?.();
     if (action === "urgentFamiliesBtn") return window.openUrgentFamilyList?.();
     if (action === "attentionItemsBtn") return window.openAttentionItems?.();
+    if (action === "messagesBtn") return openMessageInbox();
+    if (action === "overdueBtn" && typeof openOverdue === "function") return openOverdue();
     if (action === "alertsBtn" && typeof openAlerts === "function") return openAlerts("", true);
     target?.click();
   }
@@ -282,6 +228,105 @@
     });
     if (!response.ok) throw new Error(String(response.status));
     return response.json();
+  }
+
+  const severityNames = { critical: "بحرانی", urgent: "فوری", important: "مهم" };
+  const severityRank = { critical: 0, urgent: 1, important: 2 };
+  function faDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? ""
+      : new Intl.DateTimeFormat("fa-IR-u-ca-persian", { dateStyle: "medium" }).format(date);
+  }
+  function noticeCard(item, kind, expanded = false) {
+    const isMessage = kind === "message";
+    const tone = item.severity || "important";
+    const familyName = item.headName ? `${item.headName}${item.caseNumber ? ` · پرونده ${item.caseNumber}` : ""}` : "";
+    const detail = isMessage ? item.body : item.message;
+    const date = isMessage ? item.createdAt : item.dueAt || item.createdAt;
+    const action = isMessage
+      ? `<button type="button" class="workspace-notice-action" data-message-${item.acknowledgementRequired ? "ack" : "read"}="${escapeHtml(item.id)}">${item.acknowledgementRequired ? "خواندم و متوجه شدم" : "علامت‌گذاری به‌عنوان خوانده‌شده"}</button>`
+      : item.familyId
+        ? `<button type="button" class="workspace-notice-action" data-open-notice-family="${escapeHtml(item.familyId)}" data-notice-section="${item.type === "weekly_revision_requested" ? "#supervisionSection" : ""}" data-alert-key="${escapeHtml(item.key)}">بازکردن پرونده</button>`
+        : `<button type="button" class="workspace-notice-action" data-open-alert-center>مرکز هشدارها</button>`;
+    return `<article class="workspace-notice-card" data-tone="${escapeHtml(tone)}">
+      <span class="workspace-notice-mark" aria-hidden="true">${isMessage ? "✉" : "!"}</span>
+      <div class="workspace-notice-copy">
+        <div class="workspace-notice-meta"><span>${isMessage ? `پیام از ${escapeHtml(item.senderName || "مدیریت")}${item.senderPosition ? ` · ${escapeHtml(item.senderPosition)}` : ""}` : escapeHtml(item.title || "هشدار سامانه")}</span><b>${severityNames[tone] || "مهم"}</b>${date ? `<time>${faDate(date)}</time>` : ""}</div>
+        ${isMessage ? `<h4>${escapeHtml(item.title)}</h4>` : ""}
+        <p>${escapeHtml(detail || "")}</p>
+        ${familyName ? `<small class="workspace-notice-family">${escapeHtml(familyName)}</small>` : ""}
+        ${expanded ? `<div class="workspace-notice-extra">${isMessage && item.acknowledgedAt ? "این پیام را تأیید کرده‌اید." : isMessage && item.readAt ? "این پیام خوانده شده است." : ""}${!isMessage && item.dueAt ? `موعد: ${faDate(item.dueAt)}` : ""}</div>` : ""}
+      </div>
+      <div class="workspace-notice-actions">${action}${isMessage && item.familyId ? `<button type="button" class="workspace-notice-link" data-open-notice-family="${escapeHtml(item.familyId)}">مشاهده پرونده</button>` : ""}</div>
+    </article>`;
+  }
+  async function refreshNotices() {
+    const [messageResult, alertResult] = await Promise.allSettled([
+      request("/api/messages/inbox?includeRead=false"),
+      request("/api/alerts?includeRead=false"),
+    ]);
+    return {
+      messages: messageResult.status === "fulfilled" ? messageResult.value.messages || [] : [],
+      alerts: alertResult.status === "fulfilled" ? alertResult.value.alerts || [] : [],
+      unreadMessages: messageResult.status === "fulfilled" ? messageResult.value.unread || 0 : 0,
+    };
+  }
+  async function openMessageInbox() {
+    const root = document.querySelector("#modalRoot");
+    if (!root) return;
+    root.innerHTML = `<div class="modal-backdrop"><section class="modal workspace-message-modal" role="dialog" aria-modal="true"><header class="modal-head"><div><span class="eyebrow">پیام‌های دریافتی از مدیریت</span><h2>صندوق پیام‌ها</h2><p class="muted">پیام‌های مهم و مواردی که نیاز به تأیید شما دارند.</p></div><button type="button" class="close-btn" data-close aria-label="بستن">×</button></header><div class="workspace-message-inbox"><div class="panel-loading">در حال دریافت پیام‌ها…</div></div></section></div>`;
+    const close = () => { if (typeof window.closeModal === "function") window.closeModal(); else root.replaceChildren(); };
+    root.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", close));
+    root.querySelector(".modal-backdrop")?.addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) close();
+    });
+    try {
+      const [messageData, alertData] = await Promise.all([
+        request("/api/messages/inbox?includeRead=true"),
+        request("/api/alerts?includeRead=false"),
+      ]);
+      const box = root.querySelector(".workspace-message-inbox");
+      const messages = messageData.messages || [];
+      box.innerHTML = `${messages.length ? `<div class="workspace-message-count">${fa(messages.filter((message) => !message.readAt).length)} پیام خوانده‌نشده</div>${messages.map((message) => noticeCard(message, "message", true)).join("")}` : '<div class="workspace-notice-empty"><b>پیامی در صندوق شما نیست</b><span>اگر پیامی از مدیریت ارسال شود، اینجا نمایش داده می‌شود.</span></div>'}
+        ${(alertData.alerts || []).length ? `<h3 class="workspace-inbox-subhead">هشدارهای سامانه</h3>${alertData.alerts.map((alert) => noticeCard(alert, "alert", true)).join("")}` : ""}`;
+      bindNoticeActions(box, refreshNotices);
+    } catch (error) {
+      root.querySelector(".workspace-message-inbox").innerHTML = `<div class="workspace-notice-empty"><b>صندوق پیام بارگذاری نشد</b><span>${escapeHtml(error.message)}</span></div>`;
+    }
+  }
+  function bindNoticeActions(root, onChange) {
+    root.querySelectorAll("[data-message-read],[data-message-ack]").forEach((button) => {
+      button.onclick = async () => {
+        button.disabled = true;
+        try {
+          const path = button.hasAttribute("data-message-ack")
+            ? `/api/messages/${encodeURIComponent(button.dataset.messageAck)}/acknowledge`
+            : `/api/messages/${encodeURIComponent(button.dataset.messageRead)}/read`;
+          await window.api(path, { method: "POST", body: "{}" });
+          if (onChange) await onChange();
+          if (root.closest("#modalRoot")) openMessageInbox();
+        } catch (error) {
+          button.disabled = false;
+          window.toast?.(error.message);
+        }
+      };
+    });
+    root.querySelectorAll("[data-open-notice-family]").forEach((button) => {
+      button.onclick = async () => {
+        const alertKey = button.dataset.alertKey;
+        if (alertKey) {
+          try { await window.api(`/api/alerts/${encodeURIComponent(alertKey)}/read`, { method: "POST", body: "{}" }); } catch {}
+        }
+        const id = button.dataset.openNoticeFamily;
+        if (root.closest("#modalRoot")) window.closeModal?.();
+        window.openFamilyRecord?.(id);
+        const section = button.dataset.noticeSection;
+        if (section) setTimeout(() => document.querySelector(section)?.scrollIntoView({ behavior: "smooth", block: "start" }), 750);
+      };
+    });
+    root.querySelectorAll("[data-open-alert-center]").forEach((button) => button.onclick = () => window.openAlerts?.());
   }
 
   function priorityRow(tone, value, title, description, action) {
@@ -300,8 +345,13 @@
     const root = document.querySelector(".workspace-overview");
     if (!root) return;
     root.classList.add("is-loading");
-    const [dashboard, alerts, overdue, urgent] = await Promise.allSettled([
-      request("/api/dashboard"),
+    const position = window.currentActor?.position;
+    const scopedWorker = ["liaison", "health_officer", "education_officer"].includes(position);
+    const dashboardRequest = scopedWorker
+      ? request("/api/families?status=active&limit=1&offset=0").then((data) => ({ active: data.total }))
+      : request("/api/dashboard");
+    const [dashboard, alerts, overdue, urgent, messages] = await Promise.allSettled([
+      dashboardRequest,
       request("/api/alerts?includeRead=false"),
       request("/api/follow-ups/overdue"),
       request(
@@ -309,15 +359,16 @@
           encodeURIComponent("فوری") +
           "&limit=5",
       ),
+      request("/api/messages/inbox?includeRead=false"),
     ]);
     const data = dashboard.status === "fulfilled" ? dashboard.value : {};
     const alertData = alerts.status === "fulfilled" ? alerts.value : {};
+    const messageData = messages.status === "fulfilled" ? messages.value : {};
     const urgentData = urgent.status === "fulfilled" ? urgent.value : {};
     const overdueCount =
       overdue.status === "fulfilled"
         ? overdue.value.items?.length || 0
         : data.overdue || 0;
-    const urgentFamilies = urgentData.families || [];
     const values = {
       active: data.active,
       overdue: overdueCount,
@@ -328,6 +379,18 @@
       const node = root.querySelector(`[data-metric="${key}"]`);
       if (node) node.textContent = value === undefined ? "—" : fa(value);
     });
+    const directMessages = messageData.messages || [];
+    const systemAlerts = alertData.alerts || [];
+    const messageUnread = root.querySelector("[data-message-unread]");
+    if (messageUnread) messageUnread.textContent = fa(messageData.unread || 0);
+    const notices = root.querySelector("[data-notice-list]");
+    const visibleNotices = [
+      ...directMessages.slice(0, 2).map((item) => noticeCard(item, "message")),
+      ...systemAlerts.slice(0, 2).map((item) => noticeCard(item, "alert")),
+    ];
+    notices.innerHTML = visibleNotices.join("") ||
+      '<div class="workspace-notice-empty"><span class="workspace-notice-clear">✓</span><div><b>پیام یا هشدار خوانده‌نشده‌ای ندارید</b><small>اگر مدیریتی برای شما پیامی بفرستد، همین‌جا نمایش داده می‌شود.</small></div></div>';
+    bindNoticeActions(notices, loadOverview);
     const rows = [
       priorityRow(
         "red",
@@ -337,13 +400,6 @@
         "overdueBtn",
       ),
       priorityRow(
-        "orange",
-        urgentData.total ?? data.urgent,
-        "پرونده‌های با اولویت فوری",
-        "فهرست فوری‌ها در همین پنل نمایش داده می‌شود.",
-        "urgentFamiliesBtn",
-      ),
-      priorityRow(
         "blue",
         alertData.unread,
         "هشدارهای خوانده‌نشده",
@@ -351,39 +407,16 @@
         "alertsBtn",
       ),
     ].join("");
-    const urgentTotal = Number(urgentData.total ?? data.urgent ?? 0);
-    const urgentPreview = urgentFamilies.length
-      ? `<div class="workspace-urgent-preview"><div class="workspace-urgent-preview-head"><b>پرونده‌های فوری</b><span>${fa(urgentData.total || urgentFamilies.length)} مورد</span></div><div class="workspace-urgent-preview-list">${urgentFamilies
-          .map(
-            (family) => `<button type="button" class="workspace-urgent-family" data-overview-family="${escapeHtml(family.id)}">
-              <span><b>پرونده ${escapeHtml(family.caseNumber)} · ${escapeHtml(family.headName)}</b><small>${escapeHtml(family.familySurname || "نام خانوادگی ثبت نشده")} · ${escapeHtml(family.priority || "فوری")}</small></span>
-              <i aria-hidden="true">←</i>
-            </button>`,
-          )
-          .join("")}</div>${
-          Number(urgentData.total) > urgentFamilies.length
-            ? `<button type="button" class="workspace-urgent-more" data-workspace-action="urgentFamiliesBtn">مشاهدهٔ همهٔ موارد فوری (${fa(urgentData.total)})</button>`
-            : ""
-        }</div>`
-      : urgentTotal
-        ? `<div class="workspace-urgent-preview"><div class="workspace-urgent-preview-head"><b>پرونده‌های فوری</b><span>${fa(urgentTotal)} مورد</span></div><p class="workspace-urgent-unavailable">برای دیدن پرونده‌ها روی این بخش بزنید.</p><button type="button" class="workspace-urgent-more" data-workspace-action="urgentFamiliesBtn">نمایش موارد فوری</button></div>`
-        : "";
     const list = root.querySelector("[data-priority-list]");
     list.innerHTML =
-      rows + urgentPreview ||
-      '<div class="workspace-all-clear"><span>✓</span><div><b>همه‌چیز مرتب است</b><small>در حال حاضر مورد فوری ثبت نشده است.</small></div></div>';
+      rows ||
+      '<div class="workspace-all-clear"><span>✓</span><div><b>موردی برای پیگیری نیست</b><small>موارد فوری را از کارت بالای صفحه ببینید.</small></div></div>';
     list.querySelectorAll("[data-workspace-action]").forEach((button) => {
       button.onclick = () =>
         runOverviewAction(
           button.dataset.workspaceAction,
           document.querySelector(`#${button.dataset.workspaceAction}`),
         );
-    });
-    list.querySelectorAll("[data-overview-family]").forEach((button) => {
-      button.onclick = () => {
-        const id = button.dataset.overviewFamily;
-        if (id && typeof loadDetail === "function") loadDetail(id);
-      };
     });
     root.classList.remove("is-loading");
   }

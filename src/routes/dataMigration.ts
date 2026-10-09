@@ -40,6 +40,7 @@ const kind = z.enum(["liaison", "supervisor", "family", "member"]),
       birthDate: z.string().max(30).optional(),
       education: z.string().max(200).optional(),
       job: z.string().max(120).optional(),
+      monthlyIncome: z.coerce.number().int().nonnegative().max(9_000_000_000_000).optional(),
     })
     .passthrough();
 const validNid = (v: string) => {
@@ -153,6 +154,7 @@ const headers = [
   "birthDate",
   "education",
   "job",
+  "monthlyIncome",
 ];
 const examples = [
   { recordType: "liaison", username: "liaison-new", displayName: "رابط جدید" },
@@ -183,6 +185,7 @@ const examples = [
     name: "عضو نمونه",
     nationalId: "4444444428",
     relation: "فرزند",
+    monthlyIncome: 0,
   },
 ];
 export async function registerDataMigrationRoutes(app: FastifyInstance) {
@@ -555,7 +558,7 @@ export async function registerDataMigrationRoutes(app: FastifyInstance) {
               ).rows[0]?.id;
           if (!fid) throw Error("MIGRATION_FAMILY_DISAPPEARED");
           const q = await c.query(
-            "INSERT INTO family_members(family_id,name,relation,national_id,birth_date,education,job,import_batch_id)VALUES($1,$2,$3,$4,$5,$6,$7,$8)RETURNING id",
+            "INSERT INTO family_members(family_id,name,relation,national_id,birth_date,education,job,monthly_income,import_batch_id)VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)RETURNING id",
             [
               fid,
               d.name,
@@ -564,6 +567,7 @@ export async function registerDataMigrationRoutes(app: FastifyInstance) {
               d.birthDate || "",
               { description: d.education || "" },
               d.job || "",
+              d.monthlyIncome ?? 0,
               id,
             ],
           );

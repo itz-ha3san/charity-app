@@ -2,11 +2,10 @@
   const fa = (value) => new Intl.NumberFormat("fa-IR").format(Number(value) || 0);
   const pad = (value) => String(value).padStart(2, "0");
 
-  function localDateTime(days = 0, hour = 9) {
+  function localDateTime(days = 0) {
     const date = new Date();
     date.setDate(date.getDate() + days);
-    date.setHours(hour, 0, 0, 0);
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 
   function enhance(form) {
@@ -35,6 +34,20 @@
       <i>در حال ثبت پیگیری</i>
     `;
     head?.after(context);
+    const familySelect = form.elements.namedItem("familyId");
+    if (familySelect) {
+      const syncFamilyContext = () => {
+        const option = familySelect.selectedOptions?.[0];
+        const name = context.querySelector("b");
+        const number = context.querySelector("small");
+        if (name) name.textContent = option?.dataset.familyName || "ابتدا خانواده را انتخاب کنید";
+        if (number) number.textContent = option?.dataset.caseNumber
+          ? `پرونده ${option.dataset.caseNumber}`
+          : "شماره پرونده پس از انتخاب نمایش داده می‌شود";
+      };
+      familySelect.addEventListener("change", syncFamilyContext);
+      syncFamilyContext();
+    }
 
     const text = form.elements.namedItem("text");
     const textField = text?.closest(".form-field");
@@ -146,15 +159,37 @@
     if (submit) submit.textContent = "ثبت پیگیری";
 
     let dirty = false;
+    let allowClose = false;
+    const showDiscardDialog = (trigger) => {
+      if (modal.querySelector(".followup-discard-confirm")) return;
+      const overlay = document.createElement("div");
+      overlay.className = "followup-discard-confirm";
+      overlay.innerHTML = `<section class="followup-discard-card" role="alertdialog" aria-modal="true" aria-labelledby="followupDiscardTitle" aria-describedby="followupDiscardCopy"><span class="followup-discard-icon" aria-hidden="true">!</span><div><span class="eyebrow">خروج از ثبت پیگیری</span><h3 id="followupDiscardTitle">تغییرات ذخیره نشده‌اند</h3><p id="followupDiscardCopy">اگر خارج شوید، متن و اطلاعات واردشده از بین می‌رود.</p></div><div class="followup-discard-actions"><button type="button" class="secondary" data-keep-editing>ادامه ویرایش</button><button type="button" class="danger" data-discard-followup>خروج بدون ذخیره</button></div></section>`;
+      modal.append(overlay);
+      const keep = overlay.querySelector("[data-keep-editing]");
+      keep.onclick = () => { overlay.remove(); trigger?.focus(); };
+      overlay.querySelector("[data-discard-followup]").onclick = () => {
+        dirty = false;
+        overlay.remove();
+        allowClose = true;
+        modal.querySelector("[data-close]")?.click();
+        allowClose = false;
+      };
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) keep.click();
+      });
+      keep.focus();
+    };
     form.addEventListener("input", () => (dirty = true));
     form.addEventListener("change", () => (dirty = true));
     modal.querySelectorAll("[data-close]").forEach((button) => {
       button.addEventListener(
         "click",
         (event) => {
-          if (!dirty || confirm("پیگیری هنوز ثبت نشده است. فرم بسته شود؟")) return;
+          if (!dirty || allowClose) return;
           event.preventDefault();
           event.stopImmediatePropagation();
+          showDiscardDialog(button);
         },
         true,
       );

@@ -107,18 +107,22 @@
       if (!message && input.minLength && raw.length < Number(input.minLength)) message = `حداقل ${input.minLength} نویسه وارد کنید.`;
       input.classList.toggle('field-invalid', Boolean(message));
       input.setAttribute('aria-invalid', message ? 'true' : 'false');
-      let hint = input.parentElement?.querySelector(':scope > .inline-error');
+      const host = input.closest('.field, .form-field') || input.parentElement;
+      const key = input.id || input.name || 'field';
+      let hint = [...(host?.children || [])].find(node => node.classList?.contains('inline-error') && node.dataset.validationFor === key);
       if (message) {
-        if (!hint) { hint=document.createElement('small'); hint.className='inline-error'; input.parentElement?.append(hint); }
+        if (!hint) { hint=document.createElement('small'); hint.className='inline-error'; hint.dataset.validationFor=key; }
         hint.textContent = message;
+        if (hint.parentElement !== host) host?.append(hint);
       } else if (hint) hint.remove();
       return !message;
     };
     fields.forEach(input => {
-      input.addEventListener('input', () => validate(input));
-      input.addEventListener('blur', () => validate(input));
+      input.addEventListener('input', () => { if (form.dataset.validationAttempted === 'true') validate(input); });
+      input.addEventListener('blur', () => { if (form.dataset.validationAttempted === 'true') validate(input); });
     });
     form.addEventListener('submit', e => {
+      form.dataset.validationAttempted = 'true';
       const invalid = fields.filter(input => !validate(input));
       if (invalid.length) {
         e.preventDefault();

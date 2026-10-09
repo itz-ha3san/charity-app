@@ -129,7 +129,7 @@ export async function registerOrganizationRoutes(app: FastifyInstance) {
     return { supervisorId: id };
   });
   app.post("/families/:id/supervisor", async (req, reply) => {
-    if (!globalFamilyAccess(req.actor!) && req.actor!.position !== "liaison")
+    if (!globalFamilyAccess(req.actor!))
       return reply.code(403).send({ error: "FORBIDDEN" });
     const familyId = uuid.parse((req.params as { id: string }).id),
       b = z
@@ -237,7 +237,7 @@ export async function registerOrganizationRoutes(app: FastifyInstance) {
     const familyId = uuid.parse((req.params as { id: string }).id);
     if (
       !(await canViewFamily(req.actor!, familyId)) ||
-      (!globalFamilyAccess(req.actor!) && req.actor!.position !== "liaison")
+      !globalFamilyAccess(req.actor!)
     )
       return reply.code(403).send({ error: "FAMILY_SCOPE_FORBIDDEN" });
     const b = z

@@ -27,7 +27,7 @@
   const isReviewer = () => actor().role === "admin" || ["ceo", "supervision_deputy"].includes(actor().position);
   const canCreate = () => ["admin", "caseworker"].includes(actor().role);
   const isOverdue = (action) => Boolean(action.dueAt && new Date(`${action.dueAt}T23:59:59`) < new Date() && !["approved", "cancelled"].includes(action.status));
-  const dateFa = (value) => value ? new Intl.DateTimeFormat("fa-IR", { dateStyle: "medium" }).format(new Date(value)) : "بدون مهلت";
+  const dateFa = (value) => value ? new Intl.DateTimeFormat("fa-IR-u-ca-persian", { dateStyle: "medium" }).format(new Date(`${String(value).slice(0, 10)}T12:00:00`)) : "بدون مهلت";
 
   function card(action) {
     const overdue = isOverdue(action);
@@ -39,6 +39,7 @@
       canComplete ? `<button class="primary" data-action-complete="${action.id}">اعلام انجام</button>` : "",
       isReviewer() && action.status === "completed" ? `<button class="primary" data-action-review="${action.id}" data-decision="approve">تأیید نتیجه</button><button class="secondary" data-action-review="${action.id}" data-decision="revision">نیازمند اصلاح</button>` : "",
       action.status === "approved" && action.financialStatus === "none" ? `<button class="secondary" data-action-finance="${action.id}">درخواست مالی</button>` : "",
+      `<button class="action-history-button" type="button" data-action-history="${action.id}">سوابق اقدام</button>`,
     ].join("");
     return `<article class="action-card" data-action-card data-stage="${stageOf(action.status)}" data-status="${action.status}" data-assignee="${esc(action.assignedToId || "")}" data-priority="${action.priority || "medium"}" data-overdue="${overdue}">
       <div class="action-card-top"><span class="action-priority" data-priority="${action.priority || "medium"}">${priorityLabels[action.priority] || "متوسط"}</span><span class="action-domain">${domainLabels[action.domain] || "عمومی"}</span></div>
@@ -57,9 +58,13 @@
     const completed = actions.filter((a) => ["approved", "cancelled"].includes(a.status)).length;
     const overdue = actions.filter(isOverdue).length;
     const progress = actions.length ? Math.round((completed / actions.length) * 100) : 0;
+    const needsReview = actions.filter((a) => a.status === "completed").length;
+    const needsAssignment = actions.filter((a) => a.status === "proposed").length;
+    const assignedToMe = actions.filter((a) => a.assignedToId === actor().id && ["assigned", "revision_requested"].includes(a.status)).length;
     const assignees = [...new Map(actions.filter((a) => a.assignedToId).map((a) => [a.assignedToId, a.assignedToName])).entries()];
     box.className = "action-board-section";
-    box.innerHTML = `<div class="action-board-head"><div><div class="eyebrow">برنامه عملیاتی پرونده</div><h3>اقدامات</h3><p>کار بعدی هر پرونده را ساده و مرحله‌به‌مرحله جلو ببرید.</p></div>${canCreate() && !family.archived ? '<button class="primary" data-new-action>+ اقدام جدید</button>' : ""}</div>
+    box.innerHTML = `<div class="action-board-head"><div><div class="eyebrow">برنامه عملیاتی پرونده</div><h3>اقدامات و پیگیری نتیجه</h3><p>مسئول، مهلت، نتیجه و تأیید هر اقدام را در یک مسیر دنبال کنید.</p></div>${canCreate() && !family.archived ? '<button class="primary" data-new-action>＋ اقدام جدید</button>' : ""}</div>
+      <div class="action-attention-row">${isReviewer() ? `<button type="button" data-action-attention="waiting"><span class="action-attention-icon is-review">✓</span><span><b>${fa(needsReview)} نتیجه منتظر تأیید</b><small>بعد از بررسی، اقدام بسته می‌شود.</small></span><span aria-hidden="true">←</span></button><button type="button" data-action-attention="planned"><span class="action-attention-icon is-plan">＋</span><span><b>${fa(needsAssignment)} اقدام منتظر تخصیص</b><small>مسئول و مهلت را مشخص کنید.</small></span><span aria-hidden="true">←</span></button>` : `<div><span class="action-attention-icon is-doing">↗</span><span><b>${fa(assignedToMe)} اقدام واگذارشده به شما</b><small>اقدام را تکمیل و نتیجه را ثبت کنید.</small></span></div>`}<span class="action-attention-overdue">${fa(overdue)} عقب‌افتاده</span></div>
       <div class="action-progress"><div><span>پیشرفت اقدامات</span><b>${fa(progress)}٪</b></div><div class="action-progress-track"><span style="width:${progress}%"></span></div><small>${fa(completed)} از ${fa(actions.length)} اقدام بسته شده · ${fa(overdue)} عقب‌افتاده</small></div>
       <div class="action-filters"><select data-action-status aria-label="فیلتر وضعیت"><option value="all">همه وضعیت‌ها</option>${stages.map(([v,l])=>`<option value="${v}">${l}</option>`).join("")}</select><select data-action-assignee aria-label="فیلتر مسئول"><option value="all">همه مسئولان</option>${assignees.map(([id,name])=>`<option value="${esc(id)}">${esc(name)}</option>`).join("")}</select><select data-action-priority aria-label="فیلتر اولویت"><option value="all">همه اولویت‌ها</option>${Object.entries(priorityLabels).map(([v,l])=>`<option value="${v}">${l}</option>`).join("")}</select><button type="button" data-action-overdue aria-pressed="false">فقط عقب‌افتاده‌ها</button></div>
       <div class="action-mobile-tabs" role="tablist">${stages.map(([v,l],i)=>`<button type="button" data-stage-tab="${v}" aria-selected="${i===0}">${l}<b>${fa(actions.filter(a=>stageOf(a.status)===v).length)}</b></button>`).join("")}</div>
@@ -87,6 +92,12 @@
     box.querySelectorAll(".action-filters select").forEach((select) => select.onchange = () => applyFilters(box));
     const overdue = box.querySelector("[data-action-overdue]");
     overdue.onclick = () => { overdue.setAttribute("aria-pressed", String(overdue.getAttribute("aria-pressed") !== "true")); applyFilters(box); };
+    box.querySelectorAll("[data-action-attention]").forEach((button) => button.onclick = () => {
+      const value = button.dataset.actionAttention;
+      box.querySelector("[data-action-status]").value = value;
+      applyFilters(box);
+      box.querySelector(`[data-column="${value}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+    });
     const showMobileStage = (stage) => {
       box.dataset.mobileStage = stage;
       box.querySelectorAll("[data-stage-tab]").forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.stage === stage)));
@@ -98,6 +109,15 @@
     box.querySelectorAll("[data-action-complete]").forEach((b) => b.onclick = () => openComplete(currentFamily, b.dataset.actionComplete));
     box.querySelectorAll("[data-action-review]").forEach((b) => b.onclick = () => review(currentFamily, b.dataset.actionReview, b.dataset.decision));
     box.querySelectorAll("[data-action-finance]").forEach((b) => b.onclick = () => typeof window.openSourceFinancialForm === "function" && window.openSourceFinancialForm(currentFamily,"action",b.dataset.actionFinance));
+    box.querySelectorAll("[data-action-history]").forEach((b) => b.onclick = () => openHistory(currentFamily, currentData, b.dataset.actionHistory));
+  }
+
+  function openHistory(family, data, id) {
+    const action = data.actions.find((item) => item.id === id);
+    if (!action) return;
+    const events = (data.history || []).filter((item) => item.actionId === id);
+    const eventLabels = { propose: "ثبت اقدام", assign: "تخصیص مسئول", complete: "ثبت نتیجه", review: "بررسی نتیجه", cancel: "لغو اقدام" };
+    modal(`<div class="modal-head"><div><div class="eyebrow">پرونده ${esc(family.caseNumber)} · ${esc(family.headName)}</div><h2>${esc(action.title)}</h2></div><button class="close-btn" data-close>×</button></div><div class="action-history-summary"><span>وضعیت فعلی</span><b>${statusLabels[action.status] || esc(action.status)}</b><span>مسئول</span><b>${esc(action.assignedToName || "تعیین نشده")}</b><span>مهلت</span><b>${dateFa(action.dueAt)}</b></div><div class="action-history-timeline">${events.map((event) => `<article><i>${event.toStatus === "approved" ? "✓" : "•"}</i><div><b>${eventLabels[event.event] || "به‌روزرسانی اقدام"}</b><small>${esc(event.actorName || "کاربر")} · ${dateFa(event.createdAt)}</small>${event.note ? `<p>${esc(event.note)}</p>` : ""}</div></article>`).join("") || '<div class="action-column-empty">هنوز رویدادی برای این اقدام ثبت نشده است.</div>'}</div>`);
   }
 
   function modal(content) { document.querySelector("#modalRoot").innerHTML = `<div class="modal-backdrop"><div class="modal action-modal">${content}</div></div>`; document.querySelectorAll("[data-close]").forEach((b)=>b.onclick=()=>document.querySelector("#modalRoot").innerHTML=""); }
