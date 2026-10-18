@@ -1,5 +1,5 @@
 (() => {
-  const draftKey = "family-case-create-draft-v1";
+  const draftOwner = () => typeof actor !== "undefined" ? actor?.id ?? null : null;
   let activeState = null;
 
   const fa = (value) =>
@@ -567,27 +567,23 @@
   }
 
   function saveDraft(form) {
-    try {
-      localStorage.setItem(draftKey, JSON.stringify(serializeDraft(form)));
-      return true;
-    } catch {
-      return false;
-    }
+    const owner = draftOwner();
+    if (!owner || form.dataset.draftOwner !== owner || !form.isConnected) return false;
+    return window.CaseDraftStore?.save(owner, serializeDraft(form).entries) ?? false;
   }
 
   function readDraft() {
-    try {
-      const value = JSON.parse(localStorage.getItem(draftKey) || "null");
-      return value?.entries?.length ? value : null;
-    } catch {
-      return null;
-    }
+    return window.CaseDraftStore?.read(draftOwner()) ?? null;
   }
 
   function clearDraft() {
-    try {
-      localStorage.removeItem(draftKey);
-    } catch {}
+    window.CaseDraftStore?.clear(draftOwner());
+  }
+
+  function clearSession() {
+    activeState?.cancelAutosave?.();
+    activeState = null;
+    window.CaseDraftStore?.clearSession();
   }
 
   function restoreDraft(form, draft) {
@@ -696,6 +692,7 @@
   function enhanceWizard(form) {
     if (!form || form.dataset.caseWizard) return;
     form.dataset.caseWizard = "true";
+    form.dataset.draftOwner = draftOwner() ?? "";
     const modal = form.closest(".create-modal");
     if (!modal) return;
     modal.classList.add("case-wizard-modal");
@@ -861,6 +858,7 @@
     ).trim();
     activeState = {
       form,
+      cancelAutosave() { clearTimeout(autosaveTimer); dirty = false; removeEventListener("beforeunload", beforeUnload); },
       set dirty(value) {
         dirty = value;
       },
@@ -1136,7 +1134,7 @@
     });
   }
 
-  window.CaseWizard = { success, handleServerError };
+  window.CaseWizard = { success, handleServerError, clearSession };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {

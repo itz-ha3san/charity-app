@@ -35,3 +35,18 @@ test('financial limits roll over at Nowruz instead of using a fixed year',()=>{
   assert.equal(rules.periodErrors({jalaliYear:1405,jalaliMonth:2},new Date('2026-03-21T10:00:00Z')).length,1);
   assert.equal(rules.periodErrors({jalaliYear:1404,jalaliMonth:12},new Date('2026-03-21T10:00:00Z')).length,0);
 });
+
+test('renewal day counts follow Tehran midnight including year boundaries',async()=>{
+  const {daysUntilDate}=await import('../src/dates.js');
+  assert.equal(daysUntilDate('2026-10-19',new Date('2026-10-18T20:29:59Z')),1);
+  assert.equal(daysUntilDate('2026-10-19',new Date('2026-10-18T20:30:00Z')),0);
+  assert.equal(daysUntilDate('2026-10-18',new Date('2026-10-18T20:30:00Z')),-1);
+  assert.equal(daysUntilDate('2027-01-01',new Date('2026-12-31T20:30:00Z')),0);
+  assert.equal(daysUntilDate('1405/01/01',new Date('2026-03-20T20:30:00Z')),0);
+});
+test('renewal day counts reject invalid dates without unchecked date components',async()=>{
+  const {daysUntilDate}=await import('../src/dates.js');
+  assert.equal(daysUntilDate('2026-02-30'),null);
+  assert.equal(daysUntilDate('not-a-date'),null);
+  assert.equal(daysUntilDate('2026-10-19',new Date('invalid')),null);
+});

@@ -2,7 +2,6 @@ import { reportRangeShape, validateReportRange } from "../reportFilters.js";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import { z } from "zod";
 import { pool, tx } from "../db.js";
-import { config } from "../config.js";
 import {
   allow,
   hashPassword,
@@ -188,18 +187,6 @@ const userRefCascade: string[] = [
   "user_alert_states",
   "user_password_log",
 ];
-async function logPasswordIfEnabled(
-  c: { query: (t: string, p?: unknown[]) => Promise<unknown> },
-  userId: string,
-  password: string,
-  actorId: string,
-) {
-  if (!config.DEV_CAPTURE_PASSWORDS) return;
-  await c.query(
-    "INSERT INTO user_password_log(user_id,password_plain,set_by_user_id,updated_at)VALUES($1,$2,$3,now()) ON CONFLICT(user_id)DO UPDATE SET password_plain=EXCLUDED.password_plain,set_by_user_id=EXCLUDED.set_by_user_id,updated_at=now()",
-    [userId, password, actorId],
-  );
-}
 const canDelegateFollowUp = (actor: { id: string; role: string; position?: string }) =>
   actor.role === "admin" ||
   ["ceo", "supervision_deputy", "health_deputy", "education_deputy", "finance_deputy"].includes(actor.position ?? "");
@@ -474,6 +461,8 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
       if (!q.rowCount)
         return reply.code(404).send({ error: "DOCUMENT_NOT_FOUND" });
       const d = q.rows[0];
+      if (!(await canWorkFamily(req.actor!, d.family_id)))
+        return reply.code(403).send({ error: "FAMILY_SCOPE_FORBIDDEN" });
       if (d.archived) return reply.code(409).send({ error: "FAMILY_ARCHIVED" });
       if (d.sensitive && !(await canSensitive(req.actor!, d)))
         return reply.code(403).send({ error: "SENSITIVE_FILE_FORBIDDEN" });
@@ -516,6 +505,8 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
       if (!q.rowCount)
         return reply.code(404).send({ error: "DOCUMENT_NOT_FOUND" });
       const old = q.rows[0];
+      if (!(await canWorkFamily(req.actor!, old.family_id)))
+        return reply.code(403).send({ error: "FAMILY_SCOPE_FORBIDDEN" });
       if (old.archived)
         return reply.code(409).send({ error: "FAMILY_ARCHIVED" });
       if (
@@ -625,12 +616,6 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
           b.position,
         ],
       );
-      await logPasswordIfEnabled(
-        c,
-        created.rows[0].id,
-        b.password,
-        req.actor!.id,
-      );
       return created;
     });
     await pool.query(
@@ -733,9 +718,7 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
       return { user: u.rows[0], events: q.rows };
     },
   );
-  // Admin registry view. Passwords are argon2 hashes and cannot be reversed, so
-  // the hash metadata is always shown and the submitted plaintext is shown only
-  // when DEV_CAPTURE_PASSWORDS recorded it (development/test only).
+  // Never store or return plaintext passwords, even in development/test.
   app.get("/users/registry", { preHandler: requireSuperAdmin }, async (req) => {
     const q = z
         .object({
@@ -750,40 +733,20 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
       w += ` AND (u.username ILIKE $${p.length} OR u.display_name ILIKE $${p.length})`;
     }
     const users = await pool.query(
-      `SELECT u.id,u.username,u.display_name AS "displayName",u.position,u.active,u.created_at AS "createdAt",u.password_changed_at AS "passwordChangedAt",u.must_change_password AS "mustChangePassword",u.failed_login_count AS "failedLoginCount",u.locked_until AS "lockedUntil",split_part(u.password_hash,'$',2) AS algo,left(u.password_hash,32) AS "hashPrefix",length(u.password_hash) AS "hashLength",count(s.id) FILTER(WHERE s.expires_at>now())::int AS "activeSessions",max(s.created_at) AS "lastSessionAt" FROM users u LEFT JOIN sessions s ON s.user_id=u.id WHERE ${w} GROUP BY u.id ORDER BY u.created_at DESC`,
+      `SELECT u.id,u.username,u.display_name AS "displayName",u.position,u.active,u.created_at AS "createdAt",u.password_changed_at AS "passwordChangedAt",u.must_change_password AS "mustChangePassword",u.failed_login_count AS "failedLoginCount",u.locked_until AS "lockedUntil",split_part(u.password_hash,'$',2) AS algo,length(u.password_hash) AS "hashLength",count(s.id) FILTER(WHERE s.expires_at>now())::int AS "activeSessions",max(s.created_at) AS "lastSessionAt" FROM users u LEFT JOIN sessions s ON s.user_id=u.id WHERE ${w} GROUP BY u.id ORDER BY u.created_at DESC`,
       p,
     );
-    let passwords: Record<
-      string,
-      { password: string; setBy: string | null; updatedAt: string }
-    > = {};
-    try {
-      const pl = await pool.query(
-        `SELECT l.user_id AS "userId",l.password_plain AS password,l.updated_at AS "updatedAt",x.display_name AS "setBy" FROM user_password_log l LEFT JOIN users x ON x.id=l.set_by_user_id`,
-      );
-      passwords = Object.fromEntries(
-        pl.rows.map((r) => [
-          r.userId,
-          { password: r.password, setBy: r.setBy, updatedAt: r.updatedAt },
-        ]),
-      );
-    } catch {
-      passwords = {};
-    }
     const logins = await pool.query(
-        `SELECT a.actor_id AS "userId",max(a.created_at) AS "lastLoginAt" FROM audit_logs a WHERE a.action='login.success' AND a.actor_id IS NOT NULL GROUP BY a.actor_id`,
+        `SELECT a.actor_id AS "userId",max(a.created_at) AS "lastLoginAt" FROM security_events a WHERE a.event_type='login.success' AND a.actor_id IS NOT NULL GROUP BY a.actor_id`,
       ),
       lastLogin = Object.fromEntries(
         logins.rows.map((r) => [r.userId, r.lastLoginAt]),
       );
     return {
-      passwordCaptureEnabled: config.DEV_CAPTURE_PASSWORDS,
+      passwordCaptureEnabled: false,
       users: users.rows.map((u) => ({
         ...u,
         lastLoginAt: lastLogin[u.id] ?? null,
-        capturedPassword: passwords[u.id]?.password ?? null,
-        passwordCapturedAt: passwords[u.id]?.updatedAt ?? null,
-        passwordSetBy: passwords[u.id]?.setBy ?? null,
       })),
     };
   });
@@ -875,7 +838,6 @@ export async function registerOperationsRoutes(app: FastifyInstance) {
           "UPDATE users SET password_hash=$2,password_changed_at=now(),must_change_password=true WHERE id=$1",
           [id, await hashPassword(b.password)],
         );
-        await logPasswordIfEnabled(c, id, b.password, req.actor!.id);
         await c.query("DELETE FROM sessions WHERE user_id=$1", [id]);
         await c.query(
           "INSERT INTO audit_logs(actor_id,action,entity_type,entity_id,details) VALUES($1,'user.password.reset','user',$2,$3)",

@@ -7,3 +7,12 @@ dist/
 .env.production
 .env.production.*
 deploy/certs/*.pem
+
+# Database backups and packaged copies can contain personal data or credentials
+backups/
+*.dump
+*.dump.*
+*.sql.gz
+*.sql.zip
+*.enc
+*.zip

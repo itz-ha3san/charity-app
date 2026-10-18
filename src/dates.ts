@@ -35,8 +35,12 @@ export function normalizeDateToIso(value: unknown): string | null {
 export function daysUntilDate(value: unknown, today = new Date()): number | null {
   const iso = normalizeDateToIso(value);
   if (!iso) return null;
-  const [year, month, day] = iso.split("-").map(Number);
-  const due = Date.UTC(year, month - 1, day);
-  const current = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
-  return Math.ceil((due - current) / 86400000);
+  if (!Number.isFinite(today.getTime())) return null;
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tehran", calendar: "gregory", numberingSystem: "latn",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(today).map(part => [part.type, part.value]));
+  const due = Date.parse(`${iso}T00:00:00Z`);
+  const current = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+  return Math.round((due - current) / 86400000);
 }

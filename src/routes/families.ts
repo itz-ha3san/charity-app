@@ -7,6 +7,7 @@ import {
   caseNumber,
 } from "../validation.js";
 import { applySupervisor } from "../supervisors.js";
+import { restrictedFamilyDetail } from "../familyPrivacy.js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { pool, tx } from "../db.js";
@@ -293,8 +294,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
       tags: tags.rows,
     };
     const mayReadFullProfile = await canReadFullFamilyProfile(req.actor!, id);
-    if (!mayReadFullProfile) delete detail.profileData;
-    return { family: detail };
+    return { family: mayReadFullProfile ? detail : restrictedFamilyDetail(detail) };
   });
 
   app.get(
