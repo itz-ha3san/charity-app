@@ -191,3 +191,145 @@ test('payment and cancellation serialize on the same financial row',async()=>{
   const payments=(await pool.query('SELECT count(*)::int AS n FROM financial_payments WHERE financial_case_id=$1',[id])).rows[0].n;
   assert.ok((final==='پرداخت شده'&&payments===1)||(final==='لغو شده'&&payments===0));
 });
+
+
+// Specialist regression coverage: use synthetic documents and disposable databases only.
+const specialistDocument = {
+  documentType: 'medical_record', fileName: 'synthetic-specialist.pdf',
+  mimeType: 'application/pdf', contentBase64: Buffer.from('%PDF-1.4\nsynthetic-only\n%%EOF').toString('base64'),
+};
+async function specialistFixture(domain = 'health') {
+  const specialist = await createUser(domain === 'health' ? 'health_officer' : 'education_officer');
+  const familyId = await createFamily();
+  const referralId = await specialistReferral(familyId, specialist.id, domain);
+  const created = await request(specialist.cookie, {method:'POST',url:`/api/families/${familyId}/specialist-cases`,payload:{domain,referralId,summary:'پرونده تخصصی آزمایشی'}});
+  assert.equal(created.statusCode,201,created.body);
+  const caseId = created.json().specialistCaseId as string;
+  const doc = await request(specialist.cookie,{method:'POST',url:`/api/specialist-cases/${caseId}/documents`,payload:specialistDocument});
+  assert.equal(doc.statusCode,201,doc.body);
+  return {...specialist,familyId,referralId,caseId,documentId:doc.json().documentId as string,domain};
+}
+async function specialistReferral(familyId: string, assignedTo: string, domain: string) {
+  const r = await request(admin,{method:'POST',url:`/api/families/${familyId}/referrals`,payload:{domain,assignedTo,reason:'ارجاع آزمایشی'}});
+  assert.equal(r.statusCode,201,r.body);
+  return r.json().referralId as string;
+}
+async function assertSpecialistBlocked(x: Awaited<ReturnType<typeof specialistFixture>>) {
+  const requests: InjectOptions[] = [
+    {method:'GET',url:`/api/specialist-cases/${x.caseId}/documents`},
+    {method:'GET',url:`/api/specialist-documents/${x.documentId}/download`,headers:{'x-access-reason':'بررسی آزمایشی'}},
+    {method:'PATCH',url:`/api/specialist-cases/${x.caseId}`,payload:{assessment:'نباید ذخیره شود'}},
+    {method:'POST',url:`/api/specialist-cases/${x.caseId}/transition`,payload:{to:x.domain==='health'?'initial_assessment':'assessment'}},
+    {method:'POST',url:`/api/specialist-cases/${x.caseId}/documents`,payload:specialistDocument},
+  ];
+  for(const options of requests) {
+    const r=await request(x.cookie,options);
+    assert.equal(r.statusCode,403,`${options.url}: ${r.body}`);
+  }
+  const inbox=await request(x.cookie,{method:'GET',url:'/api/specialist-cases/inbox'});
+  assert.equal(inbox.statusCode,200,inbox.body);
+  assert.ok(!inbox.json().items.some((c: {id:string})=>c.id===x.caseId));
+  const row=(await pool.query('SELECT status,assessment FROM specialist_cases WHERE id=$1',[x.caseId])).rows[0];
+  assert.equal(row.status,'new_referral');assert.equal(row.assessment,'');
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM specialist_case_documents WHERE specialist_case_id=$1',[x.caseId])).rows[0].n,1);
+}
+for(const domain of ['health','education']) {
+  test(`${domain}: closing or cancelling the linked referral revokes all specialist routes, even with another active referral`,async()=>{
+    for(const status of ['cancelled','done']) {
+      const x=await specialistFixture(domain);
+      // A different active referral must not authorize the old case or its documents.
+      await specialistReferral(x.familyId,x.id,domain);
+      const close=await request(admin,{method:'PATCH',url:`/api/referrals/${x.referralId}`,payload:{status}});
+      assert.equal(close.statusCode,200,close.body);
+      assert.equal((await request(x.cookie,{method:'GET',url:`/api/families/${x.familyId}`})).statusCode,200);
+      await assertSpecialistBlocked(x);
+      const listing=await request(x.cookie,{method:'GET',url:`/api/families/${x.familyId}/specialist-cases`});
+      assert.equal(listing.statusCode,200,listing.body);
+      assert.ok(!listing.json().cases.some((c:{id:string})=>c.id===x.caseId));
+      assert.ok(!listing.json().history.some((e:{caseId:string})=>e.caseId===x.caseId));
+      // Managers retain historical read access after closure.
+      assert.equal((await request(admin,{method:'GET',url:`/api/specialist-documents/${x.documentId}/download`,headers:{'x-access-reason':'بررسی مدیریتی'}})).statusCode,200);
+    }
+  });
+}
+test('reassigning the linked referral revokes the former specialist even if the case assignment is stale',async()=>{
+  const x=await specialistFixture(),replacement=await createUser('health_officer');
+  await specialistReferral(x.familyId,x.id,'health');
+  await pool.query('UPDATE service_referrals SET assigned_to=$2 WHERE id=$1',[x.referralId,replacement.id]);
+  await assertSpecialistBlocked(x);
+  // Also cover the normal reassignment shape where both assignments are updated.
+  await pool.query('UPDATE specialist_cases SET assigned_to=$2 WHERE id=$1',[x.caseId,replacement.id]);
+  await assertSpecialistBlocked(x);
+  const listing=await request(x.cookie,{method:'GET',url:`/api/families/${x.familyId}/specialist-cases`});
+  assert.equal(listing.statusCode,200,listing.body);
+  assert.ok(!listing.json().cases.some((c:{id:string})=>c.id===x.caseId));
+  assert.ok(!listing.json().history.some((e:{caseId:string})=>e.caseId===x.caseId));
+});
+for(const domain of ['health','education']) {
+  test(`${domain}: archive blocks every specialist mutation for specialists and managers; unarchive restores valid access`,async()=>{
+    const x=await specialistFixture(domain),pendingReferral=await specialistReferral(x.familyId,x.id,domain);
+    const archived=await request(admin,{method:'POST',url:`/api/families/${x.familyId}/archive`,payload:{reason:'بایگانی آزمایشی'}});
+    assert.equal(archived.statusCode,200,archived.body);
+    const requests: InjectOptions[] = [
+      {method:'PATCH',url:`/api/specialist-cases/${x.caseId}`,payload:{assessment:'نباید ذخیره شود'}},
+      {method:'POST',url:`/api/specialist-cases/${x.caseId}/transition`,payload:{to:domain==='health'?'initial_assessment':'assessment'}},
+      {method:'POST',url:`/api/specialist-cases/${x.caseId}/documents`,payload:specialistDocument},
+      {method:'POST',url:`/api/families/${x.familyId}/specialist-cases`,payload:{domain,referralId:pendingReferral,summary:'پرونده جدید آزمایشی'}},
+    ];
+    for(const cookie of [x.cookie,admin]) for(const options of requests) {
+      const r=await request(cookie,options);
+      assert.equal(r.statusCode,409,`${options.url}: ${r.body}`);
+      assert.equal(r.json().error,'FAMILY_ARCHIVED');
+    }
+    assert.equal((await pool.query('SELECT assessment FROM specialist_cases WHERE id=$1',[x.caseId])).rows[0].assessment,'');
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM specialist_cases WHERE family_id=$1',[x.familyId])).rows[0].n,1);
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM specialist_case_documents WHERE specialist_case_id=$1',[x.caseId])).rows[0].n,1);
+    assert.equal((await request(x.cookie,{method:'GET',url:`/api/specialist-documents/${x.documentId}/download`,headers:{'x-access-reason':'بررسی آزمایشی'}})).statusCode,200);
+    const restored=await request(admin,{method:'POST',url:`/api/families/${x.familyId}/unarchive`,payload:{reason:'بازگشایی آزمایشی'}});
+    assert.equal(restored.statusCode,200,restored.body);
+    assert.equal((await request(x.cookie,{method:'PATCH',url:`/api/specialist-cases/${x.caseId}`,payload:{assessment:'ارزیابی معتبر'}})).statusCode,200);
+  });
+}
+for(const resource of ['archive','referral']) {
+  test(`specialist mutation rechecks ${resource} after waiting for a concurrent transaction`,async()=>{
+    const x=await specialistFixture(),c=await pool.connect();
+    let pending: ReturnType<typeof request>|undefined;
+    try {
+      await c.query('BEGIN');
+      if(resource==='archive') await c.query('UPDATE families SET archived=true WHERE id=$1',[x.familyId]);
+      else await c.query("UPDATE service_referrals SET status='cancelled' WHERE id=$1",[x.referralId]);
+      pending=request(x.cookie,{method:'PATCH',url:`/api/specialist-cases/${x.caseId}`,payload:{assessment:'نباید ذخیره شود'}});
+      let waiting=false;
+      for(let i=0;i<100;i++) {
+        const q=await pool.query("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE '%specialist_cases%' AND pid<>pg_backend_pid()");
+        if(q.rowCount) {waiting=true;break;}
+        await new Promise(resolve=>setTimeout(resolve,10));
+      }
+      assert.equal(waiting,true,'mutation did not lock the authorization rows');
+      await c.query('COMMIT');
+      const r=await pending;
+      assert.equal(r.statusCode,resource==='archive'?409:403,r.body);
+      assert.equal((await pool.query('SELECT assessment FROM specialist_cases WHERE id=$1',[x.caseId])).rows[0].assessment,'');
+    } finally {await c.query('ROLLBACK');c.release();if(pending) await pending;}
+  });
+}
+
+for(const domain of ['health','education']) {
+  test(`${domain}: active specialist workflow still completes and closing its referral removes specialist read access`,async()=>{
+    const x=await specialistFixture(domain);
+    assert.equal((await request(x.cookie,{method:'GET',url:`/api/specialist-cases/${x.caseId}/documents`})).statusCode,200);
+    const download=await request(x.cookie,{method:'GET',url:`/api/specialist-documents/${x.documentId}/download`,headers:{'x-access-reason':'بررسی آزمایشی'}});
+    assert.equal(download.statusCode,200,download.body);
+    assert.equal(download.rawPayload.toString('base64'),specialistDocument.contentBase64);
+    const patch=await request(x.cookie,{method:'PATCH',url:`/api/specialist-cases/${x.caseId}`,payload:{assessment:'ارزیابی معتبر',result:'نتیجه آزمایشی'}});
+    assert.equal(patch.statusCode,200,patch.body);
+    const flow=domain==='health'?['initial_assessment','appointment_scheduled','in_treatment','completed']:['assessment','support_plan','follow_up','completed'];
+    for(const to of flow) {
+      const r=await request(x.cookie,{method:'POST',url:`/api/specialist-cases/${x.caseId}/transition`,payload:{to}});
+      assert.equal(r.statusCode,200,r.body);
+    }
+    assert.equal((await pool.query('SELECT status FROM service_referrals WHERE id=$1',[x.referralId])).rows[0].status,'done');
+    assert.equal((await request(x.cookie,{method:'GET',url:`/api/specialist-cases/${x.caseId}/documents`})).statusCode,403);
+    assert.equal((await request(admin,{method:'GET',url:`/api/specialist-cases/${x.caseId}/documents`})).statusCode,200);
+  });
+}
