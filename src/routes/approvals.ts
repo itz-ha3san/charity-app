@@ -4,6 +4,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { pool, tx } from "../db.js";
 import { requireAuth } from "../auth.js";
+import { globalFamilyAccess } from "../scope.js";
 const uuid = z.string().uuid();
 const familyEditFields = [
   "caseNumber",
@@ -37,11 +38,7 @@ const familyEditFields = [
   "members",
 ] as const;
 const familyEditField = z.enum(familyEditFields);
-const canApprove = (a: { role: string; position: string }) =>
-  a.role === "admin" ||
-  ["ceo", "education_deputy", "health_deputy", "supervision_deputy"].includes(
-    a.position,
-  );
+const canApprove = globalFamilyAccess;
 export async function registerApprovalRoutes(app: FastifyInstance) {
   app.addHook("preHandler", requireAuth);
   app.get("/approvals/families", async (req, reply) => {

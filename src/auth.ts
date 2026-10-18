@@ -3,6 +3,7 @@ import argon2 from "argon2";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { pool } from "./db.js";
 import { config } from "./config.js";
+import { authorizeFamilyRoute } from "./familyRouteAccess.js";
 export type Actor = {
   id: string;
   name: string;
@@ -69,6 +70,7 @@ export async function requireAuth(req: FastifyRequest, reply: FastifyReply) {
   ]);
   if (req.actor!.mustChangePassword && req.url.startsWith("/api/"))
     return reply.code(403).send({ error: "PASSWORD_CHANGE_REQUIRED" });
+  return authorizeFamilyRoute(req, reply);
 }
 export function allow(...roles: Actor["role"][]) {
   return async (req: FastifyRequest, reply: FastifyReply) => {
