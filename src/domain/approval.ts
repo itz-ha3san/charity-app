@@ -1,0 +1,35 @@
+import { z } from "zod";
+const familyEditFields = [
+    "caseNumber",
+    "familySurname",
+    "headName",
+    "headNationalId",
+    "headBirthDate",
+    "headPhone",
+    "headCardNumber",
+    "familyPhone",
+    "headEducation",
+    "headJob",
+    "insurance",
+    "medical",
+    "incomeDescription",
+    "debt",
+    "transportationCost",
+    "utilityCost",
+    "monthlyInstallments",
+    "monthlyAid",
+    "sponsor",
+    "nextFollowUp",
+    "supervisorId",
+    "housingType",
+    "housingDeposit",
+    "housingRent",
+    "housing",
+    "address",
+    "notes",
+    "priority",
+    "members",
+] as const;
+export const familyEditField = z.enum(familyEditFields);
+export const reviewInput = z.object({ decision: z.enum(['approve', 'reject', 'cancel']), note: z.string().trim().min(3).max(1000) });
+export type ReviewInput = z.infer<typeof reviewInput>;

@@ -280,21 +280,9 @@ test("older full-snapshot change requests cannot be approved", async () => {
           rowCount: 1,
         }
       : { rows: [], rowCount: 1 };
-  const response = reply();
-  await route.handler(
-    {
-      actor,
-      params: { id: F },
-      body: { decision: "approve", note: "تأیید درخواست قدیمی" },
-    },
-    response,
-  );
-  assert.equal(response.statusCode, 409);
-  assert.equal(
-    response.body.error,
-    "LEGACY_CHANGE_REQUEST_REQUIRES_RESUBMISSION",
-  );
+  await assert.rejects(route.handler({actor,params:{id:F},body:{decision:'approve',note:'تأیید درخواست قدیمی'}}),error => error.status===409 && error.error==='LEGACY_CHANGE_REQUEST_REQUIRES_RESUBMISSION');
 });
+
 test("liaison case-number edits persist only the named field even when form sends a full snapshot", async () => {
   const route = (
     await routes("src/routes/families.ts", "registerFamilyRoutes")

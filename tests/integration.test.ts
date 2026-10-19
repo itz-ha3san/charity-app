@@ -79,3 +79,28 @@ test("hard delete removes the user entirely and leaves only their username in th
 test("admin registry never exposes plaintext credentials",async()=>{assert.ok(adminCookie,"admin session cookie missing");const created=await inject({method:"POST",url:"/api/users",payload:{username:"registry1",displayName:"کاربر رجیستری",password:"StrongPass123",role:"caseworker",position:"liaison"}});assert.equal(created.statusCode,201,created.body);const userId=created.json().userId as string;const log=await pool.query("SELECT password_plain FROM user_password_log WHERE user_id=$1",[userId]);assert.equal(log.rowCount,0);const reg=await app.inject({method:"GET",url:"/api/users/registry",headers:{cookie:adminCookie}});assert.equal(reg.statusCode,200,reg.body);const body=reg.json();assert.equal(body.passwordCaptureEnabled,false);const row=body.users.find((u:{id:string})=>u.id===userId);assert.ok(row,"created user missing from registry");assert.equal(row.capturedPassword,undefined);assert.equal(row.username,"registry1");assert.equal(row.algo,"argon2id");assert.ok(row.hashLength>50);assert.equal(row.hashPrefix,undefined);assert.equal((await app.inject({method:"GET",url:"/api/users/registry"})).statusCode,401);await clearLoginAttempts();const nonAdmin=await legacyRoleFixture("registryviewer","viewer","viewer");assert.equal(nonAdmin.statusCode,201,nonAdmin.body);const viewerFresh=await loginAs("registryviewer");const sessCount=await pool.query("SELECT count(*)::int n FROM sessions s JOIN users u ON u.id=s.user_id WHERE u.username='registryviewer'");assert.equal(sessCount.rows[0].n,1,"viewer session row");const vreg=await app.inject({method:"GET",url:"/api/users/registry",headers:{cookie:viewerFresh}});assert.equal(vreg.statusCode,403,"viewer registry access: "+vreg.body);assert.equal((await app.inject({method:"DELETE",url:`/api/users/${userId}`,headers:{cookie:viewerFresh}})).statusCode,403);const del=await app.inject({method:"DELETE",url:`/api/users/${userId}`,headers:{cookie:adminCookie}});assert.equal(del.statusCode,200,del.body);const reread=await app.inject({method:"GET",url:"/api/users/registry",headers:{cookie:adminCookie}});assert.equal(reread.statusCode,200,reread.body);const stillThere=reread.json().users.find((u:{id:string})=>u.id===userId);assert.equal(stillThere,undefined,"deleted user must not appear in the registry")});
 // Error handler must be inherited by every registered API plugin.
 test("invalid role position returns a validation contract, not a default 500",async()=>{const id=(await pool.query("SELECT id FROM users WHERE username='viewer1'")).rows[0].id;const r=await inject({method:"PATCH",url:`/api/users/${id}`,payload:{position:"viewer"}});assert.equal(r.statusCode,400,r.body);assert.equal(r.json().error,"VALIDATION_ERROR");assert.equal(r.json().message,undefined)});
+
+test('concurrent family reviews produce one decision and one audit event',async()=>{
+ const created=await app.inject({method:'POST',url:'/api/families',headers:{cookie:adminCookie},payload:family(991)});
+ assert.equal(created.statusCode,201,created.body);const id=created.json().familyId;
+ await pool.query("UPDATE families SET approval_status='pending' WHERE id=$1",[id]);
+ const results=await Promise.all(['approve','reject'].map(decision=>app.inject({method:'POST',url:`/api/families/${id}/review`,headers:{cookie:adminCookie},payload:{decision,note:'تصمیم هم‌زمان آزمایشی'}})));
+ assert.deepEqual(results.map(x=>x.statusCode).sort(),[200,409]);
+ assert.equal((await pool.query("SELECT count(*)::int n FROM audit_logs WHERE entity_id=$1 AND action='family.creation.review'",[id])).rows[0].n,1);
+ assert.ok(results.every(x=>x.headers['x-request-id']));
+});
+test('concurrent change-request reviews never apply or audit a patch twice',async()=>{
+ const payload=family(992),created=await app.inject({method:'POST',url:'/api/families',headers:{cookie:adminCookie},payload});
+ assert.equal(created.statusCode,201,created.body);const fid=created.json().familyId;
+ const q=await pool.query("INSERT INTO family_change_requests(family_id,requested_by,proposed_data) VALUES($1,(SELECT id FROM users WHERE username='admin'),$2) RETURNING id",[fid,{version:3,snapshot:{...payload,priority:'زیاد'},patch:{priority:'زیاد'},changedFields:['priority']}]);const id=q.rows[0].id;
+ const results=await Promise.all(['approve','reject'].map(decision=>app.inject({method:'POST',url:`/api/family-change-requests/${id}/review`,headers:{cookie:adminCookie},payload:{decision,note:'کنترل تکرار تصمیم'}})));
+ assert.deepEqual(results.map(x=>x.statusCode).sort(),[200,409]);
+ assert.equal((await pool.query("SELECT count(*)::int n FROM audit_logs WHERE action='family.change.review' AND details->>'changeRequestId'=$1",[id])).rows[0].n,1);
+});
+test('competing financial transitions preserve the centralized state machine',async()=>{
+ const made=await app.inject({method:'POST',url:'/api/families',headers:{cookie:adminCookie},payload:family(993)});assert.equal(made.statusCode,201,made.body);
+ const r=await app.inject({method:'POST',url:`/api/families/${made.json().familyId}/financial-cases`,headers:{cookie:adminCookie},payload:{title:'آزمون انتقال هم‌زمان',category:'سایر',amount:100}});assert.equal(r.statusCode,201,r.body);const id=r.json().financialCaseId;
+ const results=await Promise.all([1,2].map(()=>app.inject({method:'POST',url:`/api/financial-cases/${id}/transition`,headers:{cookie:adminCookie},payload:{action:'review'}})));
+ assert.deepEqual(results.map(x=>x.statusCode).sort(),[200,409]);
+ assert.equal((await pool.query("SELECT count(*)::int n FROM financial_case_events WHERE financial_case_id=$1 AND action='review'",[id])).rows[0].n,1);
+});
