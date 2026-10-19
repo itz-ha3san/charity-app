@@ -16,3 +16,8 @@ backups/
 *.sql.zip
 *.enc
 *.zip
+
+# Disposable QA data and browser artifacts
+.tmp/
+playwright-report/
+test-results/

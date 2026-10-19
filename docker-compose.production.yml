@@ -28,7 +28,7 @@ services:
       SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-8}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       REQUEST_TIMEOUT_MS: ${REQUEST_TIMEOUT_MS:-30000}
-    command: ["npm","run","migrate"]
+    command: ["npm","run","migrate:compiled"]
     depends_on:
       postgres: {condition: service_healthy}
     networks: [backend]

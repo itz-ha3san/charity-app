@@ -10,7 +10,7 @@
     "migrate": "tsx src/migrate.ts",
     "seed:mock": "node scripts/seed-mock.mjs",
     "test:integration": "tsx --test --test-concurrency=1 tests/integration.test.ts",
-    "verify": "npm run typecheck && npm run test:integration",
+    "verify": "npm run typecheck && npm run test:unit && npm run security:audit && npm run build",
     "db:backup": "node scripts/db-backup.mjs",
     "db:restore": "node scripts/db-restore.mjs",
     "security:audit": "npm audit --audit-level=high",
@@ -19,7 +19,14 @@
     "test:local-fixes": "tsx --test tests/local-fixes.test.ts",
     "test:regressions": "node --test --test-concurrency=1 tests/regressions.test.cjs",
     "test:security": "node --test tests/security.test.cjs",
-    "test:security:integration": "tsx --test --test-concurrency=1 tests/security.integration.test.ts"
+    "test:security:integration": "tsx --test --test-concurrency=1 tests/security.integration.test.ts",
+    "build": "node scripts/build.mjs",
+    "start:compiled": "node dist/server.js",
+    "migrate:compiled": "node dist/migrate.js",
+    "test:unit": "npm run test:regressions && npm run test:local-fixes && npm run test:security && node --test tests/release.test.cjs",
+    "test:browser": "playwright test",
+    "test:recovery": "node scripts/recovery-drill.mjs",
+    "seed:test": "node scripts/seed-test.mjs"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",
@@ -31,6 +38,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@testcontainers/postgresql": "12.1.0",
     "@types/node": "^22.10.0",
     "@types/pg": "^8.11.11",

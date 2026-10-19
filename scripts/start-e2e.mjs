@@ -1,0 +1,12 @@
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import {assertTestDatabase} from './lib/test-database.mjs';
+assertTestDatabase(process.env.TEST_DATABASE_URL);
+process.env.DATABASE_URL=process.env.TEST_DATABASE_URL;process.env.NODE_ENV='test';process.env.COOKIE_SECURE='false';
+process.env.BOOTSTRAP_SECRET='synthetic_qa_bootstrap_only';process.env.PORT=process.env.QA_PORT||'4173';
+process.env.CORS_ORIGIN=`http://127.0.0.1:${process.env.PORT}`;
+const seed=spawn(process.execPath,['scripts/seed-test.mjs'],{stdio:'inherit',env:process.env});
+const [code]=await once(seed,'exit');if(code!==0)process.exit(code||1);
+const server=spawn(process.execPath,['dist/server.js'],{stdio:'inherit',env:process.env});
+for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>server.kill(signal));
+server.once('error',()=>process.exit(1));server.once('exit',code=>process.exit(code||0));

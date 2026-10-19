@@ -1,0 +1,176 @@
+name: Release quality
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  quality:
+    name: Types, unit tests, audit and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24.14.1'
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+  integration:
+    name: Integration (${{ matrix.suite }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [legacy, security]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: charity_${{ matrix.suite }}_test
+          POSTGRES_USER: qa
+          POSTGRES_PASSWORD: synthetic_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U qa"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://qa:synthetic_ci_only@127.0.0.1:5432/charity_${{ matrix.suite }}_test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.14.1'
+          cache: npm
+      - run: npm ci
+      - if: matrix.suite == 'legacy'
+        run: npm run test:integration
+      - if: matrix.suite == 'security'
+        run: npm run test:security:integration
+  browser:
+    name: Browser, desktop and mobile
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: charity_browser_test
+          POSTGRES_USER: qa
+          POSTGRES_PASSWORD: synthetic_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U qa"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://qa:synthetic_ci_only@127.0.0.1:5432/charity_browser_test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.14.1'
+          cache: npm
+      - run: npm ci
+      - run: npx --no-install playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run test:browser
+      - if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: synthetic-browser-failures
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 3
+          if-no-files-found: ignore
+  recovery:
+    name: Encrypted backup and recovery drill
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: charity_recovery_test
+          POSTGRES_USER: qa
+          POSTGRES_PASSWORD: synthetic_ci_only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U qa"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://qa:synthetic_ci_only@127.0.0.1:5432/charity_recovery_test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.14.1'
+          cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client-16
+      - run: echo /usr/lib/postgresql/16/bin >> "$GITHUB_PATH"
+      - run: npm ci
+      - run: npm run build
+      - run: node scripts/prepare-rollback.mjs
+      - run: npm run test:recovery
+        env:
+          ROLLBACK_APP_DIR: ${{ github.workspace }}/.tmp/rollback-release
+  container:
+    name: Production container build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - run: docker build --tag charity-app:quality .
+      - run: docker compose -f docker-compose.qa.yml config --quiet
+      - run: docker compose -f docker-compose.production.yml config --quiet
+        env:
+          APP_BASE_URL: https://qa.invalid
+          POSTGRES_PASSWORD: synthetic_ci_only
+          BOOTSTRAP_SECRET: synthetic_ci_bootstrap_only
+  release-gate:
+    name: Release gate
+    if: always()
+    needs: [quality, integration, browser, recovery, container]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require every check to succeed, including cancelled or skipped jobs
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | jq -e 'all(.[]; .result == "success")'
+  release-artifact:
+    name: Package verified release (no deployment)
+    needs: [release-gate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.14.1'
+          cache: npm
+      - run: npm ci && npm run build
+      - name: Package exact commit, without secrets, test data or database backups
+        run: |
+          printf '%s\n' "$GITHUB_SHA" > RELEASE_COMMIT
+          tar -czf charity-release.tar.gz dist public migrations scripts docs package.json package-lock.json README.md RELEASE_COMMIT
+          sha256sum charity-release.tar.gz > charity-release.tar.gz.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: verified-release-${{ github.sha }}
+          path: |
+            charity-release.tar.gz
+            charity-release.tar.gz.sha256
+          retention-days: 14
+          if-no-files-found: error
