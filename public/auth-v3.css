@@ -1,0 +1,41 @@
+/* Charity identity. Logo is a decorative watermark, never behind form text. */
+body:has(#auth:not(.hidden)){background:var(--bg,#f3f6fb)}
+#auth.auth-layout-v2{position:relative;isolation:isolate;grid-template-columns:minmax(340px,.92fr) minmax(0,1.08fr);gap:0;max-width:1100px;min-height:620px;margin:48px auto;border:1px solid var(--border,#dce4ef);border-radius:24px;overflow:hidden;box-shadow:0 24px 80px #173e6b0d}
+#auth .auth-card-v2{position:relative;z-index:1;border:0;border-radius:0;box-shadow:none;margin:0;padding:56px 48px;background:var(--surface,#fff);align-self:stretch;display:flex;flex-direction:column;justify-content:center}
+#auth .auth-card-v2.hidden{display:none}
+#auth .auth-form-logo{width:54px;height:62px;object-fit:contain;margin-bottom:24px}
+#auth .auth-card-head{margin-bottom:32px}
+#auth .auth-kicker{font-size:14px;letter-spacing:0;color:var(--muted,#526680)}
+#auth .auth-card-head h2{font-size:34px;margin:12px 0;line-height:1.5}
+#auth .auth-card-head p{font-size:15px;line-height:1.9}
+#auth .auth-visual{position:relative;isolation:isolate;order:2;border:0;border-radius:0;overflow:hidden;padding:48px 40px;background:#113c66;color:#fff;display:flex;flex-direction:column;justify-content:space-between;gap:36px;min-height:620px}
+#auth .auth-visual::before{content:"";position:absolute;z-index:-1;inset:12% -26% -4% -10%;background:url('/brand/charity-logo.png') center/contain no-repeat;opacity:.09;pointer-events:none;transform:rotate(-12deg);filter:grayscale(1) brightness(0) invert(1)}
+#auth .auth-visual::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 10% 100%,#3186a933,transparent 65%);pointer-events:none;z-index:-1}
+#auth .visual-glow{display:none}
+#auth .visual-content{position:static;padding:0;margin:0;max-width:none}
+#auth .auth-charity-brand{margin-bottom:40px;gap:12px}
+#auth .auth-charity-brand img{background:#fff;border-radius:12px;padding:8px;object-fit:contain;width:58px;height:64px}
+#auth .auth-charity-brand b{font-size:16px;color:#fff}
+#auth .auth-charity-brand small{font-size:13px;color:#cadcea}
+#auth .visual-badge{background:#ffffff0d;border:1px solid #ffffff30;color:#e0eef8;padding:8px 12px;font-size:13px;margin-bottom:20px;display:inline-flex}
+#auth .visual-content h2{font-size:clamp(28px,3vw,38px);line-height:1.65;margin:0 0 20px;color:#fff;max-width:420px}
+#auth .visual-content p{font-size:15px;line-height:2;color:#d0e0ee;margin:0;max-width:380px}
+#auth .auth-promise{display:flex;gap:16px;align-items:center;margin:0;padding:24px 0;border-top:1px solid #ffffff25}
+#auth .auth-promise-line{width:4px;height:56px;background:#72bcaa;border-radius:4px;flex:none}
+#auth .auth-promise p{font-size:15px;line-height:2;color:#dcebf7;margin:0}
+#auth .visual-points{position:static;display:flex;gap:8px;flex-wrap:wrap;padding:0;margin:0}
+#auth .visual-points span{border:1px solid #ffffff30;background:#ffffff08;color:#d8e8f3;border-radius:6px;padding:6px 10px;font-size:12px}
+#auth .auth-privacy{font-size:13px;line-height:1.9;color:var(--muted,#526680);margin-top:24px}
+#auth .auth-submit button{min-height:52px;border-radius:10px;box-shadow:none}
+#auth .input-shell{min-height:54px;border-radius:10px}
+#auth .input-shell input{font-size:16px;min-height:52px}
+#auth .password-toggle{min-width:60px;min-height:44px;font-size:13px}
+#auth .auth-caps{font-size:13px;color:#a05a0d;margin:0 0 12px}
+#auth :focus-visible{outline:3px solid var(--blue,#2783de);outline-offset:3px}
+@media(max-width:760px){#auth.auth-layout-v2{grid-template-columns:1fr;margin:20px auto;border-radius:18px;max-width:520px;min-height:0}#auth .auth-visual{order:0;min-height:0;padding:28px 24px;gap:0}#auth .auth-charity-brand{margin-bottom:20px}#auth .visual-content h2{font-size:25px;line-height:1.7;margin-bottom:8px}#auth .visual-content h2 br{display:none}#auth .visual-content p{font-size:14px}#auth .visual-badge,#auth .auth-promise,#auth .visual-points{display:none}#auth .auth-card-v2{order:1;padding:32px 24px}#auth .auth-form-logo{display:none}#auth .auth-card-head h2{font-size:28px}#auth .auth-card-head{margin-bottom:24px}#auth .auth-visual::before{inset:-45% -35% -50% 35%;opacity:.08}}
+@media(prefers-reduced-motion:reduce){#auth *,#auth *::before,#auth *::after{animation:none!important;transition:none!important}}
+/* The inherited negative header gutters exceeded the desktop viewport by 2px. */
+.shell>.topbar{margin-inline:0}
+#auth .lock-icon{width:12px;height:10px;border-radius:3px;overflow:visible;top:24px}
+#auth .lock-icon::before{content:"";position:absolute;width:8px;height:8px;border:2px solid var(--muted);border-bottom:0;border-radius:6px 6px 0 0;top:-9px;left:0}
+@media(max-width:760px){#auth .auth-visual{padding:24px}#auth .auth-charity-brand{margin-bottom:14px}#auth .auth-charity-brand img{width:46px;height:52px}#auth .visual-content h2{font-size:22px;line-height:1.6;margin-bottom:0}#auth .visual-content>p{display:none}}

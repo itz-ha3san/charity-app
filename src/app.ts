@@ -10,6 +10,7 @@ import { config } from "./config.js";
 import { pool } from "./db.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerFamilyRoutes } from "./routes/families.js";
+import { registerFinancialAnalyticsRoutes } from "./routes/financialAnalytics.js";
 import { registerFinancialRoutes } from "./routes/financial.js";
 import { registerOperationsRoutes } from "./routes/operations.js";
 import { registerOrganizationRoutes } from "./routes/organization.js";
@@ -54,5 +55,5 @@ export async function buildApp(o: {
 }
 catch {
     return r.code(503).send({ ok: false, checks: { process: "up", database: "down" } });
-} }); await registerAuthRoutes(app); await registerPublicSupportRoutes(app); await app.register(async (api) => { await api.register(registerFamilyRoutes); await api.register(registerFinancialRoutes); await api.register(registerOperationsRoutes); await api.register(registerOrganizationRoutes); await api.register(registerSupervisionRoutes); await api.register(registerApprovalRoutes); await api.register(registerActionRoutes); await api.register(registerSpecialistRoutes); await api.register(registerFinancialSourceRoutes); await api.register(registerAlertRoutes); await api.register(registerMessageRoutes); await api.register(registerManagementRoutes); await api.register(registerComprehensiveRoutes); await api.register(registerSecurityRoutes); await api.register(registerDataMigrationRoutes); await api.register(registerUatRoutes); await api.register(registerOpsRoutes); await api.register(registerTrainingRoutes); await api.register(registerFutureRoutes); }, { prefix: "/api" }); if (o.serveStatic !== false)
+} }); await registerAuthRoutes(app); await registerPublicSupportRoutes(app); await app.register(async (api) => { await api.register(registerFamilyRoutes); await api.register(registerFinancialRoutes); await api.register(registerFinancialAnalyticsRoutes); await api.register(registerOperationsRoutes); await api.register(registerOrganizationRoutes); await api.register(registerSupervisionRoutes); await api.register(registerApprovalRoutes); await api.register(registerActionRoutes); await api.register(registerSpecialistRoutes); await api.register(registerFinancialSourceRoutes); await api.register(registerAlertRoutes); await api.register(registerMessageRoutes); await api.register(registerManagementRoutes); await api.register(registerComprehensiveRoutes); await api.register(registerSecurityRoutes); await api.register(registerDataMigrationRoutes); await api.register(registerUatRoutes); await api.register(registerOpsRoutes); await api.register(registerTrainingRoutes); await api.register(registerFutureRoutes); }, { prefix: "/api" }); if (o.serveStatic !== false)
     await app.register(staticPlugin, { root: resolve(dirname(fileURLToPath(import.meta.url)), "../public"), index: "index.html", wildcard: false }); return app; }

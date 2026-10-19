@@ -58,9 +58,10 @@
 <section id="auth" class="auth-layout auth-layout-v2 hidden" aria-labelledby="authTitle">
 <form id="loginForm" class="auth-card auth-card-v2 hidden" novalidate>
   <div class="auth-card-head">
-    <div class="auth-kicker">ورود کاربران</div>
-    <h2 id="authTitle">خوش آمدید</h2>
-    <p>برای ادامه، اطلاعات حساب کاربری خود را وارد کنید.</p>
+    <img class="auth-form-logo" src="/brand/charity-logo.png" data-brand-logo alt="نشان خیریه">
+    <div class="auth-kicker">سامانه همراه خانواده</div>
+    <h2 id="authTitle">دوباره، کنار هم</h2>
+    <p>برای ادامه مسیر حمایت، وارد حساب خود شوید.</p>
   </div>
   <div class="field auth-field">
     <label for="loginUsername">نام کاربری</label>
@@ -68,11 +69,12 @@
   </div>
   <div class="field auth-field">
     <div class="field-label-row"><label for="loginPassword">رمز عبور</label></div>
-    <div class="input-shell"><span class="input-icon lock-icon" aria-hidden="true"></span><input id="loginPassword" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="رمز عبور" data-product-input="password"><button id="toggleLoginPassword" class="password-toggle" type="button" aria-controls="loginPassword" aria-pressed="false">نمایش</button></div>
+    <div class="input-shell"><span class="input-icon lock-icon" aria-hidden="true"></span><input id="loginPassword" dir="ltr" aria-describedby="loginCapsHint" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="رمز عبور" data-product-input="password"><button id="toggleLoginPassword" class="password-toggle" type="button" aria-controls="loginPassword" aria-pressed="false">نمایش</button></div>
   </div>
+  <p id="loginCapsHint" class="auth-caps" role="status" hidden>کلید Caps Lock روشن است.</p>
   <div class="actions auth-submit"><button class="primary" type="submit"><span>ورود به سامانه</span><span aria-hidden="true">←</span></button></div>
   <div class="message" role="status" aria-live="polite"></div>
-  <div class="auth-privacy"><span aria-hidden="true">✓</span><span>اطلاعات ورود شما به‌صورت امن ارسال می‌شود.</span></div>
+  <div class="auth-privacy"><span aria-hidden="true">✓</span><span>دسترسی به اطلاعات خانواده‌ها فقط برای کاربران مجاز است.</span></div>
 </form>
 <form id="bootstrapForm" class="auth-card auth-card-v2 hidden" novalidate>
   <div class="auth-card-head"><div class="auth-kicker">راه‌اندازی اولیه</div><h2 id="bootstrapTitle">ساخت مدیر اصلی</h2><p>حساب مدیر اولیه سامانه را ایجاد کنید.</p></div>
@@ -87,16 +89,11 @@
   <div class="visual-glow" aria-hidden="true"></div>
   <div class="visual-content">
     <div class="auth-charity-brand"><img src="/brand/charity-logo.png" data-brand-logo alt="نشان خیریه"><span><b>سامانه مدیریت خانواده‌ها</b><small>خدمات و حمایت‌های یکپارچه</small></span></div>
-    <div class="visual-badge"><span aria-hidden="true">✦</span> همراه دقیق تیم‌های حمایتی</div>
-    <h2>هر خانواده، یک مسیر روشن برای پیگیری و حمایت</h2>
+    <div class="visual-badge"><span aria-hidden="true">●</span> همراه دقیق تیم‌های حمایتی</div>
+    <h2>حمایت، از یک همراهی <br>آگاهانه آغاز می‌شود.</h2>
     <p>پرونده‌ها، اقدامات و حمایت‌های مالی را در یک فضای منظم و امن مدیریت کنید.</p>
   </div>
-  <div class="visual-board" aria-hidden="true">
-    <div class="visual-board-head"><span></span><span></span><span></span></div>
-    <div class="visual-profile"><div class="visual-avatar">خ</div><div><b>پرونده خانواده</b><small>نمای یکپارچه اطلاعات و اقدامات</small></div><i>فعال</i></div>
-    <div class="visual-progress"><span style="--w:82%"></span><span style="--w:64%"></span><span style="--w:44%"></span></div>
-    <div class="visual-stats"><div><strong>۱۲</strong><small>اقدام انجام‌شده</small></div><div><strong>۳</strong><small>پیگیری پیش رو</small></div></div>
-  </div>
+  <div class="auth-promise"><span class="auth-promise-line"></span><p>هر پرونده، داستان یک خانواده است.<br>با دقت می‌بینیم؛ با احترام همراه می‌شویم.</p></div>
   <div class="visual-points"><span>حریم خصوصی</span><span>دسترسی بر اساس سمت</span><span>ثبت کامل فعالیت‌ها</span></div>
 </aside>
 </section>
@@ -109,6 +106,8 @@
 <div id="modalRoot"></div><div id="toastRoot"></div>
 </main></div>
 <link rel="stylesheet" href="/app/profile.css">
+<link rel="stylesheet" href="/app/financial-intelligence.css">
+<link rel="stylesheet" href="/auth-v3.css">
 <script src="/app/assets.js"></script>
 <script src="/app/lifecycle.js"></script>
 <script src="/app/ui.js"></script>

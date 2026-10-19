@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [legacy, security]
+        suite: [legacy, security, analytics]
     services:
       postgres:
         image: postgres:16-alpine
@@ -54,6 +54,8 @@ jobs:
         run: npm run test:integration
       - if: matrix.suite == 'security'
         run: npm run test:security:integration
+      - if: matrix.suite == 'analytics'
+        run: npm run test:analytics:integration
   browser:
     name: Browser, desktop and mobile
     runs-on: ubuntu-24.04

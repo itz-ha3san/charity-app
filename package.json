@@ -23,11 +23,12 @@
     "build": "node scripts/build.mjs",
     "start:compiled": "node dist/server.js",
     "migrate:compiled": "node dist/migrate.js",
-    "test:unit": "npm run test:regressions && npm run test:local-fixes && npm run test:security && node --test tests/release.test.cjs && tsx --test tests/architecture.test.ts && node --test tests/frontend.test.cjs",
+    "test:unit": "npm run test:regressions && npm run test:local-fixes && npm run test:security && node --test tests/release.test.cjs && tsx --test tests/architecture.test.ts && node --test tests/frontend.test.cjs && tsx --test tests/financial-analytics.test.ts",
     "test:browser": "playwright test",
     "test:recovery": "node scripts/recovery-drill.mjs",
     "seed:test": "node scripts/seed-test.mjs",
-    "frontend:check": "node scripts/check-frontend.mjs"
+    "frontend:check": "node scripts/check-frontend.mjs",
+    "test:analytics:integration": "tsx --test --test-concurrency=1 tests/financial-analytics.integration.test.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.0",

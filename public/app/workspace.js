@@ -91,6 +91,8 @@ function openWorkQueuesHub() {
 
 function openFinanceHub() {
     const role = actor?.role, position = actor?.position, isAdmin = role === 'admin', items = [];
+    if (isAdmin || role === 'accountant' || ['ceo', 'finance_deputy', 'finance_officer'].includes(position))
+        items.push({ label: 'داشبورد مالی هوشمند', description: 'دریافتی خانواده‌ها و برآورد هزینه ماه آینده', icon: '↗', run: () => window.openFinancialIntelligence() });
     if (isAdmin || role === 'accountant' || ['ceo', 'supervision_deputy', 'health_deputy', 'education_deputy', 'finance_officer'].includes(position))
         items.push({ label: 'درخواست‌های مالی', description: 'کارتابل تأیید و پرداخت درخواست‌ها', icon: '▤', run: () => openFinancialInbox() });
     if (isAdmin || role === 'accountant' || ['ceo', 'finance_officer'].includes(position))
@@ -160,7 +162,7 @@ function setupOpsNav() {
     if (old)
         old.remove();
     const role = actor?.role, position = actor?.position, isAdmin = role === 'admin';
-    const canFinance = isAdmin || role === 'accountant' || ['ceo', 'supervision_deputy', 'health_deputy', 'education_deputy', 'finance_officer'].includes(position);
+    const canFinance = isAdmin || role === 'accountant' || ['ceo', 'supervision_deputy', 'health_deputy', 'education_deputy', 'finance_officer', 'finance_deputy'].includes(position);
     const canManage = isAdmin || role === 'accountant' || ['ceo', 'supervision_deputy', 'health_deputy', 'education_deputy', 'finance_officer'].includes(position);
     const nav = document.createElement('div');
     nav.id = 'opsNav';
