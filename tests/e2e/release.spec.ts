@@ -84,3 +84,58 @@ test('all synthetic roles log in and retain their clinical and family scope',asy
   await page.locator('#logoutBtn').click();await expect(page.locator('#loginUsername')).toBeVisible();
  }
 });
+
+test('management and approval features load only on demand and remain usable',async({page})=>{
+ await login(page,'admin');
+ await expect(page.locator('script[src="/app/admin.js"]')).toHaveCount(0);
+ await expect(page.locator('script[src="/approval-review.js"]')).toHaveCount(0);
+ await page.evaluate(()=>{(window as any).openManagementHub()});
+ await page.locator('#modalRoot [data-hub-index]').filter({hasText:'مدیریت کاربران'}).click();
+ await expect(page.locator('#createUserBtn')).toBeVisible();
+ await expect(page.locator('script[src="/app/admin.js"]')).toHaveCount(1);
+ await page.locator('#modalRoot [data-close]').first().click();
+ await page.evaluate(()=>{(window as any).openWorkQueuesHub()});
+ await page.locator('#modalRoot [data-hub-index]').filter({hasText:'تأییدهای در انتظار'}).click();
+ await expect(page.locator('#approvalQueueTitle')).toBeVisible();
+ await expect(page.locator('script[src="/approval-review.js"]')).toHaveCount(1);
+ await page.locator('#modalRoot [data-close]').first().click();
+ await expect(page.locator('#modalRoot .modal')).toHaveCount(0);
+});
+test('a lost successful payment response can be retried with the same idempotency key',async({page},info)=>{
+ await login(page,'admin');
+ const created=await page.request.post(`/api/families/${fixture.familyId}/financial-cases`,{data:{title:'آزمون بازیابی پاسخ '+info.project.name,category:'سایر',amount:50,jalaliYear:1405,jalaliMonth:7}});expect(created.status()).toBe(201);
+ const id=(await created.json()).financialCaseId;
+ for(const action of ['review','approve','queue_payment'])expect((await page.request.post(`/api/financial-cases/${id}/transition`,{data:{action}})).status()).toBe(200);
+ await page.reload();await openFamily(page);await page.locator('[data-family-tab="financeSection"]').click();await page.locator(`[data-pay="${id}"]`).click();
+ await page.locator('#paymentForm [name="fundId"]').selectOption(fixture.fundId);
+ await page.locator('#paymentForm [name="referenceNo"]').fill('QA-LOST-'+info.project.name);
+ const keys:string[]=[];let first=true;
+ await page.route(`**/api/financial-cases/${id}/pay`,async route=>{
+  keys.push(route.request().headers()['idempotency-key']||'');
+  const actual=await route.fetch();expect(actual.status()).toBe(201);
+  if(first){first=false;await route.abort('failed')}else{await route.fulfill({response:actual})}
+ });
+ await page.locator('#paymentForm button.primary').click();
+ await expect(page.locator('#paymentError')).not.toBeEmpty();
+ await expect(page.locator('#paymentForm button.primary')).toBeEnabled();
+ const replay=page.waitForResponse(r=>r.url().endsWith(`/api/financial-cases/${id}/pay`));
+ await page.locator('#paymentForm button.primary').click();expect((await replay).headers()['idempotency-replayed']).toBe('true');
+ await expect(page.locator('#paymentForm')).toHaveCount(0);
+ expect(keys.length).toBe(2);expect(keys[0]).toBeTruthy();expect(keys[1]).toBe(keys[0]);
+ const result=await page.request.get(`/api/families/${fixture.familyId}/financial-cases`),data=await result.json();
+ expect(data.history.filter((e:any)=>e.financialCaseId===id&&e.action==='pay')).toHaveLength(1);
+});
+test.describe('modular shell offline safety',()=>{
+ test.use({serviceWorkers:'allow'});
+ test('service worker caches new shell assets but no private API responses',async({page,context})=>{
+  await login(page,'admin');
+  // Development loopback intentionally unregisters workers; install explicitly for this focused worker test.
+  await page.evaluate(async()=>{await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise<void>(resolve=>navigator.serviceWorker.addEventListener('controllerchange',()=>resolve(),{once:true}));await fetch('/api/families',{credentials:'include'})});
+  const paths=await page.evaluate(async()=>{const keys=await caches.keys();const key=keys.find(k=>k.startsWith('family-case-shell-v95-'));if(!key)return [];const cache=await caches.open(key);return (await cache.keys()).map(r=>new URL(r.url).pathname)});
+  expect(paths).toContain('/app/bootstrap.js');expect(paths).toContain('/app/base.css');
+  expect(paths.some(p=>/^\/(api|auth)\//.test(p))).toBe(false);
+  await context.setOffline(true);await page.goto('/');
+  await expect(page.getByRole('heading',{name:'اتصال در دسترس نیست'})).toBeVisible();
+  await context.setOffline(false);
+ });
+});

@@ -63,7 +63,7 @@
 
   function scan(root=document) { root.querySelectorAll?.('select:not([data-control-enhanced])').forEach(x=>{if(!x.matches('#noteForm [name="followUpStatus"]'))enhanceSelect(x)}); root.querySelectorAll?.('input[type="number"]:not([data-control-enhanced])').forEach(x=>{if(!x.closest('#createFamilyForm'))enhanceNumber(x)}); root.querySelectorAll?.('[data-switch]:not([data-control-enhanced])').forEach(initSwitch); }
   function syncSearchOptions(){const search=document.querySelector('#searchInput');if(!search)return;const options=[...document.querySelectorAll('#familyList .family-item')].flatMap(x=>{const name=x.querySelector('b')?.textContent?.trim(),meta=x.querySelector('p')?.textContent?.trim();return [name,meta?.split(' · ')[0]].filter(Boolean);});enhanceCombobox(search,options);}
-  function init(){scan();syncSearchOptions();const observer=new MutationObserver(records=>{for(const r of records)for(const n of r.addedNodes)if(n.nodeType===1)scan(n);syncSearchOptions();});observer.observe(document.body,{childList:true,subtree:true});}
+  function init(){scan();syncSearchOptions();window.AppLifecycle.subscribe("controls",records=>{for(const r of records)for(const n of r.addedNodes)if(n.nodeType===1)scan(n);syncSearchOptions();});}
   window.ControlSystem={enhanceCombobox,setComboboxOptions:(selector,options)=>enhanceCombobox(document.querySelector(selector),options),enhanceSelect,enhanceNumber,createOtp,initSwitch,fa,en};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

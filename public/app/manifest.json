@@ -1,0 +1,25 @@
+{
+  "eager": [
+    "/app/assets.js",
+    "/app/lifecycle.js",
+    "/app/ui.js",
+    "/app/api.js",
+    "/app/core.js",
+    "/app/family-profile.js",
+    "/app/family-editor.js",
+    "/app/finance.js",
+    "/app/organization.js",
+    "/app/supervision.js",
+    "/app/reports.js",
+    "/app/alerts.js",
+    "/app/specialist-actions.js",
+    "/app/workspace.js",
+    "/app/followup-documents.js",
+    "/app/account-organization.js",
+    "/app/bootstrap.js"
+  ],
+  "lazy": {
+    "admin": "/app/admin.js",
+    "approval": "/approval-review.js"
+  }
+}

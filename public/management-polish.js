@@ -4,13 +4,7 @@
   const modalRoot = () => document.querySelector("#modalRoot");
   const close = () => window.closeModal?.();
 
-  function mount(markup){
-    const root = modalRoot();
-    if(!root) return null;
-    root.innerHTML = markup;
-    root.querySelectorAll("[data-close]").forEach(b => b.onclick = close);
-    return root;
-  }
+  function mount(markup){ return window.AppUI.mountModal(markup,close); }
 
   window.openPositionDialog = async function(userId, currentPosition, username){
     const positions = [

@@ -4,7 +4,8 @@ COPY package*.json ./
 RUN npm ci --no-audit --no-fund
 COPY tsconfig*.json ./
 COPY src ./src
-COPY scripts/build.mjs ./scripts/build.mjs
+COPY scripts/build.mjs scripts/check-frontend.mjs ./scripts/
+COPY public ./public
 RUN npm run build
 
 FROM node:24.14.1-bookworm-slim AS runtime

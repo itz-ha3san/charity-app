@@ -68,7 +68,7 @@ test('browser scripts including inline entry scripts parse', () => {
   const html=fs.readFileSync('public/index.html','utf8');
   for (const [index,match] of [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].entries()) new vm.Script(match[1], {filename:'index-inline-'+index});
   assert.ok(html.indexOf('/draft-store.js') < html.indexOf('/case-wizard.js'));
-  assert.match(html, /function showAuth\([^)]*\)\{window\.CaseWizard\?\.clearSession\(\)/);
+  assert.match(fs.readFileSync('public/app/core.js','utf8'), /function showAuth\([^)]*\)\s*\{\s*window\.CaseWizard\?\.clearSession\(\)/);
   assert.equal(html.includes('copyPasswords'), false);
   assert.equal(html.includes('capturedPassword'), false);
 });

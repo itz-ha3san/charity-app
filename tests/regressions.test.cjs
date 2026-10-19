@@ -704,13 +704,13 @@ test("deputies can delegate a follow-up to another active worker", async () => {
 });
 
 test("top quick follow-up requires family selection while family action stays preselected", () => {
-  const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+  const html = fs.readFileSync(path.join(root,"public/app/finance.js"),"utf8")+fs.readFileSync(path.join(root,"public/app/followup-documents.js"),"utf8");
   const start = html.indexOf("async function openQuickFollowupForm()");
   const end = html.indexOf("async function loadFinancialCases", start);
   const topAction = html.slice(start, end);
   assert.match(topAction, /openFamilyFollowupForm\(null\)/);
   assert.doesNotMatch(topAction, /selectedId/);
-  assert.match(html, /if\(nb\)nb\.onclick=\(\)=>openFamilyFollowupForm\(f\)/);
+  assert.match(html, /if\s*\(nb\)\s*nb\.onclick\s*=\s*\(\)\s*=>\s*openFamilyFollowupForm\(f\)/);
   const operations = fs.readFileSync(path.join(root, "public/operations-experience.js"), "utf8");
   assert.doesNotMatch(operations, /function openNoteForm\(/);
   assert.doesNotMatch(operations, /window\.openNoteForm/);
@@ -786,7 +786,7 @@ test("liaisons can create a tag and the completion link opens the profile", asyn
   } finally {
     query = previousQuery;
   }
-  const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+  const html = fs.readFileSync(path.join(root,"public/app/family-profile.js"),"utf8");
   const ux = fs.readFileSync(path.join(root, "public/ux-system.js"), "utf8");
   assert.ok(html.includes('id="comprehensiveSection" class="full-profile"'));
   assert.ok(ux.includes("detail.querySelector('#comprehensiveSection')"));

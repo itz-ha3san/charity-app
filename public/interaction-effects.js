@@ -183,7 +183,7 @@
 
   function init() {
     enhanceShell();
-    const observer = new MutationObserver((records) => {
+    window.AppLifecycle.subscribe("interaction",(records) => {
       enhanceShell();
       records.forEach((record) =>
         record.addedNodes.forEach((node) => {
@@ -194,7 +194,6 @@
       );
       syncBeam();
     });
-    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   if (document.readyState === "loading") {

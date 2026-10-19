@@ -1,3 +1,5 @@
+import {existsSync} from 'node:fs';
+if(existsSync('public/app/manifest.json'))await import('./check-frontend.mjs');
 import {rm,copyFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {createRequire} from 'node:module';
