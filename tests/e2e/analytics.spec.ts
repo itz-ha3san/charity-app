@@ -39,8 +39,34 @@ test('finance analytics visible UI, chart toggle, scenario and family drilldown'
  await nav.click();await page.getByText('داشبورد مالی هوشمند',{exact:true}).click();
  await expect(page.locator('.fi-modal')).toBeVisible();await expect(page.locator('#fiContent')).toHaveAttribute('aria-busy','false');await expect(page.locator('.fi-bar').first()).toBeVisible();
  expect((await page.request.get('/api/financial-analytics')).status()).toBe(200);
+ await expect(page.locator('.fi-summary-metrics .fi-stat')).toHaveCount(4);
+ await expect(page.locator('.fi-summary-metrics .fi-sparkline')).toHaveCount(1);
+ await expect(page.locator('.fi-summary-metrics .fi-stat-delta')).toHaveAttribute('aria-label',/کاهش ۲۵٪/);
+ await expect(page.locator('.fi-summary-metrics .fi-stat').nth(2).locator('.fi-stat-delta')).toHaveCount(0);
+ await page.locator('[data-fi-kind=line]').click();await expect(page.locator('#fiChart .fi-line')).toBeVisible();
+ await expect(page.locator('#fiChart .fi-dot')).toHaveCount(6);
+ const data=await (await page.request.get('/api/financial-analytics')).json();
+ const known=data.monthly.map((m:any,i:number)=>m.amount!==null?i:-1).filter((i:number)=>i>=0);
+ for(const i of [known[0],known[Math.floor(known.length/2)],known.at(-1)]){
+  const point=page.locator(`#fiChart [data-fi-point="${i}"]`);await point.focus();
+  await expect(page.locator('.fi-tooltip')).toBeVisible();
+  await expect(page.locator('.fi-tooltip span')).toHaveText(BigInt(data.monthly[i].amount).toLocaleString('fa-IR')+' تومان');
+  const bounds=await page.locator('.fi-tooltip').boundingBox(),plot=await page.locator('.fi-plot-scroll').boundingBox();
+  expect(bounds!.x).toBeGreaterThanOrEqual(plot!.x);expect(bounds!.x+bounds!.width).toBeLessThanOrEqual(plot!.x+plot!.width+1);
+ }
+ await page.keyboard.press('Escape');await expect(page.locator('.fi-tooltip')).toBeHidden();
+ await page.locator(`#fiChart [data-fi-point="${known[0]}"]`).focus();await page.keyboard.press('ArrowLeft');await expect(page.locator(`#fiChart [data-fi-point="${known[1]}"]`)).toBeFocused();
+ await page.locator('[data-fi-kind=bar]').click();await expect(page.locator('#fiChart .fi-bar').first()).toBeVisible();
+
  await page.locator('[data-fi-metric=payments]').click();await expect(page.locator('[data-fi-metric=payments]')).toHaveAttribute('aria-pressed','true');await page.locator('[data-fi-metric=amount]').click();
  const originalSize=page.viewportSize()!;await page.setViewportSize({...originalSize,width:originalSize.width-20});await expect.poll(async()=>page.locator('#fiChart svg').evaluate((e)=>Math.abs(Number(e.getAttribute('width'))-e.parentElement!.clientWidth))).toBeLessThan(2);await page.setViewportSize(originalSize);
+ await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
+ const contrast=await page.locator('[data-fi-kind][aria-pressed=false]').evaluate(e=>{
+  const rgb=(s:string)=>s.match(/[\d.]+/g)!.slice(0,3).map(Number);
+  const luminance=(s:string)=>rgb(s).map(v=>{const n=v/255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4;}).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i]!,0);
+  const a=luminance(getComputedStyle(e).color),b=luminance(getComputedStyle(e.parentElement!).backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+ });expect(contrast).toBeGreaterThanOrEqual(4.5);
+ await page.evaluate(()=>document.documentElement.setAttribute('data-theme','light'));
  await page.locator('#fiScenario').fill('20');await expect(page.locator('#fiScenarioResult')).toContainText('سناریوی فرضی');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.screenshot({path:`/data/charity-finance-${info.project.name}.png`,fullPage:true});
