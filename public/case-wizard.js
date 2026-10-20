@@ -122,6 +122,7 @@
   }
 
   function validateControl(control, form, { quiet = false } = {}) {
+    if(control.dataset.persianKind){const valid=window.EnhancedUI.validateField(control,{show:!quiet});if(valid&&control.dataset.persianKind==="national")validateUniqueNationalIds(form);return valid;}
     const value = String(control.value || "").trim();
     let message = "";
     if (control.required && !value) message = "تکمیل این فیلد الزامی است.";
@@ -146,9 +147,9 @@
     else if (
       control.name === "headCardNumber" &&
       value &&
-      onlyDigits(value).length !== 16
+      !window.PersianRules.card(value)
     )
-      message = "شماره کارت باید دقیقاً ۱۶ رقم باشد.";
+      message = "ساختار شماره کارت معتبر نیست.";
     else if (
       ["headBirthDate", "memberBirthDate"].includes(control.name) &&
       value &&
@@ -191,7 +192,8 @@
       ) {
         control.inputMode = control.name.includes("Phone") ? "tel" : "numeric";
         control.addEventListener("input", () => {
-          const limit = control.name === "headCardNumber" ? 16 : 11;
+          if (["headNationalId","memberNationalId","headCardNumber"].includes(control.name)) return;
+          const limit = 11;
           const normalized = onlyDigits(control.value).slice(0, limit);
           control.value =
             control.name === "headCardNumber"
@@ -658,6 +660,7 @@
   function reviewValue(form, name, fallback = "ثبت نشده") {
     const control = form.elements.namedItem(name);
     if (!control || Array.isArray(control)) return fallback;
+    if(control.dataset.persianKind){const valid=window.EnhancedUI.validateField(control,{show:!quiet});if(valid&&control.dataset.persianKind==="national")validateUniqueNationalIds(form);return valid;}
     const value = String(control.value || "").trim();
     if (!value) return fallback;
     if (control.tagName === "SELECT")
@@ -728,6 +731,7 @@
     );
     moveFields(form, status, [
       "headCardNumber",
+      "headIban", "accountHolder", "accountRelation",
       "headJob",
       "headEducation",
       "priority",

@@ -9,3 +9,5 @@ const result=spawnSync(process.execPath,[require.resolve('typescript/bin/tsc'),'
 if(result.error||result.status!==0)process.exit(result.status||1);
 // CommonJS shared rules are loaded at runtime via createRequire, not emitted by tsc.
 await copyFile('src/reportRules.cjs','dist/reportRules.cjs');
+await copyFile('src/domain/persianRules.cjs','dist/domain/persianRules.cjs');
+await copyFile('src/domain/iranDivisions.cjs','dist/domain/iranDivisions.cjs');

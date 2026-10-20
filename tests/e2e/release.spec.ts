@@ -131,7 +131,7 @@ test.describe('modular shell offline safety',()=>{
   await login(page,'admin');
   // Development loopback intentionally unregisters workers; install explicitly for this focused worker test.
   await page.evaluate(async()=>{await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise<void>(resolve=>navigator.serviceWorker.addEventListener('controllerchange',()=>resolve(),{once:true}));await fetch('/api/families',{credentials:'include'})});
-  const paths=await page.evaluate(async()=>{const keys=await caches.keys();const key=keys.find(k=>k.startsWith('family-case-shell-v97-'));if(!key)return [];const cache=await caches.open(key);return (await cache.keys()).map(r=>new URL(r.url).pathname)});
+  const paths=await page.evaluate(async()=>{const keys=await caches.keys();const key=keys.find(k=>k.startsWith('family-case-shell-v98-'));if(!key)return [];const cache=await caches.open(key);return (await cache.keys()).map(r=>new URL(r.url).pathname)});
   expect(paths).toContain('/app/bootstrap.js');expect(paths).toContain('/app/base.css');expect(paths).toContain('/auth-v3.css');expect(paths).toContain('/app/financial-intelligence.css');
   expect(paths.some(p=>/^\/(api|auth)\//.test(p))).toBe(false);
   await context.setOffline(true);await page.goto('/');

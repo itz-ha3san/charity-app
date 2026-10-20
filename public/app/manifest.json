@@ -2,7 +2,10 @@
   "eager": [
     "/app/assets.js",
     "/app/lifecycle.js",
+    "/app/persian-rules.js",
+    "/app/iran-divisions.js",
     "/app/ui.js",
+    "/app/enhanced-ui.js",
     "/app/api.js",
     "/app/core.js",
     "/app/family-profile.js",

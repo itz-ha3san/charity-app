@@ -7,6 +7,7 @@ const familyEditFields = [
     "headBirthDate",
     "headPhone",
     "headCardNumber",
+    "headIban", "accountHolder", "accountRelation", "province", "city", "village", "postalCode",
     "familyPhone",
     "headEducation",
     "headJob",

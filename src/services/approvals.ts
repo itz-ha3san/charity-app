@@ -1,3 +1,4 @@
+import {validateEnhancedFamily} from "../domain/persianFields.js";
 import { tx } from '../db.js';
 import type { Actor } from '../auth.js';
 import { globalFamilyAccess } from '../scope.js';
@@ -65,6 +66,8 @@ export async function reviewFamilyChange(actor: Actor, id: string, b: ReviewInpu
                 .parse(isScopedPatch ? requestData.snapshot : x.proposed_data);
             if (!isScopedPatch)
                 normalizeHousing(f);
+            const baseline={...f};for(const key of changedFields)delete baseline[key];
+            validateEnhancedFamily(f,baseline);
             const columns: Record<string, {
                 name: string;
                 jsonb?: boolean;

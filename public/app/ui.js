@@ -1,17 +1,21 @@
 /* Shared form feedback and modal mount. Keep existing design-system classes, not another CSS skin. */
 (() => {
   let toastTimer;
-  const pending=new WeakSet();
+  const pending=new WeakSet(), busyForms=new WeakSet();
   function busy(form,on) {
+    if(on===busyForms.has(form))return;
+    if(on)busyForms.add(form);else busyForms.delete(form);
     form.setAttribute('aria-busy',String(Boolean(on)));
     for(const button of form.querySelectorAll('button[type="submit"],button:not([type])')) {
-      if(on){button.dataset.uiWasDisabled=String(button.disabled);button.disabled=true;button.classList.add('button-loading');}
-      else {button.disabled=button.dataset.uiWasDisabled==='true';button.classList.remove('button-loading');delete button.dataset.uiWasDisabled;}
+      if(on){button.dataset.uiWasDisabled=String(button.disabled);button.disabled=true;button.classList.add('button-loading');const label=document.createElement('span');label.className='app-busy-label';label.setAttribute('role','status');label.textContent=' در حال انجام…';button.append(label);}
+      else {button.disabled=button.dataset.uiWasDisabled==='true';button.classList.remove('button-loading');button.querySelector('.app-busy-label')?.remove();delete button.dataset.uiWasDisabled;}
     }
   }
   function message(form,text,type='error') {
     const target=form.querySelector('.message');if(!target)return;
-    target.textContent=String(text??'');target.className='message '+type;
+    target.className='message '+type;
+    const variant=type==='error'?'destructive':type==='success'?'success':type==='warning'?'warning':'info';
+    if(window.EnhancedUI&&text)target.innerHTML=EnhancedUI.alertMarkup({variant,text:String(text)});else target.textContent=String(text??'');
     target.setAttribute('role',type==='error'?'alert':'status');
   }
   function toast(text) {

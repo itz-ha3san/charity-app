@@ -1,3 +1,4 @@
+import {validateEnhancedFamily} from "../domain/persianFields.js";
 import { applySupervisor } from "../supervisors.js";
 import { restrictedFamilyDetail } from "../familyPrivacy.js";
 import type { FastifyInstance } from "fastify";
@@ -29,6 +30,7 @@ const liaisonEditableKeys = [
   "headBirthDate",
   "headPhone",
   "headCardNumber",
+  "headIban", "accountHolder", "accountRelation", "province", "city", "village", "postalCode",
   "familyPhone",
   "headEducation",
   "headJob",
@@ -209,6 +211,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
       pd.insurance && typeof pd.insurance === "object" ? pd.insurance : null;
     const detail: Record<string, unknown> = {
       ...row,
+      ...Object.fromEntries(["headIban","accountHolder","accountRelation","province","city","village","postalCode"].map(key=>[key,pd[key]??""])),
       insurance: insuranceDb ?? insuranceFromPd ?? {},
       medical: pd.medical ?? {},
       incomeDescription: pd.incomeDescription ?? "",
@@ -269,6 +272,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
       if (!globalFamilyAccess(req.actor!) && req.actor!.position !== "liaison")
         return reply.code(403).send({ error: "FORBIDDEN" });
       const f = family.parse(req.body);
+      validateEnhancedFamily(f);
       normalizeHousing(f);
       if (req.actor!.position === "liaison" && f.supervisorId)
         return reply.code(403).send({ error: "SUPERVISOR_ASSIGNMENT_MANAGER_ONLY" });
@@ -491,6 +495,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
         mergedInput = { ...currentData, ...patch };
       }
       const f = family.omit({ notesHistory: true }).parse(mergedInput);
+      validateEnhancedFamily(f,currentData);
       const membersChanged = !sameProposalValue(
         currentData.members,
         f.members,
@@ -717,13 +722,14 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
           .parse((req.params as { id: string }).id),
         f = family.parse(req.body),
         current = await pool.query(
-          "SELECT case_number,archived FROM families WHERE id=$1",
+          "SELECT case_number,archived,profile_data,head_card_number FROM families WHERE id=$1",
           [id],
         );
       if (!current.rowCount)
         return reply.code(404).send({ error: "FAMILY_NOT_FOUND" });
       if (current.rows[0].archived)
         return reply.code(409).send({ error: "FAMILY_ARCHIVED" });
+      validateEnhancedFamily(f,{...(current.rows[0].profile_data??{}),headCardNumber:current.rows[0].head_card_number??""});
       if (current.rows[0].case_number !== f.caseNumber)
         return reply.code(409).send({ error: "PROFILE_CASE_MISMATCH" });
       await tx(async (c) => {
@@ -766,7 +772,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
           .object({ reason: z.string().trim().min(3).max(500) })
           .parse(req.body),
         current = await pool.query(
-          "SELECT case_number,archived FROM families WHERE id=$1",
+          "SELECT case_number,archived,profile_data,head_card_number FROM families WHERE id=$1",
           [id],
         );
       if (!current.rowCount)
@@ -809,7 +815,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
           .object({ reason: z.string().trim().min(3).max(500) })
           .parse(req.body),
         current = await pool.query(
-          "SELECT case_number,archived FROM families WHERE id=$1",
+          "SELECT case_number,archived,profile_data,head_card_number FROM families WHERE id=$1",
           [id],
         );
       if (!current.rowCount)
@@ -843,7 +849,7 @@ export async function registerFamilyRoutes(app: FastifyInstance) {
       const input = z
           .object({ families: z.array(family).min(1).max(100) })
           .parse(req.body),
-        cases = input.families.map((f) => f.caseNumber),
+        cases = input.families.map((f) => {validateEnhancedFamily(f);return f.caseNumber;}),
         nids = input.families.flatMap((f) => [
           f.headNationalId,
           ...f.members.map((m) => m.nationalId),

@@ -284,7 +284,7 @@
       const date = String(fd.get("contactDate") || "");
       const time = String(fd.get("contactTime") || "");
       if (!date || !time) return;
-      const contactAt = new Date(`${date}T${time}:00`);
+      const contactAt = new Date(`${date}T${time}:00+03:30`);
       if (Number.isNaN(contactAt.getTime())) return;
       const body = {
         weekStart: String(fd.get("weekStart")),

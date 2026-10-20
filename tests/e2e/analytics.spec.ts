@@ -67,7 +67,7 @@ test('finance analytics visible UI, chart toggle, scenario and family drilldown'
   const a=luminance(getComputedStyle(e).color),b=luminance(getComputedStyle(e.parentElement!).backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
  });expect(contrast).toBeGreaterThanOrEqual(4.5);
  await page.evaluate(()=>document.documentElement.setAttribute('data-theme','light'));
- await page.locator('#fiScenario').fill('20');await expect(page.locator('#fiScenarioResult')).toContainText('سناریوی فرضی');
+ await page.locator('#fiScenario').fill('20');await expect(page.locator('#fiScenarioResult')).toContainText('سناریوی فرضی');await expect(page.locator('#fiScenarioSlider')).toHaveValue('20');await expect(page.locator('#fiScenarioValue')).toHaveText('۲۰٪');await page.locator('#fiScenarioReset').click();await expect(page.locator('#fiScenario')).toHaveValue('0');await page.locator('#fiScenarioSlider').fill('30');await expect(page.locator('#fiScenario')).toHaveValue('30');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.screenshot({path:`/data/charity-finance-${info.project.name}.png`,fullPage:true});
  await page.locator('#fiFilters [name=familySearch]').fill('۶۱۰');await page.locator('#fiFamilySearch').click();await expect(page.locator('#fiSearchStatus')).toContainText('نتیجه');await page.locator('#fiFilters [name=familyId]').selectOption(fixture.familyId);await page.locator('#fiFilters button[type=submit]').click();await expect(page.locator('.fi-panel h3').first()).toHaveText('دریافتی خانواده انتخاب‌شده');

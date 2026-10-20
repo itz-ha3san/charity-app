@@ -25,7 +25,7 @@ async function createFamily(assignedTo?: string) {
   const n = ++familyNumber;
   const response = await request(admin,{method:'POST',url:'/api/families',payload:{
     caseNumber:String(n),familySurname:'خانواده نمونه',headName:'سرپرست نمونه',headNationalId:nid(String(200000000+n)),
-    headPhone:'09121234567',headCardNumber:'6037990000000000',notes:'private-note',medical:{diagnosis:'synthetic-private'},
+    headPhone:'09121234567',headCardNumber:'6037990000000006',notes:'private-note',medical:{diagnosis:'synthetic-private'},
     members:[{name:'عضو نمونه',relation:'فرزند',nationalId:nid(String(300000000+n)),birthDate:'1390/01/01'}],
   }});
   assert.equal(response.statusCode,201,response.body);

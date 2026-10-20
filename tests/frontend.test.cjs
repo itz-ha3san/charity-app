@@ -31,8 +31,8 @@ test('body enhancers share one observer, replace duplicate subscriptions and dis
  a();b();assert.equal(disconnects,1);
 });
 test('shared form runner blocks duplicate submits and restores prior disabled state',async()=>{
- const buttons=[false,true].map(disabled=>({disabled,dataset:{},classList:{add(){},remove(){}}}));
- const form={querySelectorAll:()=>buttons,setAttribute(){}};const window={};run('ui',{window,document:{},setTimeout,clearTimeout});
+ const buttons=[false,true].map(disabled=>({disabled,dataset:{},classList:{add(){},remove(){}},append(){},querySelector(){return null;}}));
+ const form={querySelectorAll:()=>buttons,setAttribute(){}};const window={};run('ui',{window,document:{createElement(){return {setAttribute(){}}}},setTimeout,clearTimeout});
  let release,calls=0;const pending=window.AppUI.runPending(form,()=>{calls++;return new Promise(resolve=>release=resolve)});
  await window.AppUI.runPending(form,()=>calls++);assert.equal(calls,1);assert.equal(buttons[0].disabled,true);
  release();await pending;assert.equal(buttons[0].disabled,false);assert.equal(buttons[1].disabled,true);

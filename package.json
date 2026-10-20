@@ -23,7 +23,7 @@
     "build": "node scripts/build.mjs",
     "start:compiled": "node dist/server.js",
     "migrate:compiled": "node dist/migrate.js",
-    "test:unit": "npm run test:regressions && npm run test:local-fixes && npm run test:security && node --test tests/release.test.cjs && tsx --test tests/architecture.test.ts && node --test tests/frontend.test.cjs && tsx --test tests/financial-analytics.test.ts && node --test tests/financial-visuals.test.cjs",
+    "test:unit": "npm run test:regressions && npm run test:local-fixes && npm run test:security && node --test tests/release.test.cjs && tsx --test tests/architecture.test.ts && node --test tests/frontend.test.cjs && tsx --test tests/financial-analytics.test.ts && node --test tests/financial-visuals.test.cjs && tsx --test tests/persian-fields.test.ts",
     "test:browser": "playwright test",
     "test:recovery": "node scripts/recovery-drill.mjs",
     "seed:test": "node scripts/seed-test.mjs",
