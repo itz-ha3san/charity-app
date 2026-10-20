@@ -174,14 +174,13 @@
       </div>
       <section class="workspace-notices" aria-labelledby="workspaceNoticesTitle">
         <header class="workspace-notices-head">
-          <div><span class="workspace-card-kicker">برای شروع کار</span><h3 id="workspaceNoticesTitle">پیام‌ها و موارد مهم</h3></div>
+          <div><span class="workspace-card-kicker">برای شروع کار</span><h3 id="workspaceNoticesTitle">موارد مهم</h3></div>
           <div class="workspace-notice-tools">
-            <button type="button" data-workspace-action="messagesBtn">صندوق پیام‌ها <span data-message-unread>۰</span></button>
             <button type="button" data-workspace-action="alertsBtn">همه هشدارها</button>
           </div>
         </header>
         <div class="workspace-notice-list" data-notice-list>
-          <div class="workspace-loading"><i></i><span>در حال بررسی پیام‌ها و هشدارها…</span></div>
+          <div class="workspace-loading"><i></i><span>در حال بررسی هشدارها…</span></div>
         </div>
       </section>
       <div class="workspace-metrics-heading"><b>خلاصه وضعیت</b></div>
@@ -215,7 +214,7 @@
     if (action === "activeFamiliesBtn") return window.openActiveFamilyList?.();
     if (action === "urgentFamiliesBtn") return window.openUrgentFamilyList?.();
     if (action === "attentionItemsBtn") return window.openAttentionItems?.();
-    if (action === "messagesBtn") return openMessageInbox();
+    if (action === "messagesBtn") return window.AppNotificationInbox?.open();
     if (action === "overdueBtn" && typeof openOverdue === "function") return openOverdue();
     if (action === "alertsBtn" && typeof openAlerts === "function") return openAlerts("", true);
     target?.click();
@@ -239,80 +238,24 @@
       ? ""
       : new Intl.DateTimeFormat("fa-IR-u-ca-persian", { dateStyle: "medium" }).format(date);
   }
-  function noticeCard(item, kind, expanded = false) {
-    const isMessage = kind === "message";
+  function noticeCard(item) {
     const tone = item.severity || "important";
     const familyName = item.headName ? `${item.headName}${item.caseNumber ? ` · پرونده ${item.caseNumber}` : ""}` : "";
-    const detail = isMessage ? item.body : item.message;
-    const date = isMessage ? item.createdAt : item.dueAt || item.createdAt;
-    const action = isMessage
-      ? `<button type="button" class="workspace-notice-action" data-message-${item.acknowledgementRequired ? "ack" : "read"}="${escapeHtml(item.id)}">${item.acknowledgementRequired ? "خواندم و متوجه شدم" : "علامت‌گذاری به‌عنوان خوانده‌شده"}</button>`
-      : item.familyId
-        ? `<button type="button" class="workspace-notice-action" data-open-notice-family="${escapeHtml(item.familyId)}" data-notice-section="${item.type === "weekly_revision_requested" ? "#supervisionSection" : ""}" data-alert-key="${escapeHtml(item.key)}">بازکردن پرونده</button>`
-        : `<button type="button" class="workspace-notice-action" data-open-alert-center>مرکز هشدارها</button>`;
+    const date = item.dueAt || item.createdAt;
+    const action = item.familyId
+      ? `<button type="button" class="workspace-notice-action" data-open-notice-family="${escapeHtml(item.familyId)}" data-notice-section="${item.type === "weekly_revision_requested" ? "#supervisionSection" : ""}" data-alert-key="${escapeHtml(item.key)}">بازکردن پرونده</button>`
+      : `<button type="button" class="workspace-notice-action" data-open-alert-center>مرکز هشدارها</button>`;
     return `<article class="workspace-notice-card" data-tone="${escapeHtml(tone)}">
-      <span class="workspace-notice-mark" aria-hidden="true">${isMessage ? "✉" : "!"}</span>
+      <span class="workspace-notice-mark" aria-hidden="true">!</span>
       <div class="workspace-notice-copy">
-        <div class="workspace-notice-meta"><span>${isMessage ? `پیام از ${escapeHtml(item.senderName || "مدیریت")}${item.senderPosition ? ` · ${escapeHtml(item.senderPosition)}` : ""}` : escapeHtml(item.title || "هشدار سامانه")}</span><b>${severityNames[tone] || "مهم"}</b>${date ? `<time>${faDate(date)}</time>` : ""}</div>
-        ${isMessage ? `<h4>${escapeHtml(item.title)}</h4>` : ""}
-        <p>${escapeHtml(detail || "")}</p>
+        <div class="workspace-notice-meta"><span>${escapeHtml(item.title || "هشدار سامانه")}</span><b>${severityNames[tone] || "مهم"}</b>${date ? `<time>${faDate(date)}</time>` : ""}</div>
+        <p>${escapeHtml(item.message || "")}</p>
         ${familyName ? `<small class="workspace-notice-family">${escapeHtml(familyName)}</small>` : ""}
-        ${expanded ? `<div class="workspace-notice-extra">${isMessage && item.acknowledgedAt ? "این پیام را تأیید کرده‌اید." : isMessage && item.readAt ? "این پیام خوانده شده است." : ""}${!isMessage && item.dueAt ? `موعد: ${faDate(item.dueAt)}` : ""}</div>` : ""}
       </div>
-      <div class="workspace-notice-actions">${action}${isMessage && item.familyId ? `<button type="button" class="workspace-notice-link" data-open-notice-family="${escapeHtml(item.familyId)}">مشاهده پرونده</button>` : ""}</div>
+      <div class="workspace-notice-actions">${action}</div>
     </article>`;
   }
-  async function refreshNotices() {
-    const [messageResult, alertResult] = await Promise.allSettled([
-      request("/api/messages/inbox?includeRead=false"),
-      request("/api/alerts?includeRead=false"),
-    ]);
-    return {
-      messages: messageResult.status === "fulfilled" ? messageResult.value.messages || [] : [],
-      alerts: alertResult.status === "fulfilled" ? alertResult.value.alerts || [] : [],
-      unreadMessages: messageResult.status === "fulfilled" ? messageResult.value.unread || 0 : 0,
-    };
-  }
-  async function openMessageInbox() {
-    const root = document.querySelector("#modalRoot");
-    if (!root) return;
-    root.innerHTML = `<div class="modal-backdrop"><section class="modal workspace-message-modal" role="dialog" aria-modal="true"><header class="modal-head"><div><span class="eyebrow">پیام‌های دریافتی از مدیریت</span><h2>صندوق پیام‌ها</h2><p class="muted">پیام‌های مهم و مواردی که نیاز به تأیید شما دارند.</p></div><button type="button" class="close-btn" data-close aria-label="بستن">×</button></header><div class="workspace-message-inbox"><div class="panel-loading">در حال دریافت پیام‌ها…</div></div></section></div>`;
-    const close = () => { if (typeof window.closeModal === "function") window.closeModal(); else root.replaceChildren(); };
-    root.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", close));
-    root.querySelector(".modal-backdrop")?.addEventListener("click", (event) => {
-      if (event.target === event.currentTarget) close();
-    });
-    try {
-      const [messageData, alertData] = await Promise.all([
-        request("/api/messages/inbox?includeRead=true"),
-        request("/api/alerts?includeRead=false"),
-      ]);
-      const box = root.querySelector(".workspace-message-inbox");
-      const messages = messageData.messages || [];
-      box.innerHTML = `${messages.length ? `<div class="workspace-message-count">${fa(messages.filter((message) => !message.readAt).length)} پیام خوانده‌نشده</div>${messages.map((message) => noticeCard(message, "message", true)).join("")}` : '<div class="workspace-notice-empty"><b>پیامی در صندوق شما نیست</b><span>اگر پیامی از مدیریت ارسال شود، اینجا نمایش داده می‌شود.</span></div>'}
-        ${(alertData.alerts || []).length ? `<h3 class="workspace-inbox-subhead">هشدارهای سامانه</h3>${alertData.alerts.map((alert) => noticeCard(alert, "alert", true)).join("")}` : ""}`;
-      bindNoticeActions(box, refreshNotices);
-    } catch (error) {
-      root.querySelector(".workspace-message-inbox").innerHTML = `<div class="workspace-notice-empty"><b>صندوق پیام بارگذاری نشد</b><span>${escapeHtml(error.message)}</span></div>`;
-    }
-  }
-  function bindNoticeActions(root, onChange) {
-    root.querySelectorAll("[data-message-read],[data-message-ack]").forEach((button) => {
-      button.onclick = async () => {
-        button.disabled = true;
-        try {
-          const path = button.hasAttribute("data-message-ack")
-            ? `/api/messages/${encodeURIComponent(button.dataset.messageAck)}/acknowledge`
-            : `/api/messages/${encodeURIComponent(button.dataset.messageRead)}/read`;
-          await window.api(path, { method: "POST", body: "{}" });
-          if (onChange) await onChange();
-          if (root.closest("#modalRoot")) openMessageInbox();
-        } catch (error) {
-          button.disabled = false;
-          window.toast?.(error.message);
-        }
-      };
-    });
+  function bindNoticeActions(root) {
     root.querySelectorAll("[data-open-notice-family]").forEach((button) => {
       button.onclick = async () => {
         const alertKey = button.dataset.alertKey;
@@ -350,7 +293,7 @@
     const dashboardRequest = scopedWorker
       ? request("/api/families?status=active&limit=1&offset=0").then((data) => ({ active: data.total }))
       : request("/api/dashboard");
-    const [dashboard, alerts, overdue, urgent, messages] = await Promise.allSettled([
+    const [dashboard, alerts, overdue, urgent] = await Promise.allSettled([
       dashboardRequest,
       request("/api/alerts?includeRead=false"),
       request("/api/follow-ups/overdue"),
@@ -359,11 +302,9 @@
           encodeURIComponent("فوری") +
           "&limit=5",
       ),
-      request("/api/messages/inbox?includeRead=false"),
     ]);
     const data = dashboard.status === "fulfilled" ? dashboard.value : {};
     const alertData = alerts.status === "fulfilled" ? alerts.value : {};
-    const messageData = messages.status === "fulfilled" ? messages.value : {};
     const urgentData = urgent.status === "fulfilled" ? urgent.value : {};
     const overdueCount =
       overdue.status === "fulfilled"
@@ -379,17 +320,12 @@
       const node = root.querySelector(`[data-metric="${key}"]`);
       if (node) node.textContent = value === undefined ? "—" : fa(value);
     });
-    const directMessages = messageData.messages || [];
     const systemAlerts = alertData.alerts || [];
-    const messageUnread = root.querySelector("[data-message-unread]");
-    if (messageUnread) messageUnread.textContent = fa(messageData.unread || 0);
     const notices = root.querySelector("[data-notice-list]");
-    const visibleNotices = [
-      ...directMessages.slice(0, 2).map((item) => noticeCard(item, "message")),
-      ...systemAlerts.slice(0, 2).map((item) => noticeCard(item, "alert")),
-    ];
-    notices.innerHTML = visibleNotices.join("") ||
-      '<div class="workspace-notice-empty"><span class="workspace-notice-clear">✓</span><div><b>پیام یا هشدار خوانده‌نشده‌ای ندارید</b><small>اگر مدیریتی برای شما پیامی بفرستد، همین‌جا نمایش داده می‌شود.</small></div></div>';
+    notices.innerHTML = systemAlerts.slice(0, 2).map((item) => noticeCard(item)).join("") ||
+      (alerts.status === "rejected"
+        ? '<div class="workspace-notice-empty"><b>هشدارها دریافت نشدند</b><small>از زنگولهٔ بالا دوباره تلاش کنید.</small></div>'
+        : '<div class="workspace-notice-empty"><span class="workspace-notice-clear">✓</span><div><b>هشدار خوانده‌نشده‌ای ندارید</b><small>پیام‌های مدیریتی در زنگولهٔ بالای صفحه قرار دارند.</small></div></div>');
     bindNoticeActions(notices, loadOverview);
     const rows = [
       priorityRow(

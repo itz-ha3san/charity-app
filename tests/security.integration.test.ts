@@ -571,3 +571,23 @@ test('authenticated API responses, including denied responses, must not be cache
     assert.equal(r.headers['cache-control'],'private, no-store');
   }
 });
+
+test('message unread count spans the 100-item window and reads never acknowledge or cross recipients',async()=>{
+ const recipient=await createUser('liaison'),outsider=await createUser('liaison');
+ const sent=await request(admin,{method:'POST',url:'/api/messages',payload:{title:'پیام قدیمی آزمایشی',body:'تأیید باید فقط با اقدام صریح انجام شود',recipientIds:[recipient.id],acknowledgementRequired:true}});
+ assert.equal(sent.statusCode,201,sent.body);const id=sent.json().messageId;
+ await pool.query("UPDATE liaison_messages SET created_at=now()-interval '1 day' WHERE id=$1",[id]);
+ await pool.query(`WITH messages AS (
+   INSERT INTO liaison_messages(sender_id,sender_name,sender_position,title,body,severity)
+   SELECT sender_id,sender_name,sender_position,'پیام جدید خوانده‌شده','داده ساختگی آزمون','important' FROM liaison_messages,generate_series(1,100) WHERE id=$1 RETURNING id
+ ) INSERT INTO liaison_message_recipients(message_id,recipient_id,read_at) SELECT id,$2,now() FROM messages`,[id,recipient.id]);
+ const inbox=await request(recipient.cookie,{method:'GET',url:'/api/messages/inbox?includeRead=true'});
+ assert.equal(inbox.statusCode,200,inbox.body);assert.equal(inbox.json().messages.length,100);assert.equal(inbox.json().unread,1);assert.equal('unreadTotal' in inbox.json().messages[0],false);
+ assert.equal((await request(outsider.cookie,{method:'GET',url:'/api/messages/inbox?includeRead=true'})).json().messages.length,0);
+ assert.equal((await request(outsider.cookie,{method:'POST',url:`/api/messages/${id}/read`,payload:{}})).statusCode,404);
+ assert.equal((await request(outsider.cookie,{method:'POST',url:`/api/messages/${id}/acknowledge`,payload:{}})).statusCode,404);
+ assert.equal((await request(recipient.cookie,{method:'POST',url:`/api/messages/${id}/read`,payload:{}})).statusCode,200);
+ let row=(await pool.query('SELECT read_at,acknowledged_at FROM liaison_message_recipients WHERE message_id=$1 AND recipient_id=$2',[id,recipient.id])).rows[0];assert.ok(row.read_at);assert.equal(row.acknowledged_at,null);
+ assert.equal((await request(recipient.cookie,{method:'POST',url:`/api/messages/${id}/acknowledge`,payload:{}})).statusCode,200);
+ row=(await pool.query('SELECT acknowledged_at FROM liaison_message_recipients WHERE message_id=$1 AND recipient_id=$2',[id,recipient.id])).rows[0];assert.ok(row.acknowledged_at);
+});

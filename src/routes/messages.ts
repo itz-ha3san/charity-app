@@ -49,6 +49,7 @@ export async function registerMessageRoutes(app: FastifyInstance) {
       `SELECT m.id,m.sender_name AS "senderName",m.sender_position AS "senderPosition",
         m.title,m.body,m.severity,m.acknowledgement_required AS "acknowledgementRequired",
         m.created_at AS "createdAt",r.read_at AS "readAt",r.acknowledged_at AS "acknowledgedAt",
+        count(*) FILTER (WHERE r.read_at IS NULL) OVER() AS "unreadTotal",
         CASE WHEN f.id IS NULL THEN NULL ELSE m.family_id END AS "familyId",
         f.case_number AS "caseNumber",f.head_name AS "headName"
        FROM liaison_message_recipients r
@@ -70,8 +71,8 @@ export async function registerMessageRoutes(app: FastifyInstance) {
       [req.actor!.id, query.includeRead],
     );
     return {
-      messages: result.rows,
-      unread: result.rows.filter((message) => !message.readAt).length,
+      messages: result.rows.map(({unreadTotal,...message})=>message),
+      unread: Number(result.rows[0]?.unreadTotal ?? 0),
     };
   });
 

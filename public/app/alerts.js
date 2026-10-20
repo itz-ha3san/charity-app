@@ -2,24 +2,17 @@
 const alertSeverityNames = { info: 'اطلاع‌رسانی', important: 'مهم', urgent: 'فوری', critical: 'بحرانی' }, alertTypeNames = { weekly_due: 'موعد گزارش هفتگی', weekly_overdue: 'گزارش هفتگی عقب‌افتاده', weekly_pending_review: 'گزارش منتظر تأیید', weekly_revision_requested: 'گزارش برگشتی برای اصلاح', action_due_soon: 'اقدام نزدیک مهلت', action_overdue: 'اقدام عقب‌افتاده', action_result_pending: 'نتیجه منتظر تأیید', referral_no_response: 'ارجاع بدون پاسخ', budget_low: 'بودجه رو به اتمام', financial_stale: 'درخواست مالی معطل', document_expiry: 'انقضای سند', followup_due: 'موعد پیگیری', insurance_renewal: 'تمدید بیمه', rent_renewal: 'تمدید اجاره' };
 
 let alertBadgeRequest=0;
-async function refreshAlertBadge() { const request=++alertBadgeRequest;try {
-    const user=actor?.id;
-    const d = await api('/api/alerts?includeRead=false');if(user!==actor?.id||request!==alertBadgeRequest)return;
-    window.AppNotificationInbox?.update(d.unread||0);
-    const b = $('#alertBadge'), trigger = $('#alertsBtn');
-    if (!b)
-        return;
-    b.textContent = fa(d.unread);
-    b.classList.toggle('hidden', !d.unread);
-    b.style.background = d.counts.critical ? 'var(--red-soft)' : d.counts.urgent ? 'var(--orange-soft,var(--blue-soft))' : 'var(--blue-soft)';
-    if (trigger) {
-        const label = d.unread ? `مرکز پیگیری، ${fa(d.unread)} هشدار خوانده‌نشده` : 'مرکز پیگیری';
-        trigger.setAttribute('aria-label', label);
-        trigger.title = label;
-        trigger.classList.toggle('has-critical', Boolean(d.counts.critical));
-    }
+async function refreshAlertBadge() {
+    const request=++alertBadgeRequest,user=actor?.id;if(!user)return;
+    const [alerts,messages]=await Promise.allSettled([api('/api/alerts?includeRead=false'),api('/api/messages/inbox?includeRead=false')]);
+    if(user!==actor?.id||request!==alertBadgeRequest)return;
+    const d=alerts.status==='fulfilled'?alerts.value:null,m=messages.status==='fulfilled'?messages.value:null;
+    window.AppNotificationInbox?.update((Number(d?.unread)||0)+(Number(m?.unread)||0),!d||!m);
+    const b=$('#alertBadge'),trigger=$('#alertsBtn');if(!b)return;
+    b.textContent=d?fa(d.unread):'—';b.classList.toggle('hidden',Boolean(d&&!d.unread));
+    b.style.background=d?.counts?.critical?'var(--red-soft)':d?.counts?.urgent?'var(--orange-soft,var(--blue-soft))':'var(--blue-soft)';
+    if(trigger){const label=!d?'مرکز پیگیری؛ دریافت هشدارها ناموفق بود':d.unread?`مرکز پیگیری، ${fa(d.unread)} هشدار خوانده‌نشده`:'مرکز پیگیری';trigger.setAttribute('aria-label',label);trigger.title=label;trigger.classList.toggle('has-critical',Boolean(d?.counts?.critical));}
 }
-catch { } }
 
 function alertDate(value) { if (!value)
     return ''; const date = new Date(value); return Number.isNaN(date.getTime()) ? String(value) : new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium',timeZone:'Asia/Tehran' }).format(date); }
@@ -113,41 +106,88 @@ catch (e) {
     toast(e.message);
 } }
 
-/* Compact inbox shares the server's existing per-user alert state. No extra polling. */
+/* One compact inbox for authorized management messages and system alerts. */
 (() => {
- let tab='all',request=0,busy=false;
- const E=()=>window.EnhancedUI;
- const bell='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>';
- const owner=()=>typeof actor!=='undefined'?actor?.id:null;
- function close(){request++;document.querySelector('#notificationInboxPanel')?.remove();const b=document.querySelector('#notificationInboxBtn');b?.setAttribute('aria-expanded','false');}
- function position(){const panel=document.querySelector('#notificationInboxPanel'),button=document.querySelector('#notificationInboxBtn');if(!panel||!button)return;const b=button.getBoundingClientRect();panel.style.left=Math.max(12,Math.min(innerWidth-panel.offsetWidth-12,b.right-panel.offsetWidth))+'px';panel.style.top=Math.max(12,Math.min(innerHeight-panel.offsetHeight-12,b.bottom+8))+'px';}
- function update(count){
-  if(!owner())return;let button=document.querySelector('#notificationInboxBtn');if(!button){const host=document.querySelector('.topbar-actions');if(!host)return;button=document.createElement('button');button.id='notificationInboxBtn';button.type='button';button.className='app-notifications-trigger';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','notificationInboxPanel');host.prepend(button);button.onclick=()=>document.querySelector('#notificationInboxPanel')?(close(),button.focus()):open();}
-  button.innerHTML=bell+(count>0?`<span class="app-notifications-count">${E().esc(PersianRules.fa(count))}</span>`:'');button.setAttribute('aria-label',`اعلان‌ها، ${PersianRules.fa(count)} خوانده‌نشده`);
- }
- function dayBucket(value){if(!value)return 'بدون تاریخ ثبت';const date=new Date(value);if(Number.isNaN(date.getTime()))return 'بدون تاریخ ثبت';const day=d=>{const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d).map(x=>[x.type,x.value]));return Date.UTC(Number(p.year),Number(p.month)-1,Number(p.day))/864e5;};const difference=day(new Date())-day(date);return difference===0?'امروز':difference===1?'دیروز':difference<0?'آینده':'قدیمی‌تر';}
- async function open(){
-  const user=owner();if(!user)return;close();const id=++request;
-  const panel=document.createElement('section');panel.id='notificationInboxPanel';panel.className='app-notifications-panel';panel.dir='rtl';panel.tabIndex=-1;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','صندوق اعلان‌ها');panel.innerHTML=E().spinner('در حال دریافت اعلان‌ها…');document.body.append(panel);document.querySelector('#notificationInboxBtn')?.setAttribute('aria-expanded','true');position();panel.focus();
-  try{const d=await api('/api/alerts?includeRead=true');if(id!==request||user!==owner()||!panel.isConnected)return;
-   const items=d.alerts||[];update(d.unread||0);
-   const draw=()=>{
-    const visible=items.filter(n=>tab==='all'||!n.read).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
-    const groups=['امروز','دیروز','آینده','قدیمی‌تر','بدون تاریخ ثبت'].map(g=>({g,list:visible.filter(n=>dayBucket(n.createdAt)===g)})).filter(g=>g.list.length);
-    panel.innerHTML=`<div class="app-notifications-head"><button type="button" class="secondary" data-notification-tab="all" aria-pressed="${tab==='all'}">همه</button><button type="button" class="secondary" data-notification-tab="unread" aria-pressed="${tab==='unread'}">نخوانده (${E().esc(PersianRules.fa(d.unread||0))})</button><button type="button" class="secondary" data-read-all ${!d.unread?'disabled':''}>خواندن همه</button><button type="button" class="secondary" data-notification-close aria-label="بستن اعلان‌ها">×</button></div><p class="app-notifications-status" role="status"></p>${groups.length?groups.map(({g,list})=>`<h3>${g}</h3>${list.map(n=>`<article class="app-notification ${!n.read?'is-unread':''}"><div class="app-notification-content"><button type="button" data-notification-open="${E().esc(n.key)}">${E().esc(n.title)}</button><small>${E().esc(alertSeverityNames[n.severity]||'اطلاع‌رسانی')}${n.createdAt?' · '+E().esc(alertDate(n.createdAt)):n.dueAt?' · موعد '+E().esc(alertDate(n.dueAt)):''}</small></div>${!n.read?`<div class="app-notification-actions"><button type="button" class="secondary" data-notification-read="${E().esc(n.key)}">خواندم</button></div>`:''}</article>`).join('')}`).join(''):'<p class="muted">اعلانی برای نمایش نیست.</p>'}<button type="button" class="secondary app-notifications-footer" data-notification-all>مشاهدهٔ همه در مرکز پیگیری</button>`;
-    panel.querySelectorAll('[data-notification-tab]').forEach(b=>b.onclick=()=>{if(busy)return;tab=b.dataset.notificationTab;draw();panel.querySelector(`[data-notification-tab="${tab}"]`)?.focus();});
-    panel.querySelector('[data-notification-close]').onclick=()=>{close();document.querySelector('#notificationInboxBtn')?.focus();};
-    panel.querySelector('[data-notification-all]').onclick=()=>{close();openAlerts();};
-    const run=async(action)=>{if(busy)return;busy=true;const status=panel.querySelector('.app-notifications-status');status.setAttribute('role','status');panel.setAttribute('aria-busy','true');panel.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='در حال ثبت وضعیت…';try{await action();await refreshAlertBadge();if(user===owner()&&panel.isConnected)await open();}catch(error){if(panel.isConnected){status.textContent='ثبت وضعیت انجام نشد؛ دوباره تلاش کنید.';status.setAttribute('role','alert');await refreshAlertBadge();busy=false;panel.querySelectorAll('button').forEach(b=>b.disabled=false);panel.setAttribute('aria-busy','false');}}finally{busy=false;}};
-    panel.querySelector('[data-read-all]').onclick=()=>run(async()=>{for(const n of items.filter(n=>!n.read)){if(user!==owner())throw Error('SESSION_CHANGED');await api('/api/alerts/'+encodeURIComponent(n.key)+'/read',{method:'POST',body:'{}'});}});
-    panel.querySelectorAll('[data-notification-read]').forEach(b=>b.onclick=()=>run(()=>api('/api/alerts/'+encodeURIComponent(b.dataset.notificationRead)+'/read',{method:'POST',body:'{}'})));
-    panel.querySelectorAll('[data-notification-open]').forEach(b=>b.onclick=()=>{const n=items.find(n=>n.key===b.dataset.notificationOpen);run(async()=>{await api('/api/alerts/'+encodeURIComponent(n.key)+'/read',{method:'POST',body:'{}'});close();if(n.familyId)openFamilyRecord(n.familyId);else openAlerts();});});
-    position();
-   };draw();
-  }catch(error){if(id===request&&panel.isConnected){panel.innerHTML=E().alertMarkup({variant:'destructive',text:'دریافت اعلان‌ها ممکن نشد. دوباره تلاش کنید.'})+'<button type="button" class="secondary" data-retry>تلاش مجدد</button><button type="button" class="secondary" data-close-inbox>بستن</button>';panel.querySelector('[data-retry]').onclick=open;panel.querySelector('[data-close-inbox]').onclick=()=>{close();document.querySelector('#notificationInboxBtn')?.focus();};position();}}
- }
- document.addEventListener('click',e=>{const b=document.querySelector('#notificationInboxBtn'),p=document.querySelector('#notificationInboxPanel');if(e.target.closest('#logoutBtn')){close();b?.remove();}else if(p&&!e.composedPath().includes(p)&&!e.composedPath().includes(b))close();});
- document.addEventListener('keydown',e=>{const p=document.querySelector('#notificationInboxPanel');if(!p)return;if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();document.querySelector('#notificationInboxBtn')?.focus();}else if(e.key==='Tab'){const buttons=[...p.querySelectorAll('button:not(:disabled)')];if(!buttons.length)return;const index=buttons.indexOf(document.activeElement);if(e.shiftKey&&(index<=0)){e.preventDefault();buttons.at(-1).focus();}else if(!e.shiftKey&&(index<0||index===buttons.length-1)){e.preventDefault();buttons[0].focus();}}},true);
- window.addEventListener('resize',position);window.addEventListener('scroll',position,true);
- window.AppNotificationInbox=Object.freeze({update,open,close,dayBucket});
+  let tab='all', request=0, busy=false, session=null;
+  const owner=()=>typeof actor!=='undefined'?actor?.id:null;
+  const E=()=>window.EnhancedUI;
+  const fa=v=>PersianRules.fa(v);
+  const icon=(name)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${({bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3 7 9 6 9-6"/>',check:'<path d="m5 12 4 4L19 6"/>',close:'<path d="m6 6 12 12M6 18 18 6"/>',retry:'<path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 6M4 12l2 6a7 7 0 0 0 12-1"/>'})[name]||''}</svg>`;
+  const current=()=>document.querySelector('#notificationInboxPanel');
+  function close(){request++;current()?.remove();document.querySelector('#notificationInboxBtn')?.setAttribute('aria-expanded','false');}
+  function position(){const panel=current(),button=document.querySelector('#notificationInboxBtn');if(!panel||!button)return;const b=button.getBoundingClientRect();panel.style.left=Math.max(12,Math.min(innerWidth-panel.offsetWidth-12,b.right-panel.offsetWidth))+'px';panel.style.top=Math.max(12,Math.min(innerHeight-panel.offsetHeight-12,b.bottom+8))+'px';}
+  function update(count,partial=false){
+    const user=owner();if(!user)return;
+    if(session!==user){close();tab='all';session=user;}
+    let button=document.querySelector('#notificationInboxBtn');
+    if(!button){const host=document.querySelector('.topbar-actions');if(!host)return;button=document.createElement('button');button.id='notificationInboxBtn';button.type='button';button.className='app-notifications-trigger';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');button.setAttribute('aria-controls','notificationInboxPanel');host.prepend(button);button.onclick=()=>current()?(close(),button.focus()):open();}
+    button.innerHTML=icon('bell')+(count>0?`<span class="app-notifications-count">${E().esc(fa(count>99?'۹۹+':count))}</span>`:'')+(partial?'<i class="app-notifications-degraded" aria-hidden="true"></i>':'');
+    button.setAttribute('aria-label',`اعلان‌ها، ${fa(count)} خوانده‌نشده${partial?'؛ دریافت بخشی از صندوق ناموفق بود':''}`);button.title='پیام‌ها و اعلان‌ها';
+  }
+  function dayBucket(value){if(!value)return 'بدون تاریخ ثبت';const date=new Date(value);if(Number.isNaN(date.getTime()))return 'بدون تاریخ ثبت';const day=d=>{const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d).map(x=>[x.type,x.value]));return Date.UTC(Number(p.year),Number(p.month)-1,Number(p.day))/864e5;};const difference=day(new Date())-day(date);return difference===0?'امروز':difference===1?'دیروز':difference<0?'آینده':'قدیمی‌تر';}
+  const errorText=(kind,error)=>{
+    const name=kind==='messages'?'پیام‌ها':'هشدارها';
+    if(error?.status===401)return 'نشست شما پایان یافته؛ دوباره وارد شوید.';
+    if(error?.data?.error==='MIGRATIONS_REQUIRED')return 'برای دریافت '+name+'، به‌روزرسانی دیتابیس لازم است.';
+    return name+' دریافت نشد؛ دوباره تلاش کنید.';
+  };
+  async function open(){
+    const user=owner();if(!user)return;if(session!==user){tab='all';session=user;}close();const id=++request;
+    const panel=document.createElement('section');panel.id='notificationInboxPanel';panel.className='app-notifications-panel';panel.dir='rtl';panel.tabIndex=-1;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','پیام‌ها و اعلان‌ها');
+    panel.innerHTML=`<header class="app-notifications-title"><div>${icon('bell')}<h2>پیام‌ها و اعلان‌ها</h2></div><button type="button" data-notification-close aria-label="بستن اعلان‌ها">${icon('close')}</button></header><div class="app-notifications-loading">${E().spinner('در حال دریافت…','sm')}</div>`;
+    panel.querySelector('[data-notification-close]').onclick=()=>{close();document.querySelector('#notificationInboxBtn')?.focus();};document.body.append(panel);document.querySelector('#notificationInboxBtn')?.setAttribute('aria-expanded','true');position();panel.focus();
+    const results=await Promise.allSettled([api('/api/alerts?includeRead=true'),api('/api/messages/inbox?includeRead=true')]);
+    if(id!==request||user!==owner()||!panel.isConnected)return;
+    const [alerts,messages]=results,failures=results.flatMap((r,i)=>r.status==='rejected'?[{kind:i?'messages':'alerts',error:r.reason}]:[]);
+    const alertsData=alerts.status==='fulfilled'?alerts.value:{alerts:[],unread:0};const messagesData=messages.status==='fulfilled'?messages.value:{messages:[],unread:0};
+    const unread=(Number(alertsData.unread)||0)+(Number(messagesData.unread)||0);update(unread,failures.length>0);
+    if(!panel.isConnected)return;
+    const items=[...(messagesData.messages||[]).map(n=>({...n,key:'message:'+n.id,kind:'message',read:Boolean(n.readAt)})),...(alertsData.alerts||[]).map(n=>({...n,kind:'alert'}))];
+    let expanded=null;
+    const tone=n=>['critical','urgent','important','info'].includes(n.severity)?n.severity:'info';
+    const row=n=>{
+      const needsAck=n.kind==='message'&&n.acknowledgementRequired&&!n.acknowledgedAt;
+      const date=n.createdAt||n.dueAt;
+      return `<article class="app-notification ${!n.read?'is-unread':''}" data-inbox-kind="${n.kind}" data-severity="${tone(n)}">
+        <span class="app-notification-icon">${icon(n.kind==='message'?'mail':'bell')}</span><div class="app-notification-content">
+        <button type="button" class="app-notification-open" data-notification-open="${E().esc(n.key)}" ${n.kind==='message'?`aria-expanded="${expanded===n.key}"`:''}><span>${E().esc(n.title)}</span>${!n.read?'<i class="app-notification-dot" aria-label="خوانده‌نشده"></i>':''}</button>
+        <div class="app-notification-meta"><span>${n.kind==='message'?E().esc(n.senderName||'مدیریت'):E().esc(alertSeverityNames[n.severity]||'هشدار سامانه')}</span>${date?`<time>${n.createdAt?'':'موعد: '}${E().esc(alertDate(date))}</time>`:''}</div>
+        ${needsAck?'<span class="app-notification-ack-label">نیازمند تأیید شما</span>':''}
+        ${expanded===n.key?`<div class="app-notification-detail"><p>${E().esc(n.body||'')}</p><div class="app-notification-detail-actions">${needsAck?`<button type="button" data-message-ack="${E().esc(n.key)}">${icon('check')}خواندم و متوجه شدم</button>`:n.acknowledgedAt?'<span>تأیید کرده‌اید</span>':''}${n.familyId?`<button type="button" data-inbox-family="${E().esc(n.key)}">مشاهده پرونده ←</button>`:''}</div></div>`:''}
+        ${!n.read?`<button type="button" class="app-notification-read" data-notification-read="${E().esc(n.key)}">علامت‌گذاری خوانده‌شده</button>`:''}</div></article>`;
+    };
+    const draw=()=>{
+      const visible=items.filter(n=>tab==='all'||tab==='unread'&&!n.read||tab==='messages'&&n.kind==='message'||tab==='alerts'&&n.kind==='alert').slice().sort((a,b)=>String(b.createdAt||b.dueAt||'').localeCompare(String(a.createdAt||a.dueAt||'')));
+      const groups=['امروز','دیروز','آینده','قدیمی‌تر','بدون تاریخ ثبت'].map(g=>({g,list:visible.filter(n=>dayBucket(n.createdAt||n.dueAt)===g)})).filter(g=>g.list.length);
+      panel.innerHTML=`<header class="app-notifications-title"><div>${icon('bell')}<h2>پیام‌ها و اعلان‌ها</h2>${unread?`<span>${E().esc(fa(unread))} جدید</span>`:''}</div><button type="button" data-notification-close aria-label="بستن اعلان‌ها">${icon('close')}</button></header>
+      <div class="app-notifications-tabs" role="group" aria-label="فیلتر صندوق">${[['all','همه'],['unread','نخوانده'],['messages','پیام‌ها'],['alerts','هشدارها']].map(([key,label])=>`<button type="button" data-notification-tab="${key}" aria-pressed="${tab===key}">${label}</button>`).join('')}</div>
+      ${failures.length?`<div class="app-notifications-error" role="status"><span>${failures.map(f=>E().esc(errorText(f.kind,f.error))).join('<br>')}</span><button type="button" data-retry aria-label="تلاش مجدد برای دریافت صندوق">${icon('retry')}</button></div>`:''}
+      <p class="app-notifications-status" role="status"></p><div class="app-notifications-list">${groups.length?groups.map(({g,list})=>`<h3>${g}</h3>${list.map(row).join('')}`).join(''):`<div class="app-notifications-empty">${icon(failures.length?'retry':'check')}<b>${failures.length?'دریافت صندوق کامل نشد':tab==='unread'?'همه را خوانده‌اید':'موردی برای نمایش نیست'}</b><p>${failures.length?'می‌توانید دوباره تلاش کنید.':'پیام‌ها و هشدارهای جدید اینجا نمایش داده می‌شوند.'}</p></div>`}</div>
+      <footer class="app-notifications-toolbar"><button type="button" data-read-all ${!items.some(n=>!n.read)?'disabled':''}>${icon('check')}${unread>items.filter(n=>!n.read).length?'خواندن موارد این صفحه':'خواندن همه'}</button><button type="button" data-notification-all>مرکز پیگیری ←</button></footer>`;
+      panel.querySelector('[data-notification-close]').onclick=()=>{close();document.querySelector('#notificationInboxBtn')?.focus();};panel.querySelector('[data-retry]')?.addEventListener('click',()=>{if(!busy)open();});
+      panel.querySelector('[data-notification-all]').onclick=()=>{close();openAlerts();};
+      panel.querySelectorAll('[data-notification-tab]').forEach(b=>b.onclick=()=>{if(busy)return;tab=b.dataset.notificationTab;draw();panel.querySelector(`[data-notification-tab="${tab}"]`)?.focus();});
+      const run=async action=>{
+        if(busy)return;busy=true;const status=panel.querySelector('.app-notifications-status');status.setAttribute('role','status');status.textContent='در حال ثبت…';panel.setAttribute('aria-busy','true');panel.querySelectorAll('button').forEach(b=>b.disabled=true);
+        try{await action();if(user===owner()&&panel.isConnected){busy=false;await refreshAlertBadge();if(user===owner()&&panel.isConnected)await open();}}
+        catch(error){if(user===owner()&&panel.isConnected){status.textContent='ثبت وضعیت انجام نشد؛ دوباره تلاش کنید.';status.setAttribute('role','alert');await refreshAlertBadge();if(panel.isConnected){busy=false;panel.querySelectorAll('button').forEach(b=>b.disabled=false);panel.setAttribute('aria-busy','false');}}}
+        finally{busy=false;}
+      };
+      const read=async n=>{if(user!==owner())throw Error('SESSION_CHANGED');await api(n.kind==='message'?'/api/messages/'+encodeURIComponent(n.id)+'/read':'/api/alerts/'+encodeURIComponent(n.key)+'/read',{method:'POST',body:'{}'});};
+      panel.querySelector('[data-read-all]').onclick=()=>run(async()=>{for(const n of items.filter(n=>!n.read))await read(n);});
+      panel.querySelectorAll('[data-notification-read]').forEach(b=>b.onclick=()=>run(()=>read(items.find(n=>n.key===b.dataset.notificationRead))));
+      panel.querySelectorAll('[data-message-ack]').forEach(b=>b.onclick=()=>run(async()=>{const n=items.find(n=>n.key===b.dataset.messageAck);if(user!==owner())throw Error('SESSION_CHANGED');await api('/api/messages/'+encodeURIComponent(n.id)+'/acknowledge',{method:'POST',body:'{}'});}));
+      panel.querySelectorAll('[data-inbox-family]').forEach(b=>b.onclick=()=>{const n=items.find(n=>n.key===b.dataset.inboxFamily);close();openFamilyRecord(n.familyId);});
+      panel.querySelectorAll('[data-notification-open]').forEach(b=>b.onclick=()=>{
+        if(busy)return;const n=items.find(n=>n.key===b.dataset.notificationOpen);
+        if(n.kind==='message'){expanded=expanded===n.key?null:n.key;draw();panel.querySelector(`[data-notification-open="${CSS.escape(n.key)}"]`)?.focus();position();}
+        else run(async()=>{if(!n.read)await read(n);close();if(n.familyId)openFamilyRecord(n.familyId);else openAlerts();await refreshAlertBadge();});
+      });position();
+    };draw();
+  }
+  document.addEventListener('click',e=>{const b=document.querySelector('#notificationInboxBtn'),p=current();if(e.target.closest('#logoutBtn')){close();b?.remove();session=null;tab='all';}else if(p&&!e.composedPath().some(n=>n?.id==='notificationInboxPanel')&&!e.composedPath().includes(b))close();});
+  document.addEventListener('keydown',e=>{const p=current();if(!p)return;if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();document.querySelector('#notificationInboxBtn')?.focus();}else if(e.key==='Tab'){const buttons=[...p.querySelectorAll('button:not(:disabled)')];if(!buttons.length)return;const index=buttons.indexOf(document.activeElement);if(e.shiftKey&&index<=0){e.preventDefault();buttons.at(-1).focus();}else if(!e.shiftKey&&(index<0||index===buttons.length-1)){e.preventDefault();buttons[0].focus();}}},true);
+  window.addEventListener('sessionexpired',()=>{close();document.querySelector('#notificationInboxBtn')?.remove();session=null;});
+  window.addEventListener('resize',position);window.addEventListener('scroll',position,true);
+  window.AppNotificationInbox=Object.freeze({update,open,close,dayBucket});
 })();
