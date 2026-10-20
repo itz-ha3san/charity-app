@@ -146,7 +146,8 @@
         if (!target) return;
         target.hidden = false;
         const toggle = target.previousElementSibling;
-        if(toggle?.classList.contains("simple-section-toggle")){toggle.setAttribute("aria-expanded","true");const icon=toggle.querySelector("i");if(icon)icon.textContent="−";}
+        if(toggle?.classList.contains("simple-section-toggle")){toggle.setAttribute("aria-expanded","true");const state=toggle.querySelector(".section-toggle-state");if(state)state.textContent="باز است";}
+        if(target.tagName==="DETAILS")target.open=true;
         const top =
           target.offsetTop -
           tabs.offsetHeight -
@@ -205,6 +206,8 @@
 
     const actions = head.querySelector(".detail-actions");
     if (actions) {
+      const priority=actions.querySelector(":scope > .status");
+      if(priority)status.append(priority);
       const primary =
         actions.querySelector("#editFamilyBtn") ||
         actions.querySelector("#profileUploadBtn");

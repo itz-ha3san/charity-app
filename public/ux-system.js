@@ -12,16 +12,7 @@ function sidebar(nav){if(!nav||nav.dataset.uiSidebar)return;nav.dataset.uiSideba
 /* ---------------- Family completeness ---------------- */
 function familyCompleteness(f,canonical){
   if(canonical)return canonical;
-  const required=[
-    ['caseNumber',Boolean(f?.caseNumber)],
-    ['familySurname',Boolean(f?.familySurname)],
-    ['headName',Boolean(f?.headName)],
-    ['headNationalId',Boolean(f?.headNationalId)],
-    ['headPhone',Boolean(f?.headPhone)],
-  ];
-  const missing=required.filter(([,ok])=>!ok).map(([key])=>key);
-  const completeFields=required.length-missing.length;
-  return {percent:required.length?Math.round(completeFields*100/required.length):100,completeFields,totalFields:required.length,requiredMissingFields:missing,missingFields:missing};
+  return {percent:null,completeFields:0,totalFields:0,requiredMissingFields:[],missingFields:[],pending:true};
 }
 
 function completeness(f){return familyCompleteness(f).percent}
@@ -30,26 +21,25 @@ function familyProgress(f,canonical){
   const detail=document.querySelector('#familyDetail');
   if(!detail)return;
   detail.querySelector('.ui-family-progress')?.remove();
+  if(f.profileRestricted)return;
   const info=familyCompleteness(f,canonical),pct=Math.max(0,Math.min(100,Number(info.percent)||0));
   const missing=(info.missingFields||[]).length;
   const missingLabels={caseNumber:'شماره پرونده',familySurname:'نام خانوادگی',headName:'نام فرد اصلی خانوار',headNationalId:'کد ملی فرد اصلی خانوار',headPhone:'شماره تماس فرد اصلی خانوار',address:'نشانی',headJob:'شغل فرد اصلی خانوار',headBirthDate:'تاریخ تولد فرد اصلی خانوار',headEducation:'تحصیلات فرد اصلی خانوار',familyPhone:'تلفن خانواده',housingCost:'ودیعه یا اجاره مسکن',members:'اعضای خانوار',notes:'توضیحات پرونده',familyNotes:'توضیحات پرونده',headCardNumber:'شماره کارت واریز ماهانه',insurance:'اطلاعات بیمه',medical:'وضعیت درمانی',incomeDescription:'شرح درآمد',debt:'بدهی و علت آن',transportationCost:'هزینه رفت‌وآمد',utilityCost:'هزینه قبوض',monthlyInstallments:'اقساط ماهانه',monthlyAid:'کمک ماهانه',sponsor:'حامی',nextFollowUp:'پیگیری بعدی',supervisor:'سرپرست ارتباط خانواده',supervisionPlan:'برنامه پیگیری'};
   const missingNames=(info.missingFields||[]).map((item)=>{const key=typeof item==='string'?item:(item?.key||item?.field);const value=typeof item==='string'?item:(item?.label||'');return missingLabels[key]||(/^[A-Za-z]/.test(value)?'اطلاعات ناقص':value)||'اطلاعات ناقص'});
   const box=document.createElement('section');
   box.className='ui-family-progress';
-  box.dataset.complete=String(pct===100);
-  box.innerHTML=`<div class="ui-family-progress-top"><div class="ui-family-progress-mark" aria-hidden="true">${pct===100?'✓':'!'}</div><div class="ui-family-progress-copy"><span class="ui-family-progress-kicker">وضعیت تکمیل پرونده</span><h3>${missing?'تکمیل اطلاعات الزامی':'پرونده کامل است'}</h3><p>${fa(info.completeFields||0)} از ${fa(info.totalFields||0)} فیلد ضروری تکمیل شده</p></div><strong class="ui-family-progress-percent">${fa(pct)}٪</strong></div><div data-family-bar></div>${missing?`<div class="ui-family-missing-preview"><span>موارد باقی‌مانده</span><div>${missingNames.slice(0,3).map(name=>`<span>${esc(name)}</span>`).join('')}${missing>3?`<span>+${fa(missing-3)} مورد دیگر</span>`:''}</div><button type="button" class="ui-family-progress-link" data-open-completeness>رفتن به تکمیل اطلاعات <span aria-hidden="true">←</span></button></div>`:'<span class="ui-family-progress-done">همهٔ فیلدهای اجباری تکمیل شده‌اند</span>'}`;
+  box.dataset.complete=String(!info.pending&&missing===0&&pct===100);
+  box.innerHTML=`<div class="ui-family-progress-top"><div class="ui-family-progress-mark" aria-hidden="true">${info.pending?'…':missing?'!':'✓'}</div><div class="ui-family-progress-copy"><span class="ui-family-progress-kicker">وضعیت تکمیل پرونده</span><h3>${info.pending?'در حال بررسی تکمیل پرونده':missing?'تکمیل اطلاعات پرونده':'پرونده کامل است'}</h3><p>${info.pending?'درصد پس از بررسی همهٔ موارد نمایش داده می‌شود.':`${fa(info.completeFields||0)} از ${fa(info.totalFields||0)} مورد تکمیل شده`}</p></div><strong class="ui-family-progress-percent">${info.pending?'—':fa(pct)+'٪'}</strong></div><div data-family-bar></div>${missing?`<div class="ui-family-missing-preview"><span>موارد باقی‌مانده</span><div>${missingNames.slice(0,3).map(name=>`<span>${esc(name)}</span>`).join('')}${missing>3?`<span>+${fa(missing-3)} مورد دیگر</span>`:''}</div><button type="button" class="ui-family-progress-link" data-open-completeness>رفتن به تکمیل اطلاعات <span aria-hidden="true">←</span></button></div>`:info.pending?'':'<span class="ui-family-progress-done">همهٔ موارد بررسی‌شده تکمیل شده‌اند</span>'}`;
   const head=detail.querySelector('.detail-head');
   head?.after(box);
   progress(box.querySelector('[data-family-bar]'),{value:pct,label:'',showValue:false,size:'sm'});
   box.querySelector('[data-open-completeness]')?.addEventListener('click',()=>{
     const section=detail.querySelector('#comprehensiveSection')||detail.querySelector('.full-profile');
     if(!section)return;
+    const toggle=section.previousElementSibling;
+    if(toggle?.classList.contains('simple-section-toggle')&&toggle.getAttribute('aria-expanded')!=='true')toggle.click();
+    else section.hidden=false;
     if(section.tagName==='DETAILS')section.open=true;
-    else{
-      const toggle=section.previousElementSibling;
-      if(toggle?.classList.contains('simple-section-toggle'))toggle.click();
-      else section.hidden=false;
-    }
     const destination=section.querySelector('.profile-integrated-missing')||section;
     requestAnimationFrame(()=>destination.scrollIntoView({behavior:'smooth',block:'start'}));
   });

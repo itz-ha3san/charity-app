@@ -77,24 +77,18 @@
   }
 
   function fieldTitle(path) {
-    const memberMatch = path.match(/^members\[(\d+)\]\.(.+)$/);
-    if (memberMatch)
-      return `عضو ${fa(Number(memberMatch[1]) + 1)} · ${fieldTitle(memberMatch[2])}`;
-
-    const nestedLabels = {
-      "insurance.type": "نوع بیمه",
-      "insurance.cost": "هزینه بیمه",
-      "insurance.renewalDate": "تاریخ تمدید بیمه",
-      "medical.hasCondition": "وضعیت بیماری",
-      "medical.description": "توضیحات درمانی",
-      "medical.monthlyCost": "هزینه ماهانه درمان",
-      "housing.leaseRenewalDate": "موعد تمدید اجاره",
-      "debt.amount": "مبلغ بدهی",
-      "debt.reason": "علت بدهی",
-    };
-    if (nestedLabels[path]) return nestedLabels[path];
-    const lastKey = path.split(".").pop().replace(/\[\d+\]/g, "");
-    return label(lastKey);
+    const nestedLabels={"insurance.type":"نوع بیمه","insurance.cost":"هزینه بیمه","insurance.renewalDate":"تاریخ تمدید بیمه","medical.hasCondition":"وضعیت بیماری","medical.description":"توضیحات درمانی","medical.monthlyCost":"هزینه ماهانه درمان","housing.leaseRenewalDate":"موعد تمدید اجاره","debt.amount":"مبلغ بدهی","debt.reason":"علت بدهی"};
+    const extra={headCardNumber:"شماره کارت واریز ماهانه",phone:"شماره تماس",cardNumber:"شماره کارت",iban:"شماره شبا",housingCost:"هزینه مسکن",rent:"اجاره",diagnosis:"تشخیص پزشکی",treatment:"درمان",medications:"داروها",schoolName:"نام مدرسه",grade:"پایه تحصیلی",profileData:"اطلاعات تکمیلی",employment:"وضعیت اشتغال",jobStatus:"وضعیت شغلی",disability:"وضعیت معلولیت",disabilityType:"نوع معلولیت"};
+    const clean=path.replace(/^profileData\./, "");
+    const member=clean.match(/^members\[(\d+)\](?:\.(.+))?$/);
+    if(member)return `عضو ${fa(Number(member[1])+1)}${member[2]?" · "+fieldTitle(member[2]):" · اطلاعات عضو"}`;
+    if(nestedLabels[clean])return nestedLabels[clean];
+    return clean.split(".").map(part=>{
+      const match=part.match(/^(.*)\[(\d+)\]$/),key=match?match[1]:part;
+      const known=extra[key]||label(key);
+      const title=known==='سایر اطلاعات'?`فیلد «${key}»`:known;
+      return title+(match?` · مورد ${fa(Number(match[2])+1)}`:"");
+    }).join(" · ");
   }
 
   function formatValue(value, path) {
@@ -191,7 +185,7 @@
       ? diffs
           .map(
             (change) => `<div class="approval-diff-row">
-              <strong class="approval-diff-label">${esc(fieldTitle(change.path))}</strong>
+              <div class="approval-diff-label"><small>فیلد تغییرکرده</small><strong>${esc(fieldTitle(change.path))}</strong></div>
               <div class="approval-diff-values">
                 <div class="approval-diff-value is-current"><small>اطلاعات فعلی</small>${renderValue(change.before, change.path)}</div>
                 <span class="approval-diff-arrow" aria-hidden="true">←</span>
@@ -213,7 +207,7 @@
         <span class="approval-change-count">${fa(diffs.length)} تغییر</span>
       </header>
       <section class="approval-diff-list" aria-label="مقایسه تغییرات پیشنهادی">
-        <div class="approval-diff-heading"><strong>تغییرات پیشنهادی</strong><span>فعلی ← مقدار درخواستی</span></div>
+        <div class="approval-diff-heading"><strong>تغییرات پیشنهادی</strong><span>نام فیلد · مقدار قبلی ← مقدار پیشنهادی</span></div>
         ${changes}
       </section>
       <footer class="approval-request-footer">

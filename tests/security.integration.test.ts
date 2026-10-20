@@ -591,3 +591,13 @@ test('message unread count spans the 100-item window and reads never acknowledge
  assert.equal((await request(recipient.cookie,{method:'POST',url:`/api/messages/${id}/acknowledge`,payload:{}})).statusCode,200);
  row=(await pool.query('SELECT acknowledged_at FROM liaison_message_recipients WHERE message_id=$1 AND recipient_id=$2',[id,recipient.id])).rows[0];assert.ok(row.acknowledged_at);
 });
+
+test('completion percentage uses the same required and optional fields as its remaining list',async()=>{
+ const familyId=await createFamily();
+ const response=await request(admin,{method:'GET',url:`/api/families/${familyId}/comprehensive`});
+ assert.equal(response.statusCode,200,response.body);const c=response.json().completeness;
+ assert.equal(c.requiredTotalFields,5);assert.equal(c.requiredCompleteFields,5);assert.equal(c.totalFields,25);
+ assert.equal(c.completeFields+c.missingFields.length,c.totalFields);
+ assert.equal(c.percent,Math.round(c.completeFields*100/c.totalFields));
+ assert.ok(c.missingFields.length>0);assert.ok(c.percent<100);
+});

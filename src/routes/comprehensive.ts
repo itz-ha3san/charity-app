@@ -48,10 +48,12 @@ const completeness=(f:any)=>{
   ];
   const requiredMissingFields=required.filter(x=>!x.present).map(x=>x.key);
   const optionalMissingFields=optional.filter(x=>!x.present).map(x=>x.key);
-  const completeFields=required.length-requiredMissingFields.length;
-  const totalFields=required.length;
+  const totalFields=required.length+optional.length;
+  const completeFields=totalFields-requiredMissingFields.length-optionalMissingFields.length;
   return{
     requiredFields:required.map(x=>x.key),
+    requiredCompleteFields:required.length-requiredMissingFields.length,
+    requiredTotalFields:required.length,
     requiredMissingFields,
     optionalMissingFields,
     missingFields:[...requiredMissingFields,...optionalMissingFields],

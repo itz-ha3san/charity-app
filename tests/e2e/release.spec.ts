@@ -35,7 +35,7 @@ test('sign in, create a family through the visible wizard, then read it back',as
 });
 test('assigned liaison records a follow-up through the real UI',async({page},info)=>{
  await login(page,'liaison');await openFamily(page);
- await page.locator('[data-simple-target=".followup-history"]').click();await page.locator('#newNoteBtn').click();
+ await page.locator('.simple-section-toggle').filter({hasText:'پیگیری‌ها و گزارش‌ها'}).click();await page.locator('#newNoteBtn').click();
  const text='پیگیری ساختگی کیفیت '+info.project.name;
  await page.locator('#noteForm [name="text"]').fill(text);
  const saved=page.waitForResponse(r=>r.url().endsWith(`/api/families/${fixture.familyId}/notes`)&&r.request().method()==='POST');
@@ -131,7 +131,7 @@ test.describe('modular shell offline safety',()=>{
   await login(page,'admin');
   // Development loopback intentionally unregisters workers; install explicitly for this focused worker test.
   await page.evaluate(async()=>{await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise<void>(resolve=>navigator.serviceWorker.addEventListener('controllerchange',()=>resolve(),{once:true}));await fetch('/api/families',{credentials:'include'})});
-  const paths=await page.evaluate(async()=>{const keys=await caches.keys();const key=keys.find(k=>k.startsWith('family-case-shell-v99-'));if(!key)return [];const cache=await caches.open(key);return (await cache.keys()).map(r=>new URL(r.url).pathname)});
+  const paths=await page.evaluate(async()=>{const keys=await caches.keys();const key=keys.find(k=>k.startsWith('family-case-shell-v100-'));if(!key)return [];const cache=await caches.open(key);return (await cache.keys()).map(r=>new URL(r.url).pathname)});
   expect(paths).toContain('/app/bootstrap.js');expect(paths).toContain('/app/base.css');expect(paths).toContain('/auth-v3.css');expect(paths).toContain('/app/financial-intelligence.css');
   expect(paths.some(p=>/^\/(api|auth)\//.test(p))).toBe(false);
   await context.setOffline(true);await page.goto('/');

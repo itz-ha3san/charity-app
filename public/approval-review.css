@@ -85,3 +85,10 @@
   .approval-request-actions button{width:100%;padding:7px 8px}
   .approval-decision-actions{display:grid;grid-template-columns:1fr 1fr}
 }
+/* Field identity stays explicit above every before/after comparison. */
+.approval-diff-row{grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 0}
+.approval-diff-label{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--text);overflow-wrap:anywhere}
+.approval-diff-label>small{font-size:12px;color:var(--muted);font-weight:400}
+.approval-diff-label>strong{font-size:14px;font-weight:700;color:var(--blue)}
+.approval-diff-value{font-size:14px;line-height:1.8}
+.approval-diff-value small{font-size:12px}

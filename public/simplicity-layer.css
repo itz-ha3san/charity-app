@@ -156,3 +156,54 @@
 .member-id-toggle:hover, .member-id-toggle[aria-pressed="true"] { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dark); }
 .member-id-toggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .member-id-toggle svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Compact identity header: one stable content column beside the avatar. */
+#familyDetail .family-record-head{display:grid;grid-template-columns:minmax(250px,1fr) minmax(0,1fr);align-items:start;gap:16px;padding:18px 20px;min-height:0}
+#familyDetail .family-record-identity{grid-template-columns:48px minmax(0,1fr);gap:3px 12px;min-width:0;align-items:start}
+#familyDetail .family-record-identity>:not(.family-record-avatar){grid-column:2;min-width:0}
+#familyDetail .family-record-avatar{grid-column:1;grid-row:1/6;width:48px;height:48px;align-self:start;box-shadow:none;border-radius:12px}
+#familyDetail .family-record-identity h2{font-size:24px;line-height:1.6;margin:0;overflow-wrap:anywhere}
+#familyDetail .family-record-identity>.eyebrow{font-size:12px;margin:0}
+#familyDetail .family-record-identity>.muted{font-size:14px}
+#familyDetail .family-record-status{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;margin:2px 0 0;align-items:center}
+#familyDetail .family-record-status span{white-space:nowrap;font-size:12px;font-weight:600}
+#familyDetail .family-record-status small{font-size:12px;white-space:nowrap}
+#familyDetail .family-record-head .detail-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;max-width:none;padding:0;margin:0}
+#familyDetail .family-record-head .detail-actions button{min-height:44px;padding:8px 12px;font-size:12px}
+#familyDetail .family-header-tags:empty{display:none}
+#familyDetail .family-record-identity .family-header-tags{margin:2px 0;gap:5px}
+
+/* One graphic language for all page-level disclosure headers, open and closed. */
+.simple-mode #familyDetail .simple-section-toggle{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:96px;margin:16px 0 0;padding:16px 20px;border:1px solid color-mix(in srgb,var(--blue) 32%,var(--border));border-radius:14px;background:linear-gradient(110deg,var(--surface) 35%,color-mix(in srgb,var(--blue) 10%,var(--surface)));color:var(--text);box-shadow:none;text-align:start}
+.simple-mode #familyDetail .simple-section-toggle:hover{border-color:var(--blue);background:linear-gradient(110deg,var(--surface) 20%,color-mix(in srgb,var(--blue) 15%,var(--surface)))}
+.simple-mode #familyDetail .simple-section-toggle[aria-expanded=true]{border-color:color-mix(in srgb,var(--blue) 55%,var(--border));border-radius:14px 14px 0 0;background:linear-gradient(110deg,var(--surface),color-mix(in srgb,var(--blue) 14%,var(--surface)))}
+.simple-mode #familyDetail .simple-section-toggle>.section-toggle-copy{display:flex;flex-direction:row;align-items:center;gap:14px;min-width:0}
+.section-toggle-glyph{display:grid;place-items:center;width:48px;height:48px;flex:0 0 48px;border:1px solid color-mix(in srgb,var(--blue) 36%,var(--border));border-radius:14px;background:var(--surface);color:var(--blue)}
+.section-toggle-glyph svg{width:24px;height:24px;stroke-linecap:round;stroke-linejoin:round}
+.simple-mode #familyDetail .section-toggle-text{display:grid;gap:2px;min-width:0}
+.simple-mode #familyDetail .section-toggle-text small{margin:0;color:var(--blue);font-size:12px;font-weight:600}
+.simple-mode #familyDetail .section-toggle-text b{font-size:16px;line-height:1.65;font-weight:700}
+.simple-mode #familyDetail .section-toggle-text>span{font-size:12px;font-weight:400;line-height:1.8;color:var(--muted)}
+.simple-mode #familyDetail .simple-section-toggle>.section-toggle-meta{display:flex;flex-direction:row;align-items:center;gap:8px;flex:none}
+.section-toggle-count,.section-toggle-state{border:1px solid var(--border);border-radius:999px;padding:4px 9px;white-space:nowrap;color:var(--muted);background:var(--surface);font-size:12px;font-weight:500}
+.simple-mode #familyDetail .section-toggle-meta i{display:grid;place-items:center;width:32px;height:32px;flex:0 0 32px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--muted)}
+.section-toggle-meta i svg{width:18px;height:18px;transition:transform .16s ease}
+[aria-expanded=true] .section-toggle-meta i svg{transform:rotate(180deg)}
+.simple-mode #familyDetail .family-section-body{margin:0;padding:16px;border:1px solid color-mix(in srgb,var(--blue) 35%,var(--border));border-top:0;border-radius:0 0 14px 14px;background:var(--surface)}
+#familyDetail .family-section-body>.full-profile-hero{display:none}
+.simple-mode #familyDetail .family-section-body>.finance-head,.simple-mode #familyDetail .family-section-body>.detail-section-title{margin-top:0}
+@media(max-width:700px){
+ #familyDetail .family-record-head{grid-template-columns:minmax(0,1fr);padding:16px;gap:12px}
+ #familyDetail .family-record-identity{grid-template-columns:44px minmax(0,1fr);gap:3px 10px}
+ #familyDetail .family-record-avatar{width:44px;height:44px}
+ #familyDetail .family-record-identity h2{font-size:21px}
+ #familyDetail .family-record-head .detail-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));justify-content:flex-start;padding-top:12px;border-top:1px solid var(--border)}
+ #familyDetail .family-record-head .detail-actions button{width:100%;padding-inline:8px}
+ .simple-mode #familyDetail .simple-section-toggle{gap:8px;padding:12px;min-height:88px}
+ .simple-mode #familyDetail .simple-section-toggle>.section-toggle-copy{gap:10px}
+ .section-toggle-glyph{width:40px;height:40px;flex-basis:40px;border-radius:12px}
+ .simple-mode #familyDetail .section-toggle-text b{font-size:15px}
+ .simple-mode #familyDetail .section-toggle-meta{gap:5px}
+ .simple-mode #familyDetail .section-toggle-state{display:none}
+ .simple-mode #familyDetail .family-section-body{padding:12px}
+}

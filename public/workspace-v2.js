@@ -172,17 +172,6 @@
           <p>اولویت‌های امروز و پیگیری خانواده‌ها، یک‌جا</p>
         </div>
       </div>
-      <section class="workspace-notices" aria-labelledby="workspaceNoticesTitle">
-        <header class="workspace-notices-head">
-          <div><span class="workspace-card-kicker">برای شروع کار</span><h3 id="workspaceNoticesTitle">موارد مهم</h3></div>
-          <div class="workspace-notice-tools">
-            <button type="button" data-workspace-action="alertsBtn">همه هشدارها</button>
-          </div>
-        </header>
-        <div class="workspace-notice-list" data-notice-list>
-          <div class="workspace-loading"><i></i><span>در حال بررسی هشدارها…</span></div>
-        </div>
-      </section>
       <div class="workspace-metrics-heading"><b>خلاصه وضعیت</b></div>
       <div class="workspace-metrics" aria-label="خلاصه وضعیت">
         <button class="workspace-metric" data-tone="blue" data-workspace-action="activeFamiliesBtn"><span class="workspace-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg></span><span class="workspace-metric-copy"><small>پرونده‌های فعال</small><strong data-metric="active">—</strong><span class="workspace-metric-caption">خانوارهای در جریان رسیدگی</span></span></button>
@@ -216,7 +205,7 @@
     if (action === "attentionItemsBtn") return window.openAttentionItems?.();
     if (action === "messagesBtn") return window.AppNotificationInbox?.open();
     if (action === "overdueBtn" && typeof openOverdue === "function") return openOverdue();
-    if (action === "alertsBtn" && typeof openAlerts === "function") return openAlerts("", true);
+    if (action === "alertsBtn" && typeof openAlerts === "function") return openAlerts();
     target?.click();
   }
 
@@ -227,49 +216,6 @@
     });
     if (!response.ok) throw new Error(String(response.status));
     return response.json();
-  }
-
-  const severityNames = { critical: "بحرانی", urgent: "فوری", important: "مهم" };
-  const severityRank = { critical: 0, urgent: 1, important: 2 };
-  function faDate(value) {
-    if (!value) return "";
-    const date = new Date(value);
-    return Number.isNaN(date.getTime())
-      ? ""
-      : new Intl.DateTimeFormat("fa-IR-u-ca-persian", { dateStyle: "medium" }).format(date);
-  }
-  function noticeCard(item) {
-    const tone = item.severity || "important";
-    const familyName = item.headName ? `${item.headName}${item.caseNumber ? ` · پرونده ${item.caseNumber}` : ""}` : "";
-    const date = item.dueAt || item.createdAt;
-    const action = item.familyId
-      ? `<button type="button" class="workspace-notice-action" data-open-notice-family="${escapeHtml(item.familyId)}" data-notice-section="${item.type === "weekly_revision_requested" ? "#supervisionSection" : ""}" data-alert-key="${escapeHtml(item.key)}">بازکردن پرونده</button>`
-      : `<button type="button" class="workspace-notice-action" data-open-alert-center>مرکز هشدارها</button>`;
-    return `<article class="workspace-notice-card" data-tone="${escapeHtml(tone)}">
-      <span class="workspace-notice-mark" aria-hidden="true">!</span>
-      <div class="workspace-notice-copy">
-        <div class="workspace-notice-meta"><span>${escapeHtml(item.title || "هشدار سامانه")}</span><b>${severityNames[tone] || "مهم"}</b>${date ? `<time>${faDate(date)}</time>` : ""}</div>
-        <p>${escapeHtml(item.message || "")}</p>
-        ${familyName ? `<small class="workspace-notice-family">${escapeHtml(familyName)}</small>` : ""}
-      </div>
-      <div class="workspace-notice-actions">${action}</div>
-    </article>`;
-  }
-  function bindNoticeActions(root) {
-    root.querySelectorAll("[data-open-notice-family]").forEach((button) => {
-      button.onclick = async () => {
-        const alertKey = button.dataset.alertKey;
-        if (alertKey) {
-          try { await window.api(`/api/alerts/${encodeURIComponent(alertKey)}/read`, { method: "POST", body: "{}" }); } catch {}
-        }
-        const id = button.dataset.openNoticeFamily;
-        if (root.closest("#modalRoot")) window.closeModal?.();
-        window.openFamilyRecord?.(id);
-        const section = button.dataset.noticeSection;
-        if (section) setTimeout(() => document.querySelector(section)?.scrollIntoView({ behavior: "smooth", block: "start" }), 750);
-      };
-    });
-    root.querySelectorAll("[data-open-alert-center]").forEach((button) => button.onclick = () => window.openAlerts?.());
   }
 
   function priorityRow(tone, value, title, description, action) {
@@ -320,13 +266,6 @@
       const node = root.querySelector(`[data-metric="${key}"]`);
       if (node) node.textContent = value === undefined ? "—" : fa(value);
     });
-    const systemAlerts = alertData.alerts || [];
-    const notices = root.querySelector("[data-notice-list]");
-    notices.innerHTML = systemAlerts.slice(0, 2).map((item) => noticeCard(item)).join("") ||
-      (alerts.status === "rejected"
-        ? '<div class="workspace-notice-empty"><b>هشدارها دریافت نشدند</b><small>از زنگولهٔ بالا دوباره تلاش کنید.</small></div>'
-        : '<div class="workspace-notice-empty"><span class="workspace-notice-clear">✓</span><div><b>هشدار خوانده‌نشده‌ای ندارید</b><small>پیام‌های مدیریتی در زنگولهٔ بالای صفحه قرار دارند.</small></div></div>');
-    bindNoticeActions(notices, loadOverview);
     const rows = [
       priorityRow(
         "red",
