@@ -30,3 +30,16 @@ test('server rejects invalid new bank/address data while preserving unchanged le
  assert.doesNotThrow(()=>validateEnhancedFamily({...base,headCardNumber:'6037990000000000'},{headCardNumber:'6037990000000000'}));
  assert.throws(()=>validateEnhancedFamily({...base,headCardNumber:'6037990000000010'},{headCardNumber:'6037990000000000'}));
 });
+test('contact fields accept Persian/Arabic digits, country prefixes and preserve unexpected input',()=>{
+ assert.equal(R.normalizePhone('+۹۸ ۹۱۲ ۳۴۵ ۶۷۸۹'),'09123456789');
+ assert.equal(R.normalizePhone('0098 912 345 6789'),'09123456789');
+ assert.equal(R.normalizePhone('(021) 1234-5678'),'02112345678');
+ assert.equal(R.mobile('٠٩١٢٣٤٥٦٧٨٩'),true);assert.equal(R.mobile('02112345678'),false);
+ assert.equal(R.phone('02112345678'),true);assert.equal(R.phone('09123456789'),true);
+ for(const bad of ['091234567890','abc09123456789','+9809123456789','12345678901'])assert.equal(R.phone(bad),false);
+ assert.equal(R.normalizePhone('0912abc3456'),'0912abc3456');
+ assert.equal(R.group('09123456789','mobile'),'0912 345 6789');
+ assert.equal(R.group('02112345678','phone'),'021 1234 5678');
+ assert.equal(R.group('0012345678','national'),'001-234567-8');
+ assert.equal(R.group('6037990000000006','card'),'6037 9900 0000 0006');
+});

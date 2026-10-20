@@ -78,7 +78,7 @@
     }
     const id = `${control.name}-${Math.random().toString(36).slice(2, 8)}-help`;
     message.id ||= id;
-    control.setAttribute("aria-describedby", message.id);
+    control.setAttribute("aria-describedby", [...new Set([...(control.getAttribute("aria-describedby") || "").split(/\s+/), message.id].filter(Boolean))].join(" "));
     return message;
   }
 
@@ -192,7 +192,7 @@
       ) {
         control.inputMode = control.name.includes("Phone") ? "tel" : "numeric";
         control.addEventListener("input", () => {
-          if (["headNationalId","memberNationalId","headCardNumber"].includes(control.name)) return;
+          if (control.dataset.persianKind || ["headNationalId","memberNationalId","headCardNumber"].includes(control.name)) return;
           const limit = 11;
           const normalized = onlyDigits(control.value).slice(0, limit);
           control.value =
@@ -660,7 +660,6 @@
   function reviewValue(form, name, fallback = "ثبت نشده") {
     const control = form.elements.namedItem(name);
     if (!control || Array.isArray(control)) return fallback;
-    if(control.dataset.persianKind){const valid=window.EnhancedUI.validateField(control,{show:!quiet});if(valid&&control.dataset.persianKind==="national")validateUniqueNationalIds(form);return valid;}
     const value = String(control.value || "").trim();
     if (!value) return fallback;
     if (control.tagName === "SELECT")

@@ -100,3 +100,13 @@ npm run db:restore -- /secure-backups/pre-release.dump.enc
 - درصد تکمیل از همان ۲۵ موردی محاسبه می‌شود که فهرست موارد باقی‌مانده بر پایه آن است (۵ اجباری و ۲۰ تکمیلی). فیلدهای تکمیلی به شرط ثبت پرونده تبدیل نشده‌اند؛ کامل‌بودن اجباری‌ها دیگر به‌تنهایی ۱۰۰٪ نیست. تا رسیدن پاسخ مرجع سرور، درصد موقت نمایش داده نمی‌شود. نقش‌های دارای نمای محدود نیز نشانگر تکمیل اطلاعات خصوصی ندارند.
 - در کارتابل، عنوان مشخص فیلد بالای مقادیر فعلی و پیشنهادی آمده است؛ فیلدهای تو در تو و شماره عضو، زمینه تغییر را حفظ می‌کنند. ماسک اطلاعات حساس و تصمیم‌گیری تأیید/رد به قوت خود باقی است.
 - نسخه کش پوسته `v101-family-workspace` است. Playwright مسیرهای هشدار یکپارچه، تطابق درصد و فهرست، باز/بسته‌شدن هر شش بخش و عنوان تغییر در کارتابل را در دسکتاپ و موبایل پوشش می‌دهد. آزمون امنیتی مجزا، محاسبه درصد با اجباری‌های کامل و تکمیلی‌های ناقص را کنترل می‌کند.
+
+### Persian contact and banking fields (Vibe-Farsi treatment)
+- Applied the supplied component behavior to the existing vanilla frontend, without adding React: phone/mobile, national ID, card number and IBAN share a single outlined input surface, field icon, inline validity mark and accessible hint.
+- Formatting is live, supports Persian/Arabic/Latin digits and preserves leading zeros. National IDs use 3–6–1 grouping, cards groups of four, and IBAN has one fixed IR prefix. Optional empty IBAN stays empty.
+- Iranian +98/0098 phone pastes normalize to a local leading zero. Mobile fields require 09; general phone fields accept landline with area code or mobile. Grouped values serialize as raw Latin strings through FormData, including supervisor/donor/support forms.
+- Overflow and unexpected letters are retained for correction, not truncated or silently removed. Backspace/Delete around separators, partial input, optional/required and dynamically mounted fields have browser regression coverage.
+- Checksums and bank detection are structural only, not confirmation of identity, account ownership or phone ownership. Existing unchanged invalid banking values retain the legacy review path.
+- Shell cache bumped to v102 so existing installations receive the new field behavior.
+- The creation wizard delegates structured-field formatting to the shared component (no old 11-character truncation), and its final review displays the formatted phone value without running validation-only code.
+- Generic supervisor/support phone and national-ID fields bypass the old delegated digit converter; leading-zero values keep Persian display and canonical Latin serialization. Long structured fields span the full mobile editor row.

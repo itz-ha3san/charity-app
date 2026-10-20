@@ -82,7 +82,7 @@ if ('serviceWorker' in navigator)
     else
         navigator.serviceWorker.register('/sw.js').catch(() => { }); });
 
-document.addEventListener('input', e => { const el = e.target; if (!(el instanceof HTMLInputElement) || el.closest('#createFamilyForm'))
+document.addEventListener('input', e => { const el = e.target; if (!(el instanceof HTMLInputElement) || el.dataset.persianKind || el.closest('#createFamilyForm'))
     return; if (['phone', 'nationalId'].includes(el.name)) {
     const next = el.value.replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
     if (el.value !== next)
