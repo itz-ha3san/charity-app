@@ -28,7 +28,8 @@ function load(file) {
   cache.set(file, module);
   const src = fs
     .readFileSync(file, "utf8")
-    .replace("const require=createRequire(import.meta.url);", "");
+    .replace("const require=createRequire(import.meta.url);", "")
+    .replaceAll("import.meta.url", JSON.stringify(require("node:url").pathToFileURL(file).href));
   const result = ts.transpileModule(src, {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,

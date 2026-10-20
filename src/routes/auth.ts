@@ -10,6 +10,7 @@ import {
 } from "../auth.js";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { config } from "../config.js";
+import { captchaStore, captchaImages } from "../captcha.js";
 import { securityEvent } from "../security.js";
 const login = z.object({
     username: z.string().trim().min(3).max(64),
@@ -45,15 +46,29 @@ function secretOk(v?: string) {
 }
 // Test-only hook so deliberate login failures in one test cannot rate-limit later tests.
 export const __resetLoginAttempts = () => {
-  if (config.NODE_ENV === "test") attempts.clear();
+  if (config.NODE_ENV === "test") { attempts.clear(); captchaStore.reset(); }
 };
 export async function registerAuthRoutes(app: FastifyInstance) {
-  app.get("/auth/status", async () => {
+  app.get("/auth/captcha", async (req,reply) => {
+    if(blocked(req.ip))return reply.code(429).send({error:"RATE_LIMITED"});
+    const challenge=captchaStore.issue(req.ip,req.cookies.captcha);
+    if(!challenge)return reply.code(429).send({error:"RATE_LIMITED"});
+    reply.setCookie("captcha",challenge.token,{httpOnly:true,secure:config.COOKIE_SECURE,sameSite:"strict",path:"/auth",maxAge:120});
+    return captchaImages(challenge.x);
+  });
+  app.post("/auth/captcha/verify",async(req,reply)=>{
+    if(blocked(req.ip))return reply.code(429).send({error:"RATE_LIMITED"});
+    const b=z.object({position:z.number().finite().min(0).max(280)}).parse(req.body);
+    if(!captchaStore.verify(req.cookies.captcha,req.ip,b.position)){fail(req.ip);return reply.code(400).send({error:"CAPTCHA_INVALID",captchaRequired:true});}
+    return {ok:true};
+  });
+  app.get("/auth/status", async (req) => {
     const q = await pool.query(
       "SELECT EXISTS(SELECT 1 FROM users) bootstrapped",
     );
     return {
       bootstrapped: Boolean(q.rows[0].bootstrapped),
+      captchaRequired: (attempts.get(req.ip)?.n||0)>=2,
       bootstrapSecretRequired: Boolean(config.BOOTSTRAP_SECRET),
     };
   });
@@ -97,6 +112,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
   });
   app.post("/auth/login", async (req, reply) => {
     if (blocked(req.ip)) return reply.code(429).send({ error: "RATE_LIMITED" });
+    if((attempts.get(req.ip)?.n||0)>=2&&!captchaStore.consume(req.cookies.captcha,req.ip)){fail(req.ip);return reply.code(400).send({error:"CAPTCHA_REQUIRED",captchaRequired:true});}
     const b = login.parse(req.body),
       username = b.username.toLowerCase(),
       q = await pool.query("SELECT * FROM users WHERE username=$1", [username]);
@@ -109,7 +125,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
         q.rows[0]?.id ?? null,
         username,
       );
-      return reply.code(401).send({ error: "INVALID_CREDENTIALS" });
+      return reply.code(401).send({ error: "INVALID_CREDENTIALS", captchaRequired:(attempts.get(req.ip)?.n||0)>=2 });
     }
     const u = q.rows[0];
     if (u.locked_until && new Date(u.locked_until) > new Date()) {
@@ -139,7 +155,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
         username,
         r.rows[0].locked_until ? "critical" : "warning",
       );
-      return reply.code(401).send({ error: "INVALID_CREDENTIALS" });
+      return reply.code(401).send({ error: "INVALID_CREDENTIALS", captchaRequired:(attempts.get(req.ip)?.n||0)>=2 });
     }
     attempts.delete(req.ip);
     await pool.query(

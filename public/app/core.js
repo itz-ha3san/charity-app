@@ -39,6 +39,7 @@ async function init() { const bootTimeout = new Promise((_, reject) => setTimeou
     }
     catch (e) {
         showAuth(true);
+        if(status.captchaRequired)window.LoginCaptcha.require();
         if (e?.message === 'BOOT_TIMEOUT')
             message($('#loginForm'), 'پاسخ سامانه طول کشید. لطفاً دوباره تلاش کنید.');
     }

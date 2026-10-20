@@ -38,8 +38,8 @@ else {
     body.educationIssue = prompt('مشکل آموزشی:', c.educationIssue || '') || '';
     body.supportPlan = prompt('برنامه حمایتی:', c.supportPlan || '') || '';
     body.progressEvaluation = prompt('ارزیابی پیشرفت:', c.progressEvaluation || '') || '';
-} body.result = prompt('نتیجه فعلی:', c.result || '') || ''; const estimated = prompt('هزینه تخمینی:', c.estimatedCost || ''); if (estimated !== '')
-    body.estimatedCost = Number(estimated); const actual = prompt('هزینه واقعی:', c.actualCost || ''); if (actual !== '')
+} body.result = prompt('نتیجه فعلی:', c.result || '') || ''; const estimated = await AppUI.promptMoney({title:'هزینه تخمینی',value:c.estimatedCost ?? '',required:false}); if(estimated===null)return; if (estimated !== '')
+    body.estimatedCost = Number(estimated); const actual = await AppUI.promptMoney({title:'هزینه واقعی',value:c.actualCost ?? '',required:false}); if(actual===null)return; if (actual !== '')
     body.actualCost = Number(actual); await api('/api/specialist-cases/' + c.id, { method: 'PATCH', body: JSON.stringify(body) }); toast('اطلاعات تخصصی ذخیره شد.'); loadSpecialistCases(f); }
 
 async function nextSpecialistStatus(f, id, domain, status) { const flow = domain === 'health' ? healthFlow : educationFlow, i = flow.indexOf(status), to = flow[i + 1]; if (!to)

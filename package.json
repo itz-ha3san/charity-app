@@ -23,7 +23,7 @@
     "build": "node scripts/build.mjs",
     "start:compiled": "node dist/server.js",
     "migrate:compiled": "node dist/migrate.js",
-    "test:unit": "npm run test:regressions && npm run test:local-fixes && npm run test:security && node --test tests/release.test.cjs && tsx --test tests/architecture.test.ts && node --test tests/frontend.test.cjs && tsx --test tests/financial-analytics.test.ts && node --test tests/financial-visuals.test.cjs && tsx --test tests/persian-fields.test.ts",
+    "test:unit": "npm run test:regressions && npm run test:local-fixes && npm run test:security && node --test tests/release.test.cjs && tsx --test tests/architecture.test.ts && node --test tests/frontend.test.cjs && tsx --test tests/financial-analytics.test.ts && node --test tests/financial-visuals.test.cjs && tsx --test tests/persian-fields.test.ts && tsx --test tests/captcha.test.ts",
     "test:browser": "playwright test",
     "test:recovery": "node scripts/recovery-drill.mjs",
     "seed:test": "node scripts/seed-test.mjs",
@@ -37,6 +37,7 @@
     "argon2": "^0.41.1",
     "fastify": "^5.2.1",
     "pg": "^8.13.1",
+    "pngjs": "^7.0.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -44,6 +45,7 @@
     "@testcontainers/postgresql": "12.1.0",
     "@types/node": "^22.10.0",
     "@types/pg": "^8.11.11",
+    "@types/pngjs": "^6.0.5",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3"
   },

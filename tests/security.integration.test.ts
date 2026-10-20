@@ -601,3 +601,18 @@ test('completion percentage uses the same required and optional fields as its re
  assert.equal(c.percent,Math.round(c.completeFields*100/c.totalFields));
  assert.ok(c.missingFields.length>0);assert.ok(c.percent<100);
 });
+
+test('adaptive login CAPTCHA requires a verified, HTTP-only one-use proof',async()=>{
+ const {__resetLoginAttempts}=await import('../src/routes/auth.js');const {PNG}=await import('pngjs');__resetLoginAttempts();
+ try{
+  for(let i=0;i<2;i++){const r=await app.inject({method:'POST',url:'/auth/login',payload:{username:'nonexistent_captcha',password}});assert.equal(r.statusCode,401);assert.equal(r.json().captchaRequired,i===1);}
+  const missing=await app.inject({method:'POST',url:'/auth/login',payload:{username:'security_admin',password}});assert.equal(missing.json().error,'CAPTCHA_REQUIRED');
+  const issued=await app.inject({url:'/auth/captcha'});assert.equal(issued.statusCode,200);assert.match(String(issued.headers['set-cookie']),/HttpOnly/);assert.match(String(issued.headers['cache-control']),/no-store/);
+  const data=issued.json();assert.equal('x' in data,false);assert.equal('token' in data,false);const cookie=String(issued.headers['set-cookie']).split(';')[0]!;
+  const png=PNG.sync.read(Buffer.from(data.background.split(',')[1],'base64'));let x=-1;for(let i=0;i<png.width;i++){const j=(70*png.width+i)*4;if(png.data[j]===76&&png.data[j+1]===102&&png.data[j+2]===126){x=i-2;break;}}assert.ok(x>=80);
+  assert.equal((await request(cookie,{method:'POST',url:'/auth/captcha/verify',payload:{position:0}})).statusCode,400);
+  assert.equal((await request(cookie,{method:'POST',url:'/auth/captcha/verify',payload:{position:x}})).statusCode,200);
+  assert.equal((await request(cookie,{method:'POST',url:'/auth/login',payload:{username:'security_admin',password}})).statusCode,200);
+  assert.equal((await request(cookie,{method:'POST',url:'/auth/captcha/verify',payload:{position:x}})).statusCode,400);
+ }finally{__resetLoginAttempts();}
+});

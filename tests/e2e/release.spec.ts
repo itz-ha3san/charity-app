@@ -53,7 +53,7 @@ test('review and approval in UI, then a separate finance user pays exactly once'
  page.on('dialog',dialog=>dialog.accept(dialog.message().includes('مبلغ')?'100':'تأیید آزمایشی'));
  for(const action of ['review','approve','queue_payment']){
   const transition=page.waitForResponse(r=>r.url().endsWith(`/api/financial-cases/${id}/transition`));
-  await page.locator(`[data-id="${id}"][data-action="${action}"]`).click();expect((await transition).status()).toBe(200);
+  await page.locator(`[data-id="${id}"][data-action="${action}"]`).click();if(action==='approve'){await page.locator('.app-money-drawer [name=amount]').fill('۱۰۰');await page.locator('.app-money-drawer button[type=submit]').click();}expect((await transition).status()).toBe(200);
  }
  await page.locator('#logoutBtn').click();await login(page,'finance_officer');await openFamily(page);
  await page.locator('[data-family-tab="financeSection"]').click();await page.locator(`[data-pay="${id}"]`).click();
@@ -131,7 +131,7 @@ test.describe('modular shell offline safety',()=>{
   await login(page,'admin');
   // Development loopback intentionally unregisters workers; install explicitly for this focused worker test.
   await page.evaluate(async()=>{await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise<void>(resolve=>navigator.serviceWorker.addEventListener('controllerchange',()=>resolve(),{once:true}));await fetch('/api/families',{credentials:'include'})});
-  const paths=await page.evaluate(async()=>{const keys=await caches.keys();const key=keys.find(k=>k.startsWith('family-case-shell-v102-'));if(!key)return [];const cache=await caches.open(key);return (await cache.keys()).map(r=>new URL(r.url).pathname)});
+  const paths=await page.evaluate(async()=>{const keys=await caches.keys();const key=keys.find(k=>k.startsWith('family-case-shell-v103-'));if(!key)return [];const cache=await caches.open(key);return (await cache.keys()).map(r=>new URL(r.url).pathname)});
   expect(paths).toContain('/app/bootstrap.js');expect(paths).toContain('/app/base.css');expect(paths).toContain('/auth-v3.css');expect(paths).toContain('/app/financial-intelligence.css');
   expect(paths.some(p=>/^\/(api|auth)\//.test(p))).toBe(false);
   await context.setOffline(true);await page.goto('/');

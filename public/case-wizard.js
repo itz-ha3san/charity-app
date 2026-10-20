@@ -122,6 +122,7 @@
   }
 
   function validateControl(control, form, { quiet = false } = {}) {
+    if(control.dataset.money)return window.EnhancedUI.validateMoney(control,{show:!quiet});
     if(control.dataset.persianKind){const valid=window.EnhancedUI.validateField(control,{show:!quiet});if(valid&&control.dataset.persianKind==="national")validateUniqueNationalIds(form);return valid;}
     const value = String(control.value || "").trim();
     let message = "";
@@ -212,22 +213,7 @@
         });
       }
 
-      if (["housingDeposit", "housingRent"].includes(control.name)) {
-        control.type = "text";
-        control.inputMode = "numeric";
-        control.autocomplete = "off";
-        control.addEventListener("focus", () => {
-          control.value = onlyDigits(control.value);
-        });
-        control.addEventListener("input", () => {
-          control.value = onlyDigits(control.value).slice(0, 15);
-        });
-        control.addEventListener("blur", () => {
-          control.value = formatMoney(control.value);
-          validateControl(control, form);
-        });
-        if (control.value) control.value = formatMoney(control.value);
-      }
+
 
       control.addEventListener("blur", () => validateControl(control, form));
       control.addEventListener("change", () => validateControl(control, form));
@@ -259,7 +245,7 @@
       "housingRent",
     ].forEach((name) => {
       const control = form.elements.namedItem(name);
-      if (!control || control instanceof RadioNodeList) return;
+      if (!control || control instanceof RadioNodeList || control.dataset.money) return;
       if (["housingDeposit", "housingRent"].includes(name))
         control.value = onlyDigits(control.value) || "0";
       else if (name === "headBirthDate")

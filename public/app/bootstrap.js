@@ -15,16 +15,19 @@ document.addEventListener('click', event => { const target = event.target.closes
 
 window.addEventListener('sessionexpired', () => { actor = null; selectedId = null; $('#loginPassword').value = ''; showAuth(true); message($('#loginForm'), 'نشست شما منقضی شده است؛ دوباره وارد شوید.', 'error'); });
 
-$('#loginForm').addEventListener('submit', async (e) => { e.preventDefault(); const form = e.currentTarget; busy(form, true); message(form, 'در حال بررسی…', ''); try {
+$('#loginForm').addEventListener('submit', async (e) => { e.preventDefault(); const form = e.currentTarget; if(!window.LoginCaptcha.canSubmit())return; busy(form, true); message(form, 'در حال بررسی…', ''); let needsCaptcha=false; try {
     await api('/auth/login', { method: 'POST', body: JSON.stringify({ username: $('#loginUsername').value.trim(), password: $('#loginPassword').value }) });
+    window.LoginCaptcha.reset();
     const me = await api('/auth/me');
     showDashboard(me.user);
 }
 catch (err) {
     message(form, err.message);
+    needsCaptcha=!!err.data?.captchaRequired;
 }
 finally {
     busy(form, false);
+    if(needsCaptcha)await window.LoginCaptcha.require();
 } });
 
 $('#bootstrapForm').addEventListener('submit', async (e) => { e.preventDefault(); const form = e.currentTarget, p = $('#bootstrapPassword').value; if (p !== $('#bootstrapPassword2').value)

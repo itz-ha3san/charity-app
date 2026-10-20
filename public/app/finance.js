@@ -139,7 +139,7 @@ async function transitionFinancial(f, id, action) { let reason, approvedAmount; 
     if (!reason || reason.trim().length < 3)
         return;
 } if (action === 'approve') {
-    approvedAmount = prompt('مبلغ مورد تأیید را وارد کنید:');
+    approvedAmount = await AppUI.promptMoney({title:'مبلغ مورد تأیید',min:'1'});
     if (!approvedAmount || Number(approvedAmount) <= 0)
         return;
 } try {
@@ -174,5 +174,5 @@ async function openPaymentForm(f, item) { const n = jalaliNow(), y = item.jalali
 }
 
 async function openFunds() { const n = jalaliNow(), d = await api(`/api/funds?jalaliYear=${n.year}&jalaliMonth=${n.month}`); AppUI.mountModal(`<div class="modal-backdrop"><div class="modal audit-modal"><div class="modal-head"><div><div class="eyebrow">دوره ${fa(n.year)}/${fa(n.month)}</div><h2>صندوق‌ها و بودجه</h2></div><button class="close-btn" data-close>×</button></div>${actor?.role === 'admin' ? '<button id="newFundBtn" class="primary">صندوق جدید</button>' : ''}<div class="fund-grid">${d.funds.map(x => `<article class="fund-card"><h4>${esc(x.name)} ${x.active ? '' : '(غیرفعال)'}</h4><p>${esc(x.description || '')}</p><div class="budget-row"><span>بودجه</span><b>${money(x.budget)}</b></div><div class="budget-row"><span>پرداخت</span><b>${money(x.spent)}</b></div><div class="budget-row"><span>مانده</span><b>${money(x.remaining)}</b></div>${actor?.role === 'admin' ? `<div class="workflow-actions"><button class="secondary" data-budget="${x.id}">بودجه</button><button class="secondary" data-toggle="${x.id}" data-active="${x.active}">${x.active ? 'غیرفعال' : 'فعال'}</button></div>` : ''}</article>`).join('') || '<div class="empty-state">صندوقی تعریف نشده است.</div>'}</div></div></div>`); document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal); $('#newFundBtn') && ($('#newFundBtn').onclick = async () => { const name = prompt('نام صندوق:'); if (!name)
-    return; await api('/api/funds', { method: 'POST', body: JSON.stringify({ name, description: prompt('توضیح:') || '' }) }); openFunds(); }); document.querySelectorAll('[data-budget]').forEach(b => b.onclick = async () => { const amount = prompt('بودجه این ماه:'); if (amount === null)
+    return; await api('/api/funds', { method: 'POST', body: JSON.stringify({ name, description: prompt('توضیح:') || '' }) }); openFunds(); }); document.querySelectorAll('[data-budget]').forEach(b => b.onclick = async () => { const amount = await AppUI.promptMoney({title:'بودجه این ماه'}); if (amount === null)
     return; await api('/api/funds/' + b.dataset.budget + '/budget', { method: 'PUT', body: JSON.stringify({ jalaliYear: n.year, jalaliMonth: n.month, amount: Number(amount) }) }); openFunds(); }); document.querySelectorAll('[data-toggle]').forEach(b => b.onclick = async () => { await api('/api/funds/' + b.dataset.toggle, { method: 'PATCH', body: JSON.stringify({ active: b.dataset.active !== 'true' }) }); openFunds(); }); }

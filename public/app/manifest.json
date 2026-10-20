@@ -7,6 +7,7 @@
     "/app/ui.js",
     "/app/enhanced-ui.js",
     "/app/api.js",
+    "/app/login-captcha.js",
     "/app/core.js",
     "/app/family-profile.js",
     "/app/family-editor.js",

@@ -53,6 +53,28 @@
   input.addEventListener('blur',()=>{input.dataset.touched='true';display();validateField(input,{show:true});});
   input.addEventListener('change',()=>{display();validateField(input);});display();validateField(input);
  }
+ const moneyNames=new Set(['amount','approvedAmount','memberMonthlyIncome','insuranceCost','medicalMonthlyCost','debtAmount','transportationCost','utilityCost','monthlyInstallments','monthlyAid','housingDeposit','housingRent','estimatedCost','actualCost','budgetAmount']);
+ const moneyRaw=v=>R.en(v).replace(/[\s,٬\u200e\u200f]/g,'');
+ function validateMoney(input,{show=false}={}){
+  const raw=moneyRaw(input.value);let text='';
+  if(!raw)text=input.required?'مبلغ را وارد کنید.':'';
+  else if(!/^\d+$/.test(raw))text='مبلغ را به‌صورت عدد صحیح و بدون علامت، اعشار یا حروف وارد کنید.';
+  else {const n=BigInt(raw),min=BigInt(input.dataset.moneyMin||'0'),max=BigInt(input.dataset.moneyMax||'9007199254740991');if(n<min)text=`مبلغ نباید کمتر از ${R.fa(min.toString())} تومان باشد.`;else if(n>max)text='مبلغ از محدودهٔ مجاز بیشتر است.';}
+  input.setCustomValidity(text);const visible=show||input.dataset.moneyTouched==='true';input.setAttribute('aria-invalid',String(!!text&&visible));input.closest('.app-price-input')?.classList.toggle('is-invalid',!!text&&visible);
+  const hint=document.getElementById(input.dataset.moneyHint);if(hint){hint.textContent=text&&visible?text:'';hint.hidden=!(text&&visible);hint.classList.toggle('is-error',!!text&&visible);}return !text;
+ }
+ function priceInput(input){
+  if(input.parentElement?.classList.contains("number-field")){const old=input.parentElement;old.before(input);old.remove();}
+  if(seen.has(input))return;seen.add(input);input.dataset.money='toman';
+  input.dataset.moneyMin=/^\d+$/.test(input.min)?input.min:'0';input.dataset.moneyMax=/^\d+$/.test(input.max)?input.max:'9007199254740991';
+  input.type='text';input.inputMode='numeric';input.dir='ltr';input.autocomplete='off';input.spellcheck=false;input.removeAttribute('pattern');input.removeAttribute('maxlength');
+  input.id||='app-price-'+(++serial);const field=input.closest('.form-field'),label=field?.querySelector('label');if(label&&!label.htmlFor)label.htmlFor=input.id;
+  const wrap=document.createElement('div');wrap.className='app-price-input';wrap.dir='ltr';input.before(wrap);wrap.append(input);const unit=document.createElement('span');unit.className='app-price-unit';unit.textContent='تومان';wrap.append(unit);
+  const hint=document.createElement('p');hint.id=input.id+'-money-hint';hint.className='app-field-hint';hint.setAttribute('aria-live','polite');wrap.after(hint);input.dataset.moneyHint=hint.id;input.setAttribute('aria-describedby',[input.getAttribute('aria-describedby'),hint.id].filter(Boolean).join(' '));
+  const format=(caret=false)=>{const source=input.value,raw=moneyRaw(source);if(!/^\d*$/.test(raw))return;const pos=input.selectionStart??source.length,count=R.en(source.slice(0,pos)).replace(/\D/g,'').length;input.value=R.fa(raw.replace(/\B(?=(\d{3})+(?!\d))/g,'٬'));if(caret&&document.activeElement===input){let cursor=0,n=0;while(cursor<input.value.length&&n<count){if(/\d/.test(R.en(input.value[cursor])))n++;cursor++;}if(pos===source.length)cursor=input.value.length;input.setSelectionRange(cursor,cursor);}};
+  input.addEventListener('beforeinput',e=>{if(e.isComposing||input.selectionStart!==input.selectionEnd)return;const pos=input.selectionStart??0;let a=pos,b=pos;if(e.inputType==='deleteContentBackward'&&input.value[pos-1]==='٬')a=pos-2;else if(e.inputType==='deleteContentForward'&&input.value[pos]==='٬')b=pos+2;else return;e.preventDefault();input.setRangeText('',Math.max(0,a),b,'end');input.dispatchEvent(new Event('input',{bubbles:true}));});
+  input.addEventListener('input',e=>{if(!e.isComposing)format(true);validateMoney(input);});input.addEventListener('change',()=>{format();validateMoney(input);});input.addEventListener('blur',()=>{input.dataset.moneyTouched='true';format();validateMoney(input,{show:true});});format();validateMoney(input);
+ }
  function address(form){
   const province=form.querySelector('[data-address-province]'),city=form.querySelector('[data-address-city]');if(!province||!city||seen.has(province))return;seen.add(province);seen.add(city);
   const initial={province:province.value,city:city.value},data=window.IranDivisions;
@@ -83,14 +105,15 @@
   table.querySelectorAll('td').forEach(td=>{if(/^[\s\d۰-۹٠-٩٬،٫.\-]+(?:تومان|ریال|٪)?$/.test(td.textContent))td.classList.add('app-numeric');});
  }
  function scan(){
-  queued=false;document.querySelectorAll('input').forEach(input=>{const kind=input.dataset.persianKind||kinds[input.name]||(input.type==='tel'?'phone':null);if(kind&&input.type!=='hidden'&&!input.closest('[role=search],#fiFilters')&&!/search/i.test(input.id))structured(input,kind);else if(input.type==='time')timeInput(input);});
+  queued=false;document.querySelectorAll('input').forEach(input=>{const kind=input.dataset.persianKind||kinds[input.name]||(input.type==='tel'?'phone':null);if(kind&&input.type!=='hidden'&&!input.closest('[role=search],#fiFilters')&&!/search/i.test(input.id))structured(input,kind);else if(input.dataset.money||moneyNames.has(input.name)||input.classList.contains('money-input'))priceInput(input);else if(input.type==='time')timeInput(input);});
   document.querySelectorAll('form:has([data-address-province])').forEach(address);document.querySelectorAll('table').forEach(table);
   document.querySelectorAll('.panel-loading').forEach(node=>{if(!node.querySelector('.app-spinner'))node.innerHTML=spinner(node.textContent.trim()||'در حال بارگذاری…');});
   document.querySelectorAll('.message:not(:empty)').forEach(node=>{if(node.querySelector('.app-alert'))return;const text=node.textContent.trim();if(text)node.innerHTML=alertMarkup({variant:node.classList.contains('error')?'destructive':node.classList.contains('success')?'success':'info',text});});
  }
  function schedule(){if(queued)return;queued=true;queueMicrotask(scan);}
- window.EnhancedUI=Object.freeze({alertMarkup,spinner,loadingOverlay,validateField,scan,icon,esc});
+ window.EnhancedUI=Object.freeze({alertMarkup,spinner,loadingOverlay,validateField,validateMoney,moneyRaw,scan,icon,esc});
  AppLifecycle.subscribe('enhanced-ui',schedule);document.addEventListener('DOMContentLoaded',scan);
+ document.addEventListener('formdata',e=>{const form=e.target;if(!(form instanceof HTMLFormElement))return;const names=new Set([...form.querySelectorAll('input[data-money][name]')].map(i=>i.name));for(const name of names){const values=e.formData.getAll(name);if(!values.length)continue;e.formData.delete(name);for(const value of values)e.formData.append(name,typeof value==='string'?moneyRaw(value):value);}},true);
  document.addEventListener('formdata',e=>{const form=e.target;if(!(form instanceof HTMLFormElement))return;const names=new Map([...form.querySelectorAll('input[data-persian-kind][name]')].map(input=>[input.name,input.dataset.persianKind]));for(const [name,kind] of names){const values=e.formData.getAll(name);if(!values.length)continue;e.formData.delete(name);for(const value of values)e.formData.append(name,typeof value==='string'?canonical(value,kind):value);}},true);
- document.addEventListener('invalid',e=>{if(e.target?.dataset?.persianKind)validateField(e.target,{show:true});},true);
+ document.addEventListener('invalid',e=>{if(e.target?.dataset?.persianKind)validateField(e.target,{show:true});else if(e.target?.dataset?.money)validateMoney(e.target,{show:true});},true);
 })();

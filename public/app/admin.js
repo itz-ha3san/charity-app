@@ -160,7 +160,7 @@ async function openFutureCenter() { try {
     document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal);
     $('#newDonor').onclick = openDonorForm;
     $('#newDonation').onclick = async () => { if (!donors.donors.length)
-        return toast('ابتدا حامی ثبت کنید.'); const amount = prompt('مبلغ کمک نقدی:'); if (!amount)
+        return toast('ابتدا حامی ثبت کنید.'); const amount = await AppUI.promptMoney({title:'مبلغ کمک نقدی',min:'1'}); if (!amount)
         return; await api('/api/donations', { method: 'POST', body: JSON.stringify({ donorId: donors.donors[0].id, donationType: 'cash', amount: Number(amount), description: prompt('شرح:') || '' }) }); openFutureCenter(); };
     $('#newItem').onclick = async () => { const name = prompt('نام کالا:'), unit = name && prompt('واحد:', 'عدد'); if (!name || !unit)
         return; await api('/api/inventory/items', { method: 'POST', body: JSON.stringify({ name, unit, minimumStock: 0 }) }); openFutureCenter(); };
@@ -174,7 +174,7 @@ async function openFutureCenter() { try {
         return; await api('/api/families/' + selectedId + '/geography', { method: 'PATCH', body: JSON.stringify({ latitude: Number(latitude), longitude: Number(longitude) }) }); openFutureCenter(); };
     document.querySelectorAll('[data-receive]').forEach(b => b.onclick = async () => { await api('/api/donations/' + b.dataset.receive + '/receive', { method: 'POST', body: '{}' }); openFutureCenter(); });
     document.querySelectorAll('[data-allocate]').forEach(b => b.onclick = async () => { if (!selectedId)
-        return toast('خانواده مقصد را انتخاب کنید.'); const n = prompt(b.dataset.kind === 'cash' ? 'مبلغ تخصیص:' : 'تعداد:'); if (!n)
+        return toast('خانواده مقصد را انتخاب کنید.'); const n = b.dataset.kind === 'cash' ? await AppUI.promptMoney({title:'مبلغ تخصیص',min:'1'}) : prompt('تعداد:'); if (!n)
         return; await api('/api/donations/' + b.dataset.allocate + '/allocate', { method: 'POST', body: JSON.stringify({ familyId: selectedId, ...(b.dataset.kind === 'cash' ? { amount: Number(n) } : { quantity: Number(n) }), note: '' }) }); openFutureCenter(); });
     document.querySelectorAll('[data-review-support]').forEach(b => b.onclick = async () => { const status = prompt('وضعیت: reviewing, accepted, rejected, closed', 'reviewing'); if (!['reviewing', 'accepted', 'rejected', 'closed'].includes(status))
         return; await api('/api/support-requests/' + b.dataset.reviewSupport, { method: 'PATCH', body: JSON.stringify({ status, decisionNote: prompt('یادداشت:') || '' }) }); openFutureCenter(); });
