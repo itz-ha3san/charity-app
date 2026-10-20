@@ -1872,3 +1872,11 @@ html[data-theme="dark"] .workspace-overview-head::after {
   .workspace-overview-head > div { max-width: 76%; }
   .workspace-overview-head > div > p { font-size: 12px; }
 }
+
+/* Keep the shared center readable when its actions wrap on a phone. */
+@media(max-width:600px){
+ .alert-center-modal .alert-center-head{flex-direction:column;align-items:stretch;gap:12px}
+ .alert-center-modal .alert-center-head-actions{justify-content:flex-end}
+ .alert-center-modal #alertWorkQueuesBtn{width:auto;min-width:88px;padding:7px 11px;font-size:12px}
+ .alert-center-modal .alert-center-title{min-width:0}
+}
