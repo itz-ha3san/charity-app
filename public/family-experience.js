@@ -376,13 +376,22 @@
     copy.className = "family-list-copy";
     if (head) copy.append(head);
     if (meta) copy.append(meta);
+    const row = item.closest(".family-item-row");
+    if (row?.dataset.caseNumber !== undefined && meta) {
+      meta.textContent = `${row.dataset.familySurname || "—"} · پرونده ${row.dataset.caseNumber}`;
+      const members = document.createElement("span");
+      members.className = "family-picker-members";
+      members.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-3a6 6 0 0 1 12 0v3M17 5a3 3 0 0 1 0 6m2 3a5 5 0 0 1 2 4v2"/></svg>';
+      members.append(document.createTextNode(`${fa(row.dataset.memberCount)} عضو`));
+      copy.append(members);
+    }
+    item.setAttribute("aria-current", item.classList.contains("active") ? "true" : "false");
     item.append(avatar, copy);
 
-    const row = item.closest(".family-item-row");
     const preview = row?.querySelector(".quick-preview-btn");
     if (preview) {
       preview.innerHTML =
-        '<span aria-hidden="true">↗</span><span class="quick-preview-label">نگاه سریع</span>';
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span class="quick-preview-label">نگاه سریع</span>';
     }
   }
 

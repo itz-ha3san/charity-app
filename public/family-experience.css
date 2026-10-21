@@ -1,95 +1,4 @@
 /* Family list and record experience — UI phase 3 */
-.family-item-row {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 5px;
-  align-items: stretch;
-  margin-bottom: 7px;
-}
-
-.family-item-row .family-item {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  min-height: 72px;
-  margin: 0;
-  padding: 10px;
-  border: 1px solid transparent;
-}
-
-.family-list-avatar {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: var(--blue-soft);
-  color: var(--blue-dark);
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.family-item[data-priority-tone="critical"] .family-list-avatar {
-  background: var(--red-soft);
-  color: var(--red);
-}
-
-.family-item[data-priority-tone="high"] .family-list-avatar {
-  background: #fbebde;
-  color: #b56629;
-}
-
-.family-item[data-priority-tone="archived"] .family-list-avatar {
-  background: var(--soft);
-  color: var(--muted);
-}
-
-.family-list-copy {
-  min-width: 0;
-}
-
-.family-list-copy .family-item-head {
-  min-width: 0;
-}
-
-.family-list-copy .family-item-head b {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.family-list-copy > p {
-  overflow: hidden;
-  margin-top: 4px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.family-item-row .quick-preview-btn {
-  width: 38px;
-  min-width: 38px;
-  min-height: 72px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--surface);
-  color: var(--muted);
-}
-
-.family-item-row .quick-preview-btn:hover {
-  border-color: #c7def4;
-  background: var(--blue-soft);
-  color: var(--blue-dark);
-}
-
-.quick-preview-label {
-  display: none;
-}
-
 .family-detail-v2 {
   scroll-behavior: smooth;
   scroll-margin-top: 104px;
@@ -402,19 +311,6 @@
     grid-template-columns: 1fr;
   }
 
-  .family-item-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .family-item-row .quick-preview-btn {
-    width: 100%;
-    min-height: 34px;
-  }
-
-  .quick-preview-label {
-    display: inline;
-    margin-right: 5px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -824,38 +720,6 @@ html[data-theme="dark"] .family-tag-chip[data-color="gray"] { --tag-accent: #c2c
   .profile-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 108px), 1fr)); }
   .data-object { grid-template-columns: repeat(auto-fit, minmax(min(100%, 80px), 1fr)); }
   .profile-member-fields { grid-template-columns: repeat(auto-fit, minmax(min(100%, 90px), 1fr)); }
-}
-
-/* Family picker: readable identity, clear priority, and a compact preview action. */
-.family-list .family-item-row { grid-template-columns: minmax(0, 1fr) 36px; align-items: center; gap: 7px; margin-bottom: 8px; }
-.family-list .family-item-row .family-item { min-width: 0; min-height: 76px; padding: 10px; grid-template-columns: 38px minmax(0, 1fr); gap: 9px; align-items: center; margin: 0; border: 1px solid transparent; border-radius: 13px; background: transparent; text-align: right; transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease; }
-.family-list .family-item:hover { border-color: var(--border); background: color-mix(in srgb, var(--soft) 72%, var(--surface)); transform: translateY(-1px); }
-.family-list .family-item.active { border-color: color-mix(in srgb, var(--blue) 34%, var(--border)); background: color-mix(in srgb, var(--blue-soft) 78%, var(--surface)); box-shadow: inset -3px 0 var(--blue), 0 4px 12px rgba(15, 23, 42, .07); }
-.family-list .family-item:focus-visible { outline: 3px solid color-mix(in srgb, var(--blue) 32%, transparent); outline-offset: 2px; }
-.family-list .family-list-avatar { width: 38px; height: 38px; border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--border)); border-radius: 12px; background: color-mix(in srgb, var(--blue-soft) 82%, var(--surface)); color: var(--blue-dark); font-size: 11px; }
-.family-list .family-item[data-priority-tone="critical"] .family-list-avatar { border-color: color-mix(in srgb, var(--red) 34%, var(--border)); }
-.family-list .family-item[data-priority-tone="high"] .family-list-avatar { border-color: color-mix(in srgb, #d58a38 35%, var(--border)); }
-.family-list .family-list-copy { display: grid; gap: 3px; min-width: 0; }
-.family-list .family-list-copy .family-item-head { align-items: flex-start; gap: 6px; }
-.family-list .family-list-copy .family-item-head b { min-width: 0; flex: 1 1 auto; display: -webkit-box; overflow: hidden; white-space: normal; text-overflow: clip; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: var(--text); font-size: 12px; line-height: 1.55; }
-.family-list .family-item-head .priority { flex: 0 0 auto; margin-top: 1px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--soft); color: var(--muted); font-size: 9px; line-height: 1.5; white-space: nowrap; }
-.family-list .family-item[data-priority-tone="critical"] .priority { border-color: color-mix(in srgb, var(--red) 30%, var(--border)); background: var(--red-soft); color: var(--red); }
-.family-list .family-item[data-priority-tone="high"] .priority { border-color: color-mix(in srgb, #d58a38 36%, var(--border)); background: color-mix(in srgb, #d58a38 13%, var(--surface)); color: #b56629; }
-.family-list .family-item[data-priority-tone="archived"] .priority, .family-list .family-item.archived .priority { border-color: color-mix(in srgb, var(--red) 24%, var(--border)); background: var(--red-soft); color: var(--red); }
-.family-list .family-list-copy > p { display: -webkit-box; overflow: hidden; margin: 0; color: var(--muted); font-size: 9px; line-height: 1.65; white-space: normal; text-overflow: clip; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.family-list .family-item-row .quick-preview-btn { width: 34px; min-width: 34px; min-height: 34px; height: 34px; align-self: center; padding: 0; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 13px; transition: border-color 150ms ease, background 150ms ease, color 150ms ease, transform 150ms ease; }
-.family-list .family-item-row .quick-preview-btn:hover { border-color: color-mix(in srgb, var(--blue) 44%, var(--border)); background: var(--blue-soft); color: var(--blue-dark); transform: translateY(-1px); }
-.family-list .quick-preview-label { display: none; }
-@media (max-width: 850px) {
-  .family-list .family-item-row { grid-template-columns: minmax(0, 1fr) 36px; gap: 7px; }
-  .family-list .family-item-row .quick-preview-btn { width: 34px; min-width: 34px; min-height: 34px; height: 34px; }
-  .family-list .quick-preview-label { display: none; }
-}
-@media (max-width: 360px) {
-  .family-list .family-item-row { grid-template-columns: minmax(0, 1fr) 32px; gap: 5px; }
-  .family-list .family-item-row .quick-preview-btn { width: 32px; min-width: 32px; height: 32px; min-height: 32px; }
-  .family-list .family-item-row .family-item { grid-template-columns: 34px minmax(0, 1fr); gap: 7px; padding: 8px; }
-  .family-list .family-list-avatar { width: 34px; height: 34px; }
 }
 
 /* Education, work and income: compact, comparable cards instead of nested raw objects */

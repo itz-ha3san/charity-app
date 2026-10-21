@@ -230,7 +230,7 @@ function bindFullProfileNationalIds(root) { root?.querySelectorAll('[data-profil
 
 async function loadDetail(id) {
     selectedId = id;
-    document.querySelectorAll('.family-item').forEach(x => x.classList.toggle('active', x.dataset.id === id));
+    document.querySelectorAll('.family-item').forEach(x => { const active = x.dataset.id === id; x.classList.toggle('active', active); x.setAttribute('aria-current', String(active)); });
     $('#familyDetail').innerHTML = '<div class="panel-loading"><div class="skeleton-stack" aria-label="در حال بارگذاری"><span></span><span></span><span></span><span></span></div></div>';
     try {
         const { family: f } = await api('/api/families/' + encodeURIComponent(id)), edu = f.headEducation?.description || f.headEducation?.level || 'ثبت نشده', canWrite = actor?.role === 'admin' || actor?.position === 'liaison' || actor?.position === 'supervision_deputy';
