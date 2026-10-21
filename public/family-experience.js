@@ -225,6 +225,8 @@
       actions.querySelector("#profileUploadBtn"),
       actions.querySelector("#auditBtn"),
       actions.querySelector("#archiveFamilyBtn"),
+      actions.querySelector("#assignSupervisorBtn"),
+      actions.querySelector("#referFamilyBtn"),
     ].filter(Boolean);
     [...actions.children]
       .filter((child) => child.tagName === "BUTTON" && !ordered.includes(child))
@@ -260,6 +262,14 @@
       actions.classList.add("family-hero-actions");
       const priority = actions.querySelector(":scope > .status");
       if (priority) status.append(priority);
+      const teamActions = detail.querySelector("#familyContactStrip .family-contact-actions");
+      if (teamActions) {
+        teamActions.querySelectorAll("button").forEach((button) => {
+          actions.querySelector(`#${button.id}`)?.remove();
+          actions.append(button);
+        });
+        teamActions.remove();
+      }
       reorderActions(actions);
       const primary =
         actions.querySelector("#editFamilyBtn") ||
@@ -590,6 +600,12 @@
 
     window.addEventListener("familyloaded", (event) => {
       enhanceDetail(event.detail.family);
+    });
+
+    window.addEventListener("familyteamloaded", (event) => {
+      const detail = document.querySelector("#familyDetail");
+      if (!detail || detail.__familyData?.id !== event.detail.family.id) return;
+      scheduleHeroSync(detail);
     });
 
     window.addEventListener("familycomprehensiveloaded", (event) => {

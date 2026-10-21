@@ -948,9 +948,9 @@ html[data-theme="dark"] .family-tag-chip[data-color="gray"] { --tag-accent: #c2c
 .family-record-head--hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(280px, 30%) minmax(0, 1fr);
-  gap: 10px 14px;
-  padding: 14px;
+  grid-template-columns: minmax(280px, 40%) minmax(0, 1fr);
+  gap: 8px 12px;
+  padding: 12px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border) 72%, var(--blue) 28%);
   border-radius: 18px;
@@ -976,7 +976,7 @@ html[data-theme="dark"] .family-tag-chip[data-color="gray"] { --tag-accent: #c2c
 
 .family-record-head--hero .family-hero-identity {
   grid-column: 1;
-  grid-row: 1 / 3;
+  grid-row: 1;
   align-self: stretch;
   align-content: start;
   min-width: 0;
@@ -1046,8 +1046,8 @@ html[data-theme="dark"] .family-tag-chip[data-color="gray"] { --tag-accent: #c2c
 }
 
 .family-record-head--hero .detail-actions.family-hero-actions {
-  grid-column: 2;
-  grid-row: 1;
+  grid-column: 1 / -1;
+  grid-row: 2;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -1063,7 +1063,7 @@ html[data-theme="dark"] .family-tag-chip[data-color="gray"] { --tag-accent: #c2c
 .family-action-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-start;
 }
 
@@ -1093,8 +1093,9 @@ html[data-theme="dark"] .family-tag-chip[data-color="gray"] { --tag-accent: #c2c
   display: grid;
   gap: 4px;
   align-content: start;
-  min-height: 84px;
-  padding: 10px 12px;
+  min-height: 68px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 8px 10px;
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: 12px;
   background: color-mix(in srgb, var(--surface) 90%, transparent);
@@ -1275,7 +1276,7 @@ html[data-theme] .family-record-head--hero .family-action-buttons > button#archi
 /* Team ownership is part of the same record hero, not a second toolbar. */
 .family-record-head--hero > .family-contact-strip {
   grid-column: 2;
-  grid-row: 2;
+  grid-row: 1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px 8px;
@@ -1295,19 +1296,6 @@ html[data-theme] .family-record-head--hero .family-action-buttons > button#archi
 .family-record-head--hero .family-contact-item > span,
 .family-record-head--hero .family-contact-item > small { font-size: 12px; }
 .family-record-head--hero .family-contact-item > b { font-size: 14px; }
-.family-record-head--hero .family-contact-actions {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0;
-}
-.family-record-head--hero .family-contact-actions button {
-  min-height: 44px;
-  padding: 6px 10px;
-  border-radius: 9px;
-  font-size: 12px;
-}
 @media (max-width: 960px) {
   .family-record-head--hero > .family-contact-strip {
     grid-column: 1;
@@ -1321,4 +1309,25 @@ html[data-theme] .family-record-head--hero .family-action-buttons > button#archi
 @media (max-width: 560px) {
   .family-record-head--hero .family-action-buttons > button#archiveFamilyBtn,
   .family-record-head--hero .family-action-buttons > button.danger { grid-column: auto; }
+}
+
+/* Keep each summary readable without dedicating a separate line to its value. */
+.family-record-head--hero .family-hero-metric-label { grid-column: 1; grid-row: 1; }
+.family-record-head--hero .family-hero-metric-value { grid-column: 2; grid-row: 1; }
+.family-record-head--hero .family-hero-metric-note,
+.family-record-head--hero .family-hero-progress-track { grid-column: 1 / -1; }
+@media (max-width: 720px) {
+  .family-record-head--hero .family-hero-metric:not([data-variant="progress"]) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+  .family-record-head--hero .family-hero-metric:not([data-variant="progress"]) .family-hero-metric-label,
+  .family-record-head--hero .family-hero-metric:not([data-variant="progress"]) .family-hero-metric-value {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .family-record-head--hero .family-hero-metric:not([data-variant="progress"]) .family-hero-metric-value {
+    font-size: 14px;
+    line-height: 1.5;
+  }
 }

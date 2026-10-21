@@ -1,22 +1,28 @@
 /* Feature: organization. Transitional classic-script boundary; see FRONTEND-STRUCTURE.md. */
 async function loadFamilyTeam(f) { const contactStrip = $('#familyContactStrip'); try {
     const d = await api('/api/families/' + f.id + '/team'), assignment = d.assignment || {}, canAssignSupervisor = actor?.role === 'admin' || ['ceo', 'supervision_deputy'].includes(actor?.position), canRefer = actor?.role === 'admin' || ['ceo', 'supervision_deputy'].includes(actor?.position);
+    // Team actions can live in the hero toolbar after enhancement. Retire
+    // previous controls before binding the newly rendered permission-aware set.
+    contactStrip?.closest('#familyDetail')?.querySelectorAll('.family-action-buttons #assignSupervisorBtn, .family-action-buttons #referFamilyBtn').forEach(button => button.remove());
     if (contactStrip)
         contactStrip.innerHTML = `<div class="family-contact-item" data-contact="liaison"><span>رابط خیریه</span><b>${esc(assignment.liaisonName || 'تعیین نشده')}</b></div><div class="family-contact-item" data-contact="supervisor"><span>سرپرست ارتباط خانواده</span><b>${esc(assignment.supervisorName || 'تعیین نشده')}</b></div>${canAssignSupervisor || canRefer ? `<div class="family-contact-actions">${canAssignSupervisor ? '<button id="assignSupervisorBtn" class="secondary" type="button">تخصیص سرپرست</button>' : ''}${canRefer ? '<button id="referFamilyBtn" class="secondary" type="button">ارجاع به کارشناس</button>' : ''}</div>` : ''}`;
     const profile = $('#familyDetail .full-profile');
     [['liaisonName', assignment.liaisonName], ['supervisorName', assignment.supervisorName]].forEach(([key, value]) => { const field = profile?.querySelector(`[data-profile-key="${key}"]`); if (!field)
         return; field.classList.toggle('is-empty', !value); const target = field.querySelector('.profile-ei-value,.profile-empty-value'); if (target)
         target.outerHTML = value ? `<span class="profile-ei-value">${esc(value)}</span>` : '<span class="profile-empty-value">تعیین نشده</span>'; });
-    const assign = $('#assignSupervisorBtn'), refer = $('#referFamilyBtn');
+    const assign = contactStrip?.querySelector('#assignSupervisorBtn'), refer = contactStrip?.querySelector('#referFamilyBtn');
     if (assign)
         assign.onclick = () => assignSupervisor(f);
     if (refer)
         refer.onclick = () => referFamily(f);
+    window.dispatchEvent(new CustomEvent('familyteamloaded', { detail: { family: f } }));
 }
 catch (e) {
     if (contactStrip) {
-        if (e.status === 403)
+        if (e.status === 403) {
+            contactStrip.closest('#familyDetail')?.querySelectorAll('.family-action-buttons #assignSupervisorBtn, .family-action-buttons #referFamilyBtn').forEach(button => button.remove());
             contactStrip.remove();
+        }
         else
             contactStrip.querySelectorAll('b').forEach(x => x.textContent = 'دریافت نشد');
     }
