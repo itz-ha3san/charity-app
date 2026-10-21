@@ -19,5 +19,5 @@ test('family picker preserves meaningful empty and error states',async()=>{
 test('picker controls are unique and component assets are installed and cached',()=>{
  const html=fs.readFileSync('public/index.html','utf8');for(const id of ['searchInput','createBtn','familyCount','familyList'])assert.equal(html.split(`id="${id}"`).length-1,1,id);
  const sidebar=html.slice(html.indexOf('<aside class="family-panel family-list-panel"'),html.indexOf('</aside>',html.indexOf('<aside class="family-panel family-list-panel"')));
- for(const id of ['searchInput','createBtn','familyCount'])assert.ok(sidebar.includes(`id="${id}"`));assert.ok(html.includes('href="/family-list.css"'));assert.ok(fs.readFileSync('public/sw.js','utf8').includes("'/family-list.css'"));
+ for(const id of ['createBtn','familyCount'])assert.ok(sidebar.includes(`id="${id}"`));assert.ok(!sidebar.includes('id="searchInput"'));assert.ok(html.indexOf('class="family-picker-controls"')<html.indexOf('class="family-workspace"'));assert.ok(html.includes('href="/family-list.css"'));assert.ok(fs.readFileSync('public/sw.js','utf8').includes("'/family-list.css'"));
 });
