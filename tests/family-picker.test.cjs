@@ -19,5 +19,15 @@ test('family picker preserves meaningful empty and error states',async()=>{
 test('picker controls are unique and component assets are installed and cached',()=>{
  const html=fs.readFileSync('public/index.html','utf8');for(const id of ['searchInput','createBtn','familyCount','familyList'])assert.equal(html.split(`id="${id}"`).length-1,1,id);
  const sidebar=html.slice(html.indexOf('<aside class="family-panel family-list-panel"'),html.indexOf('</aside>',html.indexOf('<aside class="family-panel family-list-panel"')));
- for(const id of ['createBtn','familyCount'])assert.ok(sidebar.includes(`id="${id}"`));assert.ok(!sidebar.includes('id="searchInput"'));assert.ok(html.indexOf('class="family-picker-controls"')<html.indexOf('class="family-workspace"'));assert.ok(html.includes('href="/family-list.css"'));assert.ok(fs.readFileSync('public/sw.js','utf8').includes("'/family-list.css'"));
+ assert.ok(sidebar.includes('id="familyCount"'));assert.ok(html.slice(0,html.indexOf('class="family-picker-controls"')).includes('id="createBtn"'));assert.ok(!sidebar.includes('id="searchInput"'));assert.ok(html.indexOf('class="family-picker-controls"')<html.indexOf('class="family-workspace"'));assert.ok(html.includes('href="/family-list.css"'));assert.ok(fs.readFileSync('public/sw.js','utf8').includes("'/family-list.css'"));
+});
+test('management toolbar preserves action IDs and groups secondary tools',()=>{
+ const html=fs.readFileSync('public/index.html','utf8');
+ for(const id of ['createBtn','statusFilter','quickCallBtn','quickOccasionalBtn','importBtn','organizationBtn','refreshBtn'])assert.equal(html.split(`id="${id}"`).length-1,1,id);
+ const menu=html.slice(html.indexOf('<details class="case-management-more"'),html.indexOf('</details>',html.indexOf('<details class="case-management-more"')));
+ for(const id of ['importBtn','organizationBtn','refreshBtn'])assert.ok(menu.includes(`id="${id}"`));
+ assert.ok(!menu.includes('id="quickCallBtn"'));
+ assert.match(html,/id="organizationBtn" class="secondary hidden"/);
+ assert.match(html,/id="quickCallBtn" class="secondary quick-call-btn hidden"/);
+ assert.ok(html.includes('id="caseToolbarCount" aria-live="polite"'));
 });

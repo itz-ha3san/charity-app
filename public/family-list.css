@@ -74,3 +74,62 @@ html[data-theme="dark"] .family-list-panel [data-priority-tone="high"] .priority
 }
 @media (max-width: 360px) { .family-list-panel .family-item-row .family-item { grid-template-columns: 34px minmax(0, 1fr); padding-inline: 8px; } .family-list-panel .family-list-avatar { width: 34px; height: 36px; } }
 @media (prefers-reduced-motion: reduce) { .family-list-panel .family-item-row .family-item { transition: none; } }
+
+/* Compact case management bar: shared controls, original IDs and permissions. */
+html[data-theme] .workspace-family-card.case-management-bar {
+  padding: 0; overflow: visible; border: 1px solid var(--border); border-radius: 16px;
+  background: var(--surface); box-shadow: 0 12px 32px rgba(0,0,0,.04);
+}
+.case-management-bar .workspace-family-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 0; padding: 20px 26px; border: 0; gap: 16px;
+}
+.case-management-heading { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.case-management-icon { display: grid; place-items: center; width: 46px; height: 46px; flex: 0 0 auto; border: 1px solid var(--border); border-radius: 11px; background: var(--blue-soft); color: var(--blue-dark); }
+.case-management-bar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+.case-management-icon svg { width: 25px; height: 25px; }
+.case-management-title { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
+.case-management-bar .workspace-family-head h2 { margin: 0; font-size: 24px; line-height: 1.65; }
+.case-management-title > span { font-size: 12px; color: var(--muted); padding-inline-start: 14px; border-inline-start: 1px solid var(--border); }
+html[data-theme] .case-management-bar #createBtn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: auto; min-height: 46px; padding: 8px 16px; border-radius: 9px; white-space: nowrap; background: var(--blue); color: #fff; border: 1px solid var(--blue); font-size: 14px; }
+.case-management-bar #createBtn > span { font-size: 23px; line-height: 1; }
+html[data-theme] .case-management-bar .family-toolbar {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+  margin: 0; padding: 12px 26px; border: 0; border-top: 1px solid var(--border); border-radius: 0 0 16px 16px;
+  background: color-mix(in srgb, var(--surface) 85%, var(--bg)); position: static; overflow: visible;
+}
+html[data-theme] .case-management-bar .family-toolbar > .ui-segment { display: flex; flex: 0 1 auto; width: auto; padding: 0; gap: 4px; background: transparent; border: 0; box-shadow: none; }
+html[data-theme] .case-management-bar .ui-segment > button { flex: 0 0 auto; min-width: 68px; min-height: 44px; padding: 8px 15px; border-radius: 8px; color: var(--muted); background: transparent; border: 1px solid transparent; box-shadow: none; font-size: 14px; }
+html[data-theme] .case-management-bar .ui-segment > button[aria-checked="true"] { color: var(--blue-dark); background: var(--blue-soft); border-color: color-mix(in srgb, var(--blue) 40%, var(--border)); }
+.case-management-bar .family-actions { display: flex; flex: 0 1 auto; align-items: center; flex-wrap: wrap; gap: 8px; }
+html[data-theme] .case-management-bar .family-actions > button,
+html[data-theme] .case-management-bar .case-management-more > summary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; min-height: 44px;
+  padding: 8px 13px; font-size: 14px; font-weight: 400; line-height: 1.5; border-radius: 8px;
+  background: var(--soft); color: var(--text); border: 1px solid var(--border); box-shadow: none;
+}
+.case-management-more { position: relative; margin-inline-start: 4px; }
+.case-management-more > summary { cursor: pointer; list-style: none; }
+.case-management-more > summary::-webkit-details-marker { display: none; }
+.case-management-more > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.case-management-more[open] > summary svg { transform: rotate(180deg); }
+html[data-theme] .case-management-bar .case-management-menu { position: absolute; inset-inline-end: 0; top: calc(100% + 8px); width: min(310px, calc(100vw - 48px)); padding: 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); box-shadow: 0 12px 32px rgba(0,0,0,.18); z-index: 60; }
+html[data-theme] .case-management-bar .case-management-menu > button { display: block; width: 100%; min-height: 44px; text-align: start; padding: 10px; border: 0; border-radius: 6px; background: transparent; color: var(--text); font-size: 13px; box-shadow: none; }
+html[data-theme] .case-management-bar .case-management-menu > button:hover { background: var(--soft); }
+html[data-theme] .case-management-bar .hidden { display: none !important; }
+@media (max-width: 720px) {
+  .case-management-bar .workspace-family-head { padding: 16px; align-items: flex-start; }
+  .case-management-heading { gap: 8px; }
+  .case-management-icon { display: none; }
+  .case-management-bar .workspace-family-head h2 { font-size: 19px; }
+  .case-management-title { gap: 2px 8px; }
+  .case-management-title > span { border: 0; padding: 0; }
+  html[data-theme] .case-management-bar #createBtn { padding: 8px 10px; font-size: 12px; gap: 4px; }
+  html[data-theme] .case-management-bar .family-toolbar { padding: 10px 14px; gap: 10px; }
+  html[data-theme] .case-management-bar .family-toolbar > .ui-segment { width: 100%; }
+  html[data-theme] .case-management-bar .ui-segment > button { flex: 1; min-width: 0; padding: 8px; }
+  .case-management-bar .family-actions { width: 100%; flex-wrap: nowrap; }
+  html[data-theme] .case-management-bar .family-actions > button { flex: 1; font-size: 13px; padding: 8px; }
+}
+html[data-theme] .case-management-bar .ui-segment > button:not([aria-checked="true"]) { background: transparent !important; border-color: transparent !important; }
+html[data-theme] .case-management-bar .family-actions > button { background: var(--soft) !important; color: var(--text) !important; border-color: var(--border) !important; }

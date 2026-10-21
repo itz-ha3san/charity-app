@@ -589,7 +589,29 @@
     scheduleHeroSync(detail);
   }
 
+  function initCaseManagementBar() {
+    const count = document.querySelector("#familyCount");
+    const mirror = document.querySelector("#caseToolbarCount");
+    if (count && mirror) {
+      const sync = () => { mirror.textContent = count.textContent; };
+      sync();
+      new MutationObserver(sync).observe(count, { childList: true, characterData: true, subtree: true });
+    }
+    const more = document.querySelector(".case-management-more");
+    if (!more) return;
+    document.addEventListener("click", event => {
+      if (!more.contains(event.target) || event.target.closest("button")) more.open = false;
+    });
+    more.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        more.open = false;
+        more.querySelector("summary").focus();
+      }
+    });
+  }
+
   function init() {
+    initCaseManagementBar();
     enhanceFamilyList();
     const list = document.querySelector("#familyList");
     if (list)
