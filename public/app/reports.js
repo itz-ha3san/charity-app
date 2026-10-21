@@ -37,6 +37,7 @@ async function loadComprehensiveFamily(f) {
         if (completionValue)
             completionValue.textContent = fa(percent) + '٪';
         window.UXSystem?.familyProgress?.(f, d.completeness);
+        window.dispatchEvent(new CustomEvent('familycomprehensiveloaded', { detail: { family: f, comprehensive: d } }));
         $('#assignFamilyTagBtn') && ($('#assignFamilyTagBtn').onclick = () => assignFamilyTag(f, d.tags || []));
         box.querySelectorAll('[data-missing-field]').forEach(b => b.onclick = () => window.dispatchEvent(new CustomEvent('familymissingfield', { detail: { family: f, fieldKey: b.dataset.missingField } })));
         box.querySelectorAll('[data-remove-family-tag]').forEach(b => b.onclick = async () => { try {

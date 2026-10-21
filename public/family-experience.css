@@ -1077,3 +1077,352 @@ html[data-theme="dark"] .family-tag-chip[data-color="gray"] { --tag-accent: #c2c
 .profile-integrated-section .completeness-group>b{display:block;margin-bottom:8px;font-size:12px}.profile-integrated-section .completeness-actions{display:flex;flex-wrap:wrap;gap:7px}
 .profile-integrated-section .profile-integrated-timeline{padding-bottom:4px}.profile-integrated-error{margin:8px 0;color:var(--muted);font-size:13px}
 @media(max-width:600px){.profile-integrated-content{margin:12px 8px 0}.profile-integrated-meta{display:grid;grid-template-columns:1fr 1fr}.profile-integrated-meta>div{min-width:0}.profile-integrated-print{grid-column:1/-1}.profile-integrated-subhead{align-items:flex-start}.profile-integrated-section .completeness-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ------------------------------------------------------------------
+   Family hero redesign
+   ------------------------------------------------------------------ */
+.family-record-head--hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(280px, 30%) minmax(0, 1fr);
+  gap: 14px 18px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, var(--blue) 28%);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--blue) 18%, transparent), transparent 34%),
+    radial-gradient(circle at 12% 100%, color-mix(in srgb, var(--green) 10%, transparent), transparent 26%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface) 94%, black 6%), color-mix(in srgb, var(--surface) 88%, var(--soft) 12%));
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.family-record-head--hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.02));
+  pointer-events: none;
+}
+
+.family-record-head--hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.family-record-head--hero .family-hero-identity {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: stretch;
+  align-content: start;
+  min-width: 0;
+  padding: 4px 0 2px;
+  gap: 4px 12px;
+}
+
+.family-record-head--hero .family-record-avatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  font-size: 20px;
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--blue) 28%, transparent);
+}
+
+.family-record-head--hero .family-record-identity h2 {
+  margin: 3px 0 0;
+  font-size: clamp(26px, 2.4vw, 42px);
+  line-height: 1.16;
+  letter-spacing: -0.03em;
+}
+
+.family-record-head--hero .family-record-identity .eyebrow {
+  color: var(--blue-dark);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.family-record-head--hero .family-record-identity .muted {
+  font-size: 15px;
+}
+
+.family-record-head--hero .family-record-status {
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.family-record-head--hero .family-record-status > span,
+.family-record-head--hero .family-record-status > small,
+.family-record-head--hero .family-record-status > .status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.family-record-head--hero .family-record-status > span {
+  background: color-mix(in srgb, var(--green-soft) 80%, transparent);
+}
+
+.family-record-head--hero .family-record-status > span[data-tone="archived"] {
+  background: color-mix(in srgb, var(--red-soft) 78%, transparent);
+}
+
+.family-record-head--hero .family-record-status > small {
+  font-size: 12px;
+}
+
+.family-record-head--hero .family-hero-priority {
+  margin: 0;
+}
+
+.family-record-head--hero .detail-actions.family-hero-actions {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0;
+  max-width: none;
+  padding-top: 4px;
+}
+
+.family-action-panel-label {
+  min-width: 140px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, var(--blue) 24%);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.family-action-panel-label > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.family-action-panel-label > b {
+  display: block;
+  font-size: 16px;
+}
+
+.family-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.family-action-buttons > button {
+  min-height: 44px;
+  padding: 11px 16px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.family-action-buttons > #archiveFamilyBtn,
+.family-action-buttons > .danger {
+  box-shadow: none;
+}
+
+.family-record-head--hero .family-hero-metrics {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 12px;
+}
+
+.family-hero-metric {
+  display: grid;
+  gap: 8px;
+  min-height: 96px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.family-hero-metric[data-variant="progress"] {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface) 90%, var(--blue-soft) 10%), color-mix(in srgb, var(--surface) 95%, transparent));
+}
+
+.family-hero-metric-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.family-hero-metric-value {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.family-hero-metric-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.family-hero-progress-track {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 62%, transparent);
+}
+
+.family-hero-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--green), var(--blue));
+}
+
+.family-detail-v2 > .ui-family-progress {
+  display: none;
+}
+
+.family-record-head--hero + .family-detail-tabs,
+.family-record-head--hero + .ui-family-progress + .family-detail-tabs {
+  margin-top: 12px;
+}
+
+html[data-theme] .family-record-head--hero {
+  border-color: color-mix(in srgb, var(--border) 60%, var(--blue) 40%) !important;
+}
+
+html[data-theme] .family-record-head--hero .family-action-panel-label,
+html[data-theme] .family-record-head--hero .family-hero-metric,
+html[data-theme] .family-record-head--hero .family-record-status > span,
+html[data-theme] .family-record-head--hero .family-record-status > small,
+html[data-theme] .family-record-head--hero .family-record-status > .status {
+  border-color: color-mix(in srgb, var(--border) 72%, rgba(255, 255, 255, 0.02)) !important;
+}
+
+html[data-theme] .family-record-head--hero .family-action-buttons > button.secondary,
+html[data-theme] .family-record-head--hero .family-action-buttons > button#profileUploadBtn,
+html[data-theme] .family-record-head--hero .family-action-buttons > button#auditBtn {
+  background: color-mix(in srgb, var(--surface) 84%, transparent) !important;
+  color: var(--text) !important;
+  border-color: color-mix(in srgb, var(--border) 70%, var(--blue) 30%) !important;
+}
+
+html[data-theme] .family-record-head--hero .family-action-buttons > button.family-primary-action,
+html[data-theme] .family-record-head--hero .family-action-buttons > button#editFamilyBtn {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--blue) 85%, white 15%), var(--blue)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 16px 28px color-mix(in srgb, var(--blue) 28%, transparent) !important;
+}
+
+html[data-theme] .family-record-head--hero .family-action-buttons > button.danger,
+html[data-theme] .family-record-head--hero .family-action-buttons > button#archiveFamilyBtn.danger {
+  background: color-mix(in srgb, var(--red-soft) 84%, transparent) !important;
+  color: var(--red) !important;
+  border-color: color-mix(in srgb, var(--red) 32%, var(--border)) !important;
+}
+
+@media (max-width: 960px) {
+  .family-record-head--hero {
+    grid-template-columns: 1fr;
+  }
+
+  .family-record-head--hero .family-hero-identity,
+  .family-record-head--hero .detail-actions.family-hero-actions,
+  .family-record-head--hero .family-hero-metrics {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .family-record-head--hero .detail-actions.family-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .family-action-panel-label {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .family-record-head--hero .family-hero-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .family-record-head--hero {
+    padding: 14px;
+    gap: 12px;
+    border-radius: 20px;
+  }
+
+  .family-record-head--hero .family-record-identity {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .family-record-head--hero .family-record-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 17px;
+  }
+
+  .family-record-head--hero .family-record-identity h2 {
+    font-size: 24px;
+  }
+
+  .family-action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .family-action-buttons > button {
+    width: 100%;
+  }
+
+  .family-action-buttons > button#archiveFamilyBtn,
+  .family-action-buttons > button.danger {
+    grid-column: 1 / -1;
+  }
+
+  .family-hero-metric {
+    min-height: 88px;
+    border-radius: 18px;
+  }
+}
+
+.family-record-head--hero .family-record-identity > :not(.family-record-avatar) {
+  grid-column: 2;
+  min-width: 0;
+}
+.family-record-head--hero .family-record-identity > .family-record-status,
+.family-record-head--hero .family-record-identity > .family-header-tags {
+  grid-column: 1 / -1;
+}
+.family-record-head--hero .family-record-avatar { grid-row: 1 / 4; }
+.family-record-head--hero .family-record-status { flex-direction: row; }
+.family-record-head--hero .family-record-status > .family-hero-priority {
+  background: var(--soft);
+  color: var(--text);
+}
+.family-record-head--hero .family-hero-priority::before { display: none; }
+.family-record-head--hero .family-action-buttons { flex: 1; min-width: 0; }
+.family-record-head--hero .family-hero-metric { min-width: 0; }
+.family-record-head--hero .family-hero-metric-value { overflow-wrap: anywhere; }
+@media (max-width: 960px) {
+  .family-record-head--hero .family-action-buttons { flex: auto; }
+}
