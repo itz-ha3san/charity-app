@@ -133,3 +133,9 @@ html[data-theme] .case-management-bar .hidden { display: none !important; }
 }
 html[data-theme] .case-management-bar .ui-segment > button:not([aria-checked="true"]) { background: transparent !important; border-color: transparent !important; }
 html[data-theme] .case-management-bar .family-actions > button { background: var(--soft) !important; color: var(--text) !important; border-color: var(--border) !important; }
+/* This compact toolbar uses the selected button itself as its highlight.
+   Disable the legacy equal-width sliding layer: the tabs now have natural widths. */
+.case-management-bar .ui-segment[data-animated-tabs="true"]::before {
+  content: none;
+  display: none;
+}
