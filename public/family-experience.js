@@ -260,19 +260,16 @@
       actions.classList.add("family-hero-actions");
       const priority = actions.querySelector(":scope > .status");
       if (priority) status.append(priority);
-      let panelLabel = actions.querySelector(".family-action-panel-label");
-      if (!panelLabel) {
-        panelLabel = document.createElement("div");
-        panelLabel.className = "family-action-panel-label";
-        panelLabel.innerHTML = "<span>داشبورد اقدام</span><b>کنترل سریع پرونده</b>";
-        actions.prepend(panelLabel);
-      }
       reorderActions(actions);
       const primary =
         actions.querySelector("#editFamilyBtn") ||
         actions.querySelector("#profileUploadBtn");
       primary?.classList.add("family-primary-action");
     }
+
+    // Move the original node so async team updates and bound actions are preserved.
+    const team = detail.querySelector("#familyContactStrip");
+    if (team && team.parentElement !== head) head.append(team);
 
     let metrics = head.querySelector(".family-hero-metrics");
     if (!metrics) {
@@ -304,11 +301,10 @@
 
     const stateText = family.archived ? "آرشیوشده" : "پرونده فعال";
     const memberText = `${fa(family.members?.length || 0)} عضو ثبت‌شده`;
-    const statusText = `${family.approvalStatus === "pending" ? "در انتظار تأیید" : "وضعیت پرونده"}`;
     status.innerHTML = `
       <span data-tone="${family.archived ? "archived" : "active"}">${esc(stateText)}</span>
       <small>${esc(memberText)}</small>
-      <small>${esc(statusText)}</small>
+      ${family.approvalStatus === "pending" ? "<small>در انتظار تأیید</small>" : ""}
     `;
     const priorityChip = document.createElement("span");
     priorityChip.className = "status family-hero-priority";
