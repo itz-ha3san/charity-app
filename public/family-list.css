@@ -139,3 +139,9 @@ html[data-theme] .case-management-bar .family-actions > button { background: var
   content: none;
   display: none;
 }
+/* Reveal transforms create sibling stacking contexts. Lift the whole toolbar,
+   not just its menu, while open; keep it below dialogs and global overlays. */
+.workspace-family-card.case-management-bar:has(.case-management-more[open]) {
+  position: relative;
+  z-index: 40;
+}
