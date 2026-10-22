@@ -1880,3 +1880,101 @@ html[data-theme="dark"] .workspace-overview-head::after {
  .alert-center-modal #alertWorkQueuesBtn{width:auto;min-width:88px;padding:7px 11px;font-size:12px}
  .alert-center-modal .alert-center-title{min-width:0}
 }
+
+/* Approved daily dashboard refresh. Keep the existing charity watermark and actions. */
+html[data-theme] .workspace-overview { gap: 20px; }
+html[data-theme] .workspace-overview-head {
+  min-height: 164px; padding: 28px 32px; border-radius: 20px;
+  box-shadow: none;
+}
+html[data-theme] .workspace-overview-head::before { display: none; }
+html[data-theme] .workspace-overview-head::after {
+  width: clamp(180px, 28%, 310px); background-size: auto 150%;
+  opacity: .24;
+}
+html[data-theme="dark"] .workspace-overview-head {
+  background: linear-gradient(110deg, #213b56, #19283b 64%);
+}
+html[data-theme="dark"] .workspace-overview-head::after { opacity: .27; }
+html[data-theme] .workspace-overview-head h2 { margin-block: 12px 8px; font-size: 30px; }
+html[data-theme] .workspace-overview-head p { font-size: 13px; line-height: 1.9; }
+html[data-theme] .workspace-date { font-size: 11px; font-weight: 500; color: var(--muted); background: transparent; }
+html[data-theme] .workspace-metrics-heading { margin: 2px 2px -2px; }
+html[data-theme] .workspace-metrics { gap: 14px; }
+html[data-theme] .workspace-metric {
+  min-width: 0; min-height: 152px; padding: 18px 20px;
+  grid-template-columns: minmax(0, 1fr) 40px; align-items: start;
+  border: 1px solid var(--border); border-radius: 18px;
+  background: var(--surface); box-shadow: none;
+}
+html[data-theme] .workspace-metric::after {
+  inset-inline: 20px auto; inset-block: auto 0; width: 40px; height: 3px; opacity: 1;
+}
+html[data-theme] .workspace-metric-icon { width: 40px; height: 40px; border-radius: 12px; margin: 0; }
+html[data-theme] .workspace-metric-copy { gap: 7px; }
+html[data-theme] .workspace-metric small { padding-top: 8px; font-size: 12px; font-weight: 500; line-height: 1.8; }
+html[data-theme] .workspace-metric strong { font-size: 32px; line-height: 1.4; }
+html[data-theme] .workspace-metric-caption { font-size: 11px; line-height: 1.8; white-space: normal; }
+html[data-theme] .workspace-focus-grid-single { margin-top: 0; }
+html[data-theme] .workspace-focus-grid-single .workspace-focus-card {
+  min-width: 0; padding: 22px 24px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--surface); box-shadow: none;
+}
+html[data-theme] .workspace-card-head { gap: 12px; margin-bottom: 18px; }
+html[data-theme] .workspace-card-head h3 { font-size: 17px; }
+html[data-theme] .workspace-card-head > button { min-height: 44px; background: transparent; border-color: transparent; color: var(--blue-dark); }
+html[data-theme] .workspace-priority {
+  grid-template-columns: 32px minmax(0, 1fr) auto 16px;
+  min-height: 80px; padding: 16px 18px; gap: 12px;
+  border: 1px solid var(--border); border-inline-start: 3px solid var(--blue);
+  border-radius: 14px; background: var(--soft);
+}
+html[data-theme] .workspace-priority[data-tone="red"] { border-inline-start-color: var(--red); }
+html[data-theme] .workspace-priority[data-tone="orange"] { border-inline-start-color: #d5803b; }
+html[data-theme] .workspace-priority-mark {
+  width: 32px; height: 32px; border-radius: 10px; background: var(--blue-soft);
+  display: grid; place-items: center; color: var(--blue-dark);
+}
+html[data-theme] .workspace-priority-mark::after { content: '↗'; font-size: 18px; }
+html[data-theme] .workspace-priority[data-tone="red"] .workspace-priority-mark { background: var(--red-soft); color: var(--red); }
+html[data-theme] .workspace-priority[data-tone="orange"] .workspace-priority-mark { background: color-mix(in srgb, #d5803b 15%, var(--surface)); color: #d5803b; }
+html[data-theme] .workspace-priority b { font-size: 13px; line-height: 1.8; }
+html[data-theme] .workspace-priority small { font-size: 11px; line-height: 1.9; }
+html[data-theme] .workspace-priority strong { min-width: 34px; padding: 5px 9px; border: 1px solid var(--border); border-radius: 9px; font-size: 16px; }
+@media (max-width: 1000px) {
+  html[data-theme] .workspace-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  html[data-theme] .workspace-overview { gap: 16px; }
+  html[data-theme] .workspace-overview-head { min-height: 148px; padding: 20px; border-radius: 16px; }
+  html[data-theme] .workspace-overview-head::after { width: 38%; opacity: .17; }
+  html[data-theme] .workspace-overview-head > div { max-width: 78%; }
+  html[data-theme] .workspace-overview-head h2 { font-size: 25px; }
+  html[data-theme] .workspace-overview-head p { font-size: 12px; }
+  html[data-theme] .workspace-metrics { gap: 10px; }
+  html[data-theme] .workspace-metric { min-height: 154px; padding: 14px; grid-template-columns: minmax(0, 1fr) 30px; gap: 8px; border-radius: 14px; }
+  html[data-theme] .workspace-metric-icon { width: 30px; height: 30px; border-radius: 9px; }
+  html[data-theme] .workspace-metric-icon svg { width: 18px; height: 18px; }
+  html[data-theme] .workspace-metric small { font-size: 11px; padding-top: 2px; }
+  html[data-theme] .workspace-metric strong { font-size: 28px; }
+  html[data-theme] .workspace-metric-caption { font-size: 10px; }
+  html[data-theme] .workspace-focus-grid-single .workspace-focus-card { padding: 16px; border-radius: 16px; }
+  html[data-theme] .workspace-priority { grid-template-columns: minmax(0, 1fr) auto; padding: 12px; gap: 8px; }
+  html[data-theme] .workspace-priority-mark, html[data-theme] .workspace-priority i { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme] .workspace-metric:hover { transform: none; }
+}
+/* Neutralize legacy theme fills only inside the refreshed overview. */
+html[data-theme] .workspace-overview { display: grid; background: transparent !important; }
+html[data-theme] .workspace-metric-caption { display: block; }
+html[data-theme="dark"] .workspace-priority[data-tone="red"] { border-inline-start-color: var(--red) !important; }
+html[data-theme="dark"] .workspace-priority[data-tone="orange"] { border-inline-start-color: #d5803b !important; }
+html[data-theme] .workspace-priority-mark::after { content: '◷'; font-size: 22px; }
+html[data-theme] .workspace-overview.workspace-overview { background: transparent !important; }
+html[data-theme] .workspace-overview .workspace-overview-head { margin: 0; }
+html[data-theme] .workspace-priority-mark::after {
+  content: ''; width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 50%;
+  background: linear-gradient(currentColor, currentColor) 8px 3px / 1.5px 6px no-repeat,
+              linear-gradient(35deg, transparent 40%, currentColor 42%, currentColor 60%, transparent 62%) 8px 8px / 6px 5px no-repeat;
+}

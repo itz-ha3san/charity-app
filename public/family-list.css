@@ -145,3 +145,63 @@ html[data-theme] .case-management-bar .family-actions > button { background: var
   position: relative;
   z-index: 40;
 }
+
+/* Dashboard management controls: same IDs, permissions and native details behavior. */
+html[data-theme] .workspace-family-card.case-management-bar { border-radius: 20px; box-shadow: none; }
+html[data-theme] .case-management-bar .workspace-family-head { padding: 24px; gap: 18px; }
+html[data-theme] .case-management-bar .workspace-family-head h2 { font-size: 22px; }
+html[data-theme] .case-management-bar .eyebrow { font-size: 11px; color: var(--blue-dark); margin-bottom: 4px; }
+html[data-theme] .case-management-bar .case-management-icon { border-radius: 13px; }
+html[data-theme] .case-management-bar #createBtn { min-height: 46px; border-radius: 12px; padding: 10px 18px; font-size: 13px; }
+html[data-theme="dark"] .case-management-bar #createBtn { background: #83bafd; color: #10243b; border-color: #91c3ff; }
+html[data-theme] .case-management-bar .family-toolbar { padding: 12px 24px; border-radius: 0 0 20px 20px; }
+html[data-theme] .case-management-bar .family-toolbar > .ui-segment {
+  padding: 4px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); gap: 4px;
+}
+html[data-theme] .case-management-bar .ui-segment > button { border-radius: 8px; min-height: 40px; font-size: 12px; }
+html[data-theme] .case-management-bar .family-actions > button,
+html[data-theme] .case-management-bar .case-management-more > summary { border-radius: 10px; font-size: 12px; }
+html[data-theme] .case-management-bar .case-management-more[open] > summary { background: var(--blue-soft); color: var(--blue-dark); border-color: var(--blue); }
+html[data-theme] .case-management-bar .case-management-menu {
+  width: min(352px, calc(100vw - 48px)); padding: 10px;
+  max-height: min(420px, 65dvh); overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 15px; box-shadow: 0 18px 38px rgba(5, 11, 22, .24);
+}
+html[data-theme] .case-management-menu-label { padding: 4px 10px 10px; margin-bottom: 5px; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+html[data-theme] .case-management-bar .case-management-menu > button {
+  display: flex; align-items: center; gap: 11px; padding: 13px 10px; min-height: 64px;
+  white-space: normal; border-radius: 10px; line-height: 1.8;
+}
+html[data-theme] .case-management-bar .case-management-menu > button:hover,
+html[data-theme] .case-management-bar .case-management-menu > button:focus-visible { background: var(--blue-soft); }
+html[data-theme] .case-management-menu .case-tool-icon {
+  display: grid; place-items: center; flex: 0 0 33px; width: 33px; height: 33px;
+  border: 1px solid var(--border); border-radius: 9px; color: var(--blue-dark); background: var(--blue-soft);
+}
+html[data-theme] .case-management-menu #refreshBtn .case-tool-icon { color: var(--green); background: var(--green-soft); }
+html[data-theme] .case-management-menu .case-tool-copy { flex: 1; min-width: 0; }
+html[data-theme] .case-management-menu .case-tool-copy b { display: block; font-size: 12px; font-weight: 650; }
+html[data-theme] .case-management-menu .case-tool-copy small { display: block; margin-top: 3px; font-size: 10px; color: var(--muted); }
+html[data-theme] .case-management-menu .case-tool-arrow { color: var(--muted); font-size: 22px; }
+html[data-theme] .family-picker-controls { padding: 20px 24px; border-radius: 16px; gap: 14px; }
+html[data-theme] .family-picker-search #searchInput { min-height: 54px; border-radius: 12px; }
+html[data-theme] .family-picker-search > svg { top: 18px; }
+html[data-theme] .family-picker-controls .select-control { min-height: 50px; border-radius: 12px; }
+@media (max-width: 720px) {
+  html[data-theme] .case-management-bar .workspace-family-head { padding: 18px 16px; gap: 12px; flex-wrap: wrap; }
+  html[data-theme] .case-management-bar .workspace-family-head h2 { font-size: 19px; }
+  html[data-theme] .case-management-bar .family-toolbar { padding: 12px; }
+  html[data-theme] .case-management-bar .family-toolbar > .ui-segment { width: 100%; }
+  html[data-theme] .case-management-bar .family-actions { gap: 6px; }
+  html[data-theme] .case-management-bar .family-actions > button,
+  html[data-theme] .case-management-bar .case-management-more > summary { padding: 8px; font-size: 12px; gap: 5px; }
+  html[data-theme] .case-management-bar .case-management-more { margin-inline-start: 0; }
+  html[data-theme] .family-picker-controls { padding: 14px; }
+}
+/* Scoped exceptions to the legacy global dark button palette. */
+html[data-theme="dark"] .case-management-bar #createBtn { background: #83bafd !important; color: #10243b !important; }
+html[data-theme="dark"] .case-management-bar .case-management-menu > button { background: transparent !important; }
+html[data-theme="dark"] .case-management-bar .case-management-menu > button:hover,
+html[data-theme="dark"] .case-management-bar .case-management-menu > button:focus-visible { background: var(--blue-soft) !important; }
+html[data-theme] .case-management-bar .case-management-menu > button:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
