@@ -154,6 +154,7 @@
 
   function enhanceTables(root=document) {
     root.querySelectorAll?.('table').forEach(table=>{
+      if (table.dataset.nativeTable === 'true') return;
       table.classList.add('optimized-table');
       const head=table.tHead;
       if (!head || table.dataset.columnControls) return;
