@@ -1331,3 +1331,167 @@ html[data-theme] .family-record-head--hero .family-action-buttons > button#archi
     line-height: 1.5;
   }
 }
+
+/* Family overview refresh — presentation only; values, privacy and totals unchanged. */
+#familyDetail > .family-detail-tabs {
+  position: relative;
+  top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 18px;
+  background: var(--surface);
+  border-block: 1px solid var(--border);
+  backdrop-filter: none;
+}
+#familyDetail > .family-detail-tabs button {
+  flex: 1 1 auto;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  box-shadow: none;
+}
+#familyDetail > .family-detail-tabs button[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--blue) 35%, var(--border));
+  background: var(--blue-soft);
+  color: var(--blue-dark);
+}
+#familyDetail > .family-detail-tabs button b { font-size: 12px; }
+#familyDetail > .detail-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 18px;
+  padding: 0;
+  width: auto;
+  max-width: calc(100% - 36px);
+  align-items: stretch;
+}
+#familyDetail > .detail-grid > .info-card {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  min-height: 102px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  box-shadow: 0 2px 6px #112c4903;
+  transform: none;
+}
+#familyDetail > .detail-grid > .info-card > span:first-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.7;
+}
+#familyDetail > .detail-grid > .info-card > b,
+#familyDetail > .detail-grid > .info-card > .family-phone-link {
+  max-width: 100%;
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+#familyDetail > .detail-grid > .info-card:nth-child(n+4):nth-child(-n+7) { grid-column: span 3; }
+#familyDetail > .detail-grid > .info-card-wide {
+  grid-column: 1 / -1;
+  min-height: 0;
+  gap: 8px;
+  padding: 18px 20px;
+  border-inline-start: 3px solid color-mix(in srgb, var(--blue) 60%, var(--border));
+  background: color-mix(in srgb, var(--soft) 70%, var(--surface));
+}
+#familyDetail > .detail-grid > .info-card-wide > b {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 2.1;
+  white-space: pre-wrap;
+}
+#familyDetail .info-card :is(.national-id-toggle, .profile-id-toggle) {
+  min-height: 32px;
+  margin-top: 2px;
+  border-radius: 8px;
+}
+#familyDetail > #familyIncomeSummary {
+  margin: 20px 18px 24px;
+  padding: 24px;
+  max-width: calc(100% - 36px);
+  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--border));
+  border-radius: 18px;
+  background: linear-gradient(125deg, color-mix(in srgb, var(--blue-soft) 45%, var(--surface)), var(--surface) 65%);
+  box-shadow: none;
+}
+#familyDetail #familyIncomeSummary .family-income-main { align-items: center; gap: 20px; }
+#familyDetail #familyIncomeSummary .eyebrow { font-size: 11px; color: var(--blue-dark); }
+#familyDetail #familyIncomeSummary h3 { margin: 5px 0 6px; font-size: 19px; }
+#familyDetail #familyIncomeSummary .family-income-main p { max-width: 420px; font-size: 12px; line-height: 1.9; }
+#familyDetail #familyIncomeSummary .family-income-total {
+  min-width: 150px;
+  gap: 4px;
+  padding: 16px 20px;
+  border: 1px solid color-mix(in srgb, var(--blue) 18%, var(--border));
+  border-radius: 14px;
+  background: var(--blue-soft);
+  text-align: start;
+  justify-items: start;
+}
+#familyDetail #familyIncomeSummary .family-income-total strong { font-size: 30px; font-weight: 800; line-height: 1.4; color: var(--blue-dark); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; max-width: 100%; }
+#familyDetail #familyIncomeSummary .family-income-total span { font-size: 11px; }
+#familyDetail #familyIncomeSummary .family-income-chips { gap: 10px; margin-top: 22px; }
+#familyDetail #familyIncomeSummary .family-income-chips > span { gap: 10px; padding: 16px 14px; border-radius: 12px; background: var(--surface); }
+#familyDetail #familyIncomeSummary .family-income-chips small { font-size: 11px; line-height: 1.8; }
+#familyDetail #familyIncomeSummary .family-income-chips b { font-size: 13px; line-height: 1.8; color: var(--text); font-variant-numeric: tabular-nums; }
+#familyDetail #familyIncomeSummary .income-breakdown { margin-top: 20px; }
+#familyDetail #familyIncomeSummary .income-breakdown > summary { min-height: 48px; padding: 14px 0 0; font-size: 12px; }
+#familyDetail #familyIncomeSummary .income-breakdown-row { padding: 12px 14px; border-radius: 10px; font-size: 12px; }
+#familyDetail #familyIncomeSummary .income-breakdown-body > p { font-size: 11px; line-height: 1.9; }
+#familyDetail :is(.family-detail-tabs button, .income-breakdown summary):focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+@media (max-width: 1100px) {
+  #familyDetail > .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #familyDetail > .detail-grid > .info-card:not(.info-card-wide),
+  #familyDetail > .detail-grid > .info-card:nth-child(n+4):nth-child(-n+7) { grid-column: auto; }
+  #familyDetail > .detail-grid > .info-card:nth-child(7):nth-child(-n+7) { grid-column: 1 / -1; }
+  #familyDetail #familyIncomeSummary .family-income-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  #familyDetail > .family-detail-tabs { padding: 10px 12px; gap: 5px; }
+  #familyDetail > .family-detail-tabs button { flex: 1 1 28%; padding: 6px; min-height: 44px; }
+  #familyDetail > .family-detail-tabs button b { font-size: 11px; }
+  #familyDetail > .detail-grid { gap: 10px; margin: 14px 12px; max-width: calc(100% - 24px); }
+  #familyDetail > .detail-grid > .info-card { min-height: 100px; padding: 14px 12px; gap: 8px; border-radius: 12px; }
+  #familyDetail > .detail-grid > .info-card > b,
+  #familyDetail > .detail-grid > .info-card > .family-phone-link { font-size: 13px; }
+  #familyDetail > .detail-grid > .info-card-wide { padding: 16px; min-height: 0; }
+  #familyDetail > #familyIncomeSummary { margin: 16px 12px; padding: 18px 16px; max-width: calc(100% - 24px); border-radius: 15px; }
+  #familyDetail #familyIncomeSummary .family-income-main { flex-direction: column; align-items: stretch; gap: 16px; }
+  #familyDetail #familyIncomeSummary .family-income-total { min-width: 0; padding: 14px 16px; }
+  #familyDetail #familyIncomeSummary .family-income-total strong { font-size: 28px; }
+  #familyDetail #familyIncomeSummary .family-income-chips { margin-top: 14px; gap: 8px; }
+  #familyDetail #familyIncomeSummary .family-income-chips > span { padding: 12px 10px; }
+  #familyDetail #familyIncomeSummary .income-breakdown-row { flex-direction: column; gap: 5px; }
+}
+@media (max-width: 360px) {
+  #familyDetail > .detail-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+#familyDetail { container-type: inline-size; }
+@container (max-width: 700px) {
+  #familyDetail > .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #familyDetail > .detail-grid > .info-card:not(.info-card-wide),
+  #familyDetail > .detail-grid > .info-card:nth-child(n+4):nth-child(-n+7) { grid-column: auto; }
+  #familyDetail > .detail-grid > .info-card:nth-child(7):nth-child(-n+7) { grid-column: 1 / -1; }
+  #familyDetail #familyIncomeSummary .family-income-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 340px) {
+  #familyDetail > .detail-grid { grid-template-columns: minmax(0, 1fr); }
+}
