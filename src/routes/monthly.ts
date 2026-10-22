@@ -40,6 +40,12 @@ async function loadFamilies(c: PoolClient, p: Period, locking = false): Promise<
     const dup = new Set(conflicts.rows.map(r => r.id));
     return rows.rows.map(f => { const su = supervisors.rows.find(s => s.family_id === f.id); return { id: f.id, caseNumber: f.case_number, familyName: f.family_surname || f.head_name, supervisorId: su?.id ?? null, supervisorName: su?.name ?? 'بدون سرپرست تعیین‌شده', baseAmount: monthlyAmount(f.profile_data?.monthlyAid), conflict: dup.has(f.id), aids: aids.rows.filter(a => a.family_id === f.id).map(a => ({ id: a.id, familyId: f.id, title: a.title, category: a.category ?? 'سایر', amount: a.amount })) }; });
 }
+/** Fail explicitly when the deployment has not installed migration 034. */
+async function requireMonthlySchema(c: PoolClient) {
+    const result = await c.query<{ ready: boolean }>("SELECT to_regclass('monthly_requests') IS NOT NULL AND to_regclass('monthly_request_families') IS NOT NULL AND to_regclass('monthly_request_aids') IS NOT NULL AS ready");
+    if (!result.rows[0]?.ready)
+        throw new DomainError(409, 'MIGRATIONS_REQUIRED', { migration: '034_monthly_requests.sql' });
+}
 export async function registerMonthlyRoutes(app: FastifyInstance) {
     app.addHook('preHandler', requireAuth);
     app.get('/monthly-requests/liaisons', async (req) => {
@@ -52,7 +58,9 @@ export async function registerMonthlyRoutes(app: FastifyInstance) {
         const p = period.parse(req.query);
         return tx(async (c) => {
             await c.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
-            const liaison = await target(c, req.actor!, p), families = await loadFamilies(c, p);
+            const liaison = await target(c, req.actor!, p);
+            await requireMonthlySchema(c);
+            const families = await loadFamilies(c, p);
             const draft = await c.query('SELECT id,status,selected_ids,snapshot FROM monthly_requests WHERE liaison_id=$1 AND jalali_year=$2 AND jalali_month=$3', [p.liaisonId, p.jalaliYear, p.jalaliMonth]);
             const saved = draft.rows[0];
             if (saved?.status === 'submitted') {
@@ -73,6 +81,7 @@ export async function registerMonthlyRoutes(app: FastifyInstance) {
         const b = command.parse(req.body);
         const result = await tx(async (c) => {
             const liaison = await target(c, req.actor!, b);
+            await requireMonthlySchema(c);
             await c.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`monthly:${b.liaisonId}:${b.jalaliYear}:${b.jalaliMonth}`]);
             const prior = await c.query('SELECT id,status FROM monthly_requests WHERE liaison_id=$1 AND jalali_year=$2 AND jalali_month=$3 FOR UPDATE', [b.liaisonId, b.jalaliYear, b.jalaliMonth]);
             if (prior.rows[0]?.status === 'submitted') {

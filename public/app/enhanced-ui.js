@@ -100,7 +100,7 @@
   clear.onclick=()=>{input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();};input.addEventListener('input',validate);validate();
  }
  function table(table){
-  if(seen.has(table))return;seen.add(table);table.classList.add('app-table');table.querySelectorAll('thead th').forEach(th=>{if(!th.hasAttribute('scope'))th.scope='col';});
+  if(table.dataset.nativeTable==='true'||seen.has(table))return;seen.add(table);table.classList.add('app-table');table.querySelectorAll('thead th').forEach(th=>{if(!th.hasAttribute('scope'))th.scope='col';});
   if(!table.parentElement.matches('.fi-table-scroll,.table-scroll,.app-table-scroll')){const wrapper=document.createElement('div');wrapper.className='app-table-scroll';wrapper.tabIndex=0;wrapper.setAttribute('role','region');wrapper.setAttribute('aria-label',table.caption?.textContent||'جدول؛ برای مشاهدهٔ ستون‌های دیگر افقی پیمایش کنید');table.before(wrapper);wrapper.append(table);}
   table.querySelectorAll('td').forEach(td=>{if(/^[\s\d۰-۹٠-٩٬،٫.\-]+(?:تومان|ریال|٪)?$/.test(td.textContent))td.classList.add('app-numeric');});
  }

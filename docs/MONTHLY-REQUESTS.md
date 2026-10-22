@@ -4,6 +4,14 @@
 
 Apply `npm run migrate` (adds `034_monthly_requests.sql`), then rebuild/restart the service. Do not expose the new frontend against an unmigrated database. No production migration or deployment is performed by this change.
 
+## Page layout and deployment errors
+
+The monthly workspace is presented as a full-page overlay, not a padded floating dialog. It retains the modal auth/lifecycle boundary and safe close behaviour. The period/liaison controls are inside the hero's compact period menu. A green coverage strip precedes the right-hand supervisor invoice grid and the narrow left-hand blue receipt. Single-family invoices without available ad-hoc aids share a row on desktop; mobile stacks the columns. The charity logo is retained.
+
+Available ad-hoc aids open in each supervisor's picker. Selected aid cards are also displayed immediately beneath their own family row. All family and aid details remain in the sidebar and exported PNG. Sidebar family breakdowns are expandable per supervisor to keep the receipt compact; PNG output always includes every family in full, regardless of accordion state. The shared select/number/table enhancers do not restyle the component's explicitly native controls and tables.
+
+The monthly GET/POST routes check for the three migration-034 tables and return `409 MIGRATIONS_REQUIRED` if absent. The UI distinguishes that error from invalid liaison, denied access, missing endpoint, server failure and connection failure. Failed loads do not show fabricated invoices or a green full-coverage claim. Choosing the period again permits retry. This does not run or replace a production database migration.
+
 ## Behaviour
 
 - Home dashboard adds **ثبت ماهیانه** and a non-functional **صورت‌جلسه** placeholder beside the narrower action panel. Existing charity logo assets remain in place.
@@ -20,7 +28,7 @@ Apply `npm run migrate` (adds `034_monthly_requests.sql`), then rebuild/restart 
 ## Verification
 
 `npm run typecheck`, `npm run frontend:check`, `npm run test:unit`, `npm run build`.
-`CHROMIUM_EXECUTABLE=/path/to/chromium node scripts/check-monthly-browser.mjs` runs mocked-API UI checks (320/390/1280px, light/dark, total calculation, filters, family/topic receipt, drafts, review/submit and stale-data errors).
+`CHROMIUM_EXECUTABLE=/path/to/chromium node scripts/check-monthly-browser.mjs` runs mocked-API UI checks (320/390/1280px, light/dark, total calculation, filters, family/topic receipt, drafts, review/submit and stale-data errors). The fixture loads the real linked CSS plus shared lifecycle, controls, advanced UI, UX, product UI and enhanced-table scripts; checks also cover the compact period menu, migration/server errors and retry.
 
 **Database integration/concurrency tests were not run in the implementation environment (no PostgreSQL service).** Before production, verify migration on a staging backup and test two simultaneous submissions, changed assignments, cancelled/paid ad-hoc cases, zero amounts and permission boundaries against PostgreSQL. This UI check does not replace those tests.
 
