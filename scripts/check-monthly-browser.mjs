@@ -61,8 +61,10 @@ try {
             assert.equal(await page.locator('.mn-invoice-wide').count(),1,'A single visible invoice must fill the main column');
             assert.match(await page.locator('[data-mn-grand]').innerText(), /۱۲٬۰۵۰٬۰۰۰/);
             await page.evaluate(()=>{window.drawnText=[];const original=CanvasRenderingContext2D.prototype.fillText;CanvasRenderingContext2D.prototype.fillText=function(value,...args){window.drawnText.push(String(value));return original.call(this,value,...args);};});
+            const directDownload=page.waitForEvent('download');
             await page.locator('[data-mn-image]').click();
-            await page.locator('.mn-export-results a').first().waitFor();
+            const download=await directDownload;
+            await page.locator('[data-mn-download]').first().waitFor();
             const drawn=await page.evaluate(()=>window.drawnText.join('\n'));
             assert.match(drawn,/میرزایی/);assert.match(drawn,/علیزاده/);assert.match(drawn,/دولتخواه/);assert.match(drawn,/پزشکی/);assert.match(drawn,/۱۲٬۰۵۰٬۰۰۰/);
             assert.match(drawn,/۵٬۹۵۰٬۰۰۰/);assert.match(drawn,/ماهیانهٔ خانواده/);assert.match(drawn,/موردیِ خانواده/);
@@ -71,14 +73,24 @@ try {
             assert.ok(drawn.indexOf('موضوع: پزشکی')<drawn.indexOf('خانوادهٔ علیزاده'));
 
             assert.equal(await page.evaluate(()=>posts.length),0,'Export must not save or submit financial requests');
-            const downloadPromise=page.waitForEvent('download');await page.locator('.mn-export-results a').first().click();const download=await downloadPromise;
+            const retryPromise=page.waitForEvent('download');await page.locator('[data-mn-download]').first().click();const retry=await retryPromise;
+            assert.equal(retry.suggestedFilename(),download.suggestedFilename());
+            const popupPromise=page.waitForEvent('popup');await page.locator('[data-mn-image-preview]').first().click();const imagePage=await popupPromise;
+            await imagePage.waitForFunction(()=>document.querySelector('img')?.naturalWidth===1320);await imagePage.close();
             assert.match(download.suggestedFilename(),/^monthly-1405-08-all-1\.png$/);
             const png=fs.readFileSync(await download.path());assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.equal(png.readUInt32BE(16),1320);assert.ok(png.readUInt32BE(20)<=5200);const decoded=pngjs.PNG.sync.read(png);assert.deepEqual([...decoded.data.subarray(0,4)],[12,22,35,255],'Receipt must use the navy ticket background, not a white report sheet');
             if(theme==='dark'&&width===1280&&process.env.MONTHLY_RECEIPT_SAMPLE)fs.writeFileSync(process.env.MONTHLY_RECEIPT_SAMPLE,png);
             await page.evaluate(()=>window.drawnText=[]);
+            const groupDownloadPromise=page.waitForEvent('download');
             await page.locator('[data-mn-group-image]').click();
+            const groupDownload=await groupDownloadPromise;assert.match(groupDownload.suggestedFilename(),/supervisor-.*-1\.png$/);
             await page.waitForFunction(()=>document.querySelector('.monthly-modal').getAttribute('aria-busy')==='false');
             const single=await page.evaluate(()=>window.drawnText.join('\n'));assert.match(single,/دولتخواه/);assert.doesNotMatch(single,/میرزایی/);
+            await page.evaluate(()=>{window.originalImageCreate=MonthlyInvoiceImage;window.MonthlyInvoiceImage={create:async()=>{throw new Error('PNG_FAILED');}};});
+            await page.locator('[data-mn-image]').click();
+            await page.waitForFunction(()=>document.querySelector('.mn-message').textContent.includes('ساخت فایل PNG انجام نشد'));
+            assert.equal(await page.locator('.mn-message').getAttribute('role'),'alert');
+            await page.evaluate(()=>window.MonthlyInvoiceImage=window.originalImageCreate);
             await page.locator('[data-mn-query]').fill('');
             await page.locator('[data-mn-save]').click();
             await page.waitForFunction(() => document.querySelector('.mn-message').textContent.includes('ذخیره شد'));

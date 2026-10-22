@@ -164,11 +164,43 @@
                 if(!active())return;
                 clearImages();
                 const result=root.querySelector('.mn-export-results');result.replaceChildren();
-                const notice=document.createElement('p');notice.textContent=pages.length>1?'فاکتور در چند تصویر آماده شد؛ هر صفحه را جداگانه دانلود کنید.':'عکس فاکتور آماده است؛ برای ذخیره، دکمهٔ زیر را بزنید.';result.append(notice);
-                pages.forEach((blob,index)=>{const url=URL.createObjectURL(blob);imageUrls.push(url);const link=document.createElement('a');link.href=url;link.download=`monthly-${data.jalaliYear}-${String(data.jalaliMonth).padStart(2,'0')}-${groupId?'supervisor':'all'}-${index+1}.png`;link.textContent=pages.length>1?'دانلود صفحهٔ '+fmt(index+1)+' (PNG)':'ذخیرهٔ عکس فاکتور (PNG)';result.append(link);});
+                const notice=document.createElement('p');
+                notice.textContent=pages.length>1
+                    ?'دانلود صفحهٔ اول شروع می‌شود؛ صفحه‌های دیگر را از لینک‌های زیر بگیرید. اگر دانلود شروع نشد، لینک دانلود یا باز کردن عکس را بزنید.'
+                    :'اگر دانلود شروع نشد، «دانلود دوباره» یا «باز کردن عکس» را بزنید و تصویر را ذخیره کنید.';
+                result.append(notice);
+                pages.forEach((blob,index)=>{
+                    const url=URL.createObjectURL(blob);imageUrls.push(url);
+                    const link=document.createElement('a');
+                    link.href=url;
+                    link.download=`monthly-${data.jalaliYear}-${String(data.jalaliMonth).padStart(2,'0')}-${groupId?'supervisor-'+(snapshot.groups.findIndex(g=>(g.supervisorId||'unassigned')===groupId)+1):'all'}-${index+1}.png`;
+                    link.dataset.mnDownload='';
+                    link.textContent=pages.length>1?'دانلود صفحهٔ '+fmt(index+1)+' (PNG)':'دانلود دوبارهٔ فاکتور (PNG)';
+                    result.append(link);
+                    const preview=document.createElement('a');
+                    preview.href=url;preview.target='_blank';preview.rel='noopener';preview.dataset.mnImagePreview='';
+                    preview.textContent=pages.length>1?'باز کردن عکس صفحهٔ '+fmt(index+1)+' برای ذخیره':'باز کردن عکس برای ذخیره در گوشی';
+                    result.append(preview);
+                });
                 message('عکس شامل تمام خانواده‌های فاکتور است؛ جست‌وجو و فیلتر روی خروجی اثر ندارند.');
-                result.scrollIntoView({block:'nearest'});result.querySelector('a')?.focus();
-            }catch(error){if(error.message!=='EXPORT_CANCELLED')message(error.message==='INVOICE_TOO_LONG'?'فاکتور بسیار طولانی است؛ عکس هر سرپرست را جداگانه دریافت کنید.':'ساخت عکس انجام نشد؛ بارگذاری فونت و لوگو و اتصال را بررسی و دوباره تلاش کنید.');}
+                result.scrollIntoView({block:'nearest'});
+                const firstDownload=result.querySelector('[data-mn-download]');
+                firstDownload?.click();
+                firstDownload?.focus();
+            }catch(error){
+                if(error.message!=='EXPORT_CANCELLED'){
+                    const exportErrors={
+                        EMPTY_INVOICE:'فاکتوری برای دانلود وجود ندارد؛ ابتدا دوره و رابط را انتخاب کنید.',
+                        INVOICE_TOO_LONG:'فاکتور بسیار طولانی است؛ عکس هر سرپرست را جداگانه دریافت کنید.',
+                        FONT_UNAVAILABLE:'فونت فاکتور بارگذاری نشد؛ اتصال را بررسی و دوباره دانلود کنید.',
+                        LOGO_UNAVAILABLE:'لوگوی خیریه بارگذاری نشد؛ اتصال را بررسی و دوباره دانلود کنید.',
+                        INVALID_LOGO:'نشانی لوگوی فاکتور معتبر نیست؛ صفحه را دوباره بارگذاری کنید.',
+                        CANVAS_UNAVAILABLE:'مرورگر امکان ساخت عکس را ندارد؛ با مرورگر به‌روز دوباره امتحان کنید.',
+                        PNG_FAILED:'ساخت فایل PNG انجام نشد؛ دوباره تلاش کنید یا فاکتور هر سرپرست را جداگانه بگیرید.'
+                    };
+                    message(exportErrors[error.message]||'ساخت عکس انجام نشد؛ اتصال را بررسی و دوباره تلاش کنید.','error');
+                }
+            }
             finally{setBusy(false);}
         }
         async function save(submit) { if (busy || !data)
