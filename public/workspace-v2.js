@@ -186,6 +186,11 @@
             <div class="workspace-loading"><i></i><span>در حال دریافت وضعیت…</span></div>
           </div>
         </article>
+        <article class="workspace-focus-card monthly-launch-panel" hidden>
+          <div class="workspace-card-head"><div><span class="workspace-card-kicker">پرداخت‌های دوره‌ای</span><h3>عملیات ماهانه</h3></div></div>
+          <button type="button" data-workspace-action="monthlyRequests">ثبت ماهیانه<small>تمام خانواده‌ها، تفکیک سرپرست و کمک‌های موردی</small></button>
+          <button type="button" data-workspace-action="monthlyMinutes">صورت‌جلسه<small>طراحی این بخش در مرحلهٔ بعد</small></button>
+        </article>
       </div>
     `;
     main.prepend(section);
@@ -200,6 +205,8 @@
   }
 
   function runOverviewAction(action, target) {
+    if (action === "monthlyRequests") return window.openMonthlyRequests?.();
+    if (action === "monthlyMinutes") return window.AppUI?.toast('طراحی بخش صورت‌جلسه هنوز مشخص نشده است.');
     if (action === "activeFamiliesBtn") return window.openActiveFamilyList?.();
     if (action === "urgentFamiliesBtn") return window.openUrgentFamilyList?.();
     if (action === "attentionItemsBtn") return window.openAttentionItems?.();
@@ -235,6 +242,8 @@
     if (!root) return;
     root.classList.add("is-loading");
     const position = window.currentActor?.position;
+    const monthlyPanel = root.querySelector('.monthly-launch-panel');
+    if (monthlyPanel) monthlyPanel.hidden = !(window.currentActor?.role === 'admin' || ['liaison','ceo','supervision_deputy'].includes(position));
     const scopedWorker = ["liaison", "health_officer", "education_officer"].includes(position);
     const dashboardRequest = scopedWorker
       ? request("/api/families?status=active&limit=1&offset=0").then((data) => ({ active: data.total }))

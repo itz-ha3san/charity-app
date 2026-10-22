@@ -11,6 +11,7 @@ import { pool } from "./db.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerFamilyRoutes } from "./routes/families.js";
 import { registerFinancialAnalyticsRoutes } from "./routes/financialAnalytics.js";
+import { registerMonthlyRoutes } from "./routes/monthly.js";
 import { registerFinancialRoutes } from "./routes/financial.js";
 import { registerOperationsRoutes } from "./routes/operations.js";
 import { registerOrganizationRoutes } from "./routes/organization.js";
@@ -41,7 +42,8 @@ export async function buildApp(o: {
 }; if (e instanceof DomainError)
     return r.code(e.status).send({ error: e.error, ...e.details }); if (isConcurrencyConflict(x.code))
     return r.header("retry-after", "1").code(409).send({ error: "RETRYABLE_CONFLICT" }); if (e instanceof ZodError || x.name === "ZodError" || Array.isArray(x.issues))
-    return r.code(400).send({ error: "VALIDATION_ERROR", issues: x.issues ?? [] }); if (x.code === "P7501")
+    return r.code(400).send({ error: "VALIDATION_ERROR", issues: x.issues ?? [] }); if (x.code === "P7502")
+    return r.code(409).send({ error: "MONTHLY_PERIOD_EXISTS" }); if (x.code === "P7501")
     return r.code(409).send({ error: "FAMILY_ARCHIVED" }); if (x.code === "23503")
     return r.code(409).send({ error: "RELATED_RECORD_EXISTS" }); if (x.code === "23505")
     return r.code(409).send({ error: "DUPLICATE_VALUE" }); app.log.error(e); return r.code(500).send({ error: "INTERNAL_ERROR" }); }); await app.register(cookie); app.addHook("onRequest", async (req) => requestStarted(req)); app.addHook("onResponse", async (req, reply) => requestFinished(req, reply.statusCode)); app.addHook("onError", async () => requestErrored()); app.addHook("onSend", async (_req, reply, payload) => { if (_req.url.startsWith("/api/") || _req.url.startsWith("/auth/"))
@@ -55,5 +57,5 @@ export async function buildApp(o: {
 }
 catch {
     return r.code(503).send({ ok: false, checks: { process: "up", database: "down" } });
-} }); await registerAuthRoutes(app); await registerPublicSupportRoutes(app); await app.register(async (api) => { await api.register(registerFamilyRoutes); await api.register(registerFinancialRoutes); await api.register(registerFinancialAnalyticsRoutes); await api.register(registerOperationsRoutes); await api.register(registerOrganizationRoutes); await api.register(registerSupervisionRoutes); await api.register(registerApprovalRoutes); await api.register(registerActionRoutes); await api.register(registerSpecialistRoutes); await api.register(registerFinancialSourceRoutes); await api.register(registerAlertRoutes); await api.register(registerMessageRoutes); await api.register(registerManagementRoutes); await api.register(registerComprehensiveRoutes); await api.register(registerSecurityRoutes); await api.register(registerDataMigrationRoutes); await api.register(registerUatRoutes); await api.register(registerOpsRoutes); await api.register(registerTrainingRoutes); await api.register(registerFutureRoutes); }, { prefix: "/api" }); if (o.serveStatic !== false)
+} }); await registerAuthRoutes(app); await registerPublicSupportRoutes(app); await app.register(async (api) => { await api.register(registerFamilyRoutes); await api.register(registerFinancialRoutes); await api.register(registerMonthlyRoutes); await api.register(registerFinancialAnalyticsRoutes); await api.register(registerOperationsRoutes); await api.register(registerOrganizationRoutes); await api.register(registerSupervisionRoutes); await api.register(registerApprovalRoutes); await api.register(registerActionRoutes); await api.register(registerSpecialistRoutes); await api.register(registerFinancialSourceRoutes); await api.register(registerAlertRoutes); await api.register(registerMessageRoutes); await api.register(registerManagementRoutes); await api.register(registerComprehensiveRoutes); await api.register(registerSecurityRoutes); await api.register(registerDataMigrationRoutes); await api.register(registerUatRoutes); await api.register(registerOpsRoutes); await api.register(registerTrainingRoutes); await api.register(registerFutureRoutes); }, { prefix: "/api" }); if (o.serveStatic !== false)
     await app.register(staticPlugin, { root: resolve(dirname(fileURLToPath(import.meta.url)), "../public"), index: "index.html", wildcard: false }); return app; }

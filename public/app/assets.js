@@ -1,6 +1,6 @@
 /* Same-origin, code-owned asset map. One in-flight request per feature; failed loads can be retried. */
 (() => {
-  const definitions = Object.freeze({admin:'/app/admin.js',approval:'/approval-review.js',intelligence:'/app/financial-intelligence.js'});
+  const definitions = Object.freeze({admin:'/app/admin.js',approval:'/approval-review.js',intelligence:'/app/financial-intelligence.js',monthly:'/app/monthly.js',monthlyImage:'/app/monthly-invoice-image.js'});
   const loading = new Map();
   function load(name) {
     if(!Object.hasOwn(definitions,name))return Promise.reject(new Error('UNKNOWN_FEATURE'));
@@ -28,4 +28,5 @@
   }
   window.AppAssets=Object.freeze({load,register});
   register('intelligence',['openFinancialIntelligence']);
+  register('monthly',['openMonthlyRequests']);
 })();

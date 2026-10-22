@@ -25,6 +25,8 @@
   "lazy": {
     "admin": "/app/admin.js",
     "approval": "/approval-review.js",
-    "intelligence": "/app/financial-intelligence.js"
+    "intelligence": "/app/financial-intelligence.js",
+    "monthly": "/app/monthly.js",
+    "monthlyImage": "/app/monthly-invoice-image.js"
   }
 }
